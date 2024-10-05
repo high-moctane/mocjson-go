@@ -18,7 +18,10 @@ const (
 	LineFeed       = '\n'
 	CarriageReturn = '\r'
 	QuotationMark  = '"'
-	Backslash      = '\\'
+	ReverseSolidus = '\\'
+	Solidus        = '/'
+	Backspace      = '\b'
+	FormFeed       = '\f'
 )
 
 func isWhitespace(b byte) bool {
@@ -211,7 +214,7 @@ ReadLoop:
 		case QuotationMark:
 			break ReadLoop
 
-		case Backslash:
+		case ReverseSolidus:
 			// escape sequence
 
 			_, _ = r.Read(d.buf[idx : idx+1])
