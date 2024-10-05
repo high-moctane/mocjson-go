@@ -268,3 +268,57 @@ func BenchmarkDecoder_ExpectBool(b *testing.B) {
 		_, _ = dec.ExpectBool(&rr)
 	}
 }
+
+func TestDecoder_ExpectString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   []byte
+		want    string
+		wantErr bool
+	}{
+		{
+			name:  "empty",
+			input: []byte(`""`),
+			want:  "",
+		},
+		{
+			name:  "valid",
+			input: []byte(`"high-moctane"`),
+			want:  "high-moctane",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dec := NewDecoder()
+
+			r := NewReader(bytes.NewReader(tt.input))
+
+			got, err := dec.ExpectString(&r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnmarshalString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkDecoder_ExpectString(b *testing.B) {
+	dec := NewDecoder()
+	r := bytes.NewReader([]byte(`"high-moctane"`))
+	rr := NewReader(r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+		rr.reset()
+		_, _ = dec.ExpectString(&rr)
+	}
+}

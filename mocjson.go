@@ -17,6 +17,8 @@ const (
 	HorizontalTab  = '\t'
 	LineFeed       = '\n'
 	CarriageReturn = '\r'
+	DoubleQuote    = '"'
+	Backslash      = '\\'
 )
 
 func isWhitespace(b byte) bool {
@@ -184,4 +186,32 @@ func (d *Decoder) ExpectBool(r *Reader) (bool, error) {
 	}
 
 	return false, fmt.Errorf("invalid bool value")
+}
+
+func (d *Decoder) ExpectString(r *Reader) (string, error) {
+	if _, err := r.Read(d.buf[:1]); err != nil {
+		return "", fmt.Errorf("read error: %v", err)
+	}
+	if d.buf[0] != DoubleQuote {
+		return "", fmt.Errorf("invalid string value")
+	}
+
+	idx := 0
+	for {
+		b, err := r.Peek()
+		if err != nil {
+			if err == io.EOF {
+				return "", fmt.Errorf("unexpected EOF")
+			}
+			return "", fmt.Errorf("peek error: %v", err)
+		}
+		if b == DoubleQuote {
+			break
+		}
+
+		_, _ = r.Read(d.buf[idx : idx+1])
+		idx++
+	}
+
+	return string(d.buf[:idx]), nil
 }
