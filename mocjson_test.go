@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+func (r *PeekReader) reset() {
+	r.peeked = false
+}
+
 func TestDecoder_ExpectNull(t *testing.T) {
 	t.Parallel()
 
@@ -46,9 +50,9 @@ func TestDecoder_ExpectNull(t *testing.T) {
 
 			var dec Decoder
 
-			r := bytes.NewReader(tt.input)
+			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			if err := dec.ExpectNull(r); (err != nil) != tt.wantErr {
+			if err := dec.ExpectNull(&r); (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -58,11 +62,13 @@ func TestDecoder_ExpectNull(t *testing.T) {
 func BenchmarkDecoder_ExpectNull(b *testing.B) {
 	var dec Decoder
 	r := bytes.NewReader([]byte("null"))
+	pr := NewPeekReader(r)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
-		_ = dec.ExpectNull(r)
+		pr.reset()
+		_ = dec.ExpectNull(&pr)
 	}
 }
 
@@ -131,9 +137,9 @@ func TestDecoder_ExpectBool(t *testing.T) {
 
 			var dec Decoder
 
-			r := bytes.NewReader(tt.input)
+			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectBool(r)
+			got, err := dec.ExpectBool(&r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -148,10 +154,12 @@ func TestDecoder_ExpectBool(t *testing.T) {
 func BenchmarkDecoder_ExpectBool(b *testing.B) {
 	var dec Decoder
 	r := bytes.NewReader([]byte("false"))
+	pr := NewPeekReader(r)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
-		_, _ = dec.ExpectBool(r)
+		pr.reset()
+		_, _ = dec.ExpectBool(&pr)
 	}
 }
