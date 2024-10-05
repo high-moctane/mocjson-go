@@ -19,6 +19,10 @@ const (
 	CarriageReturn = '\r'
 )
 
+func isWhitespace(b byte) bool {
+	return b == Space || b == HorizontalTab || b == LineFeed || b == CarriageReturn
+}
+
 type Reader struct {
 	r      io.Reader
 	buf    [1]byte
@@ -65,6 +69,28 @@ func (r *Reader) Read(b []byte) (int, error) {
 	}
 
 	return r.r.Read(b)
+}
+
+func (r *Reader) ConsumeWhitespace() error {
+	if r.peeked {
+		if !isWhitespace(r.buf[0]) {
+			return nil
+		}
+		r.peeked = false
+	}
+
+	for {
+		if err := r.readIntoBuf(); err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		if !isWhitespace(r.buf[0]) {
+			r.peeked = true
+			return nil
+		}
+	}
 }
 
 type Decoder struct {
