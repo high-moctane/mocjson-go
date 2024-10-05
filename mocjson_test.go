@@ -18,6 +18,117 @@ func Benchmark_isWhitespace(b *testing.B) {
 	}
 }
 
+func Test_readRuneBytes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   []byte
+		want    int
+		wantErr bool
+		wantBuf []byte
+	}{
+		{
+			name:    "empty",
+			input:   []byte(""),
+			want:    0,
+			wantErr: true,
+			wantBuf: []byte{255, 255, 255, 255, 255},
+		},
+		{
+			name:    "single byte: one rune",
+			input:   []byte("a"),
+			want:    1,
+			wantErr: false,
+			wantBuf: []byte{'a', 255, 255, 255, 255},
+		},
+		{
+			name:    "single byte: two runes",
+			input:   []byte("ab"),
+			want:    1,
+			wantErr: false,
+			wantBuf: []byte{'a', 255, 255, 255, 255},
+		},
+		{
+			name:    "two bytes: one rune",
+			input:   []byte("ä"),
+			want:    2,
+			wantErr: false,
+			wantBuf: []byte{195, 164, 255, 255, 255},
+		},
+		{
+			name:    "two bytes: two runes",
+			input:   []byte("äb"),
+			want:    2,
+			wantErr: false,
+			wantBuf: []byte{195, 164, 255, 255, 255},
+		},
+		{
+			name:    "three bytes: one rune",
+			input:   []byte("€"),
+			want:    3,
+			wantErr: false,
+			wantBuf: []byte{226, 130, 172, 255, 255},
+		},
+		{
+			name:    "three bytes: two runes",
+			input:   []byte("€b"),
+			want:    3,
+			wantErr: false,
+			wantBuf: []byte{226, 130, 172, 255, 255},
+		},
+		{
+			name:    "four bytes: one rune",
+			input:   []byte("🎼"),
+			want:    4,
+			wantErr: false,
+			wantBuf: []byte{240, 159, 142, 188, 255},
+		},
+		{
+			name:    "four bytes: two runes",
+			input:   []byte("🎼b"),
+			want:    4,
+			wantErr: false,
+			wantBuf: []byte{240, 159, 142, 188, 255},
+		},
+		{
+			name:    "invalid: one byte",
+			input:   []byte{255},
+			want:    1,
+			wantErr: true,
+			wantBuf: []byte{255, 255, 255, 255, 255},
+		},
+		{
+			name:    "invalid: two bytes",
+			input:   []byte{195, 254},
+			want:    2,
+			wantErr: true,
+			wantBuf: []byte{195, 254, 255, 255, 255},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := NewPeekReader(bytes.NewReader(tt.input))
+			buf := []byte{255, 255, 255, 255, 255}
+
+			got, err := readRuneBytes(&r, buf)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("readRuneBytes() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("readRuneBytes() = %v, want %v", got, tt.want)
+			}
+			if !bytes.Equal(buf, tt.wantBuf) {
+				t.Errorf("readRuneBytes() buf = %v, want %v", buf, tt.wantBuf)
+			}
+		})
+	}
+}
+
 func TestDecoder_ExpectNull(t *testing.T) {
 	t.Parallel()
 
