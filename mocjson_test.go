@@ -293,6 +293,11 @@ func TestDecoder_ExpectString(t *testing.T) {
 			input: []byte(`"\"high\"\"moctane\""`),
 			want:  `"high""moctane"`,
 		},
+		{
+			name:  "valid: with backslash escape",
+			input: []byte(`"\"\\\/\b\f\n\r\t"`),
+			want:  "\"\\/\b\f\n\r\t",
+		},
 		// {
 		// 	name:  "valid: with backslash escape",
 		// 	input: []byte(`"\"\\\/\b\f\n\r\t\uD834\uDD1E"`),
