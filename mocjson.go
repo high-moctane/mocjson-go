@@ -230,42 +230,33 @@ ReadLoop:
 			case QuotationMark, ReverseSolidus, Solidus:
 				// can be appended as is
 				_, _ = r.Read(d.buf[idx : idx+1])
-				idx++
-				continue ReadLoop
 
 			case 'b':
 				_, _ = r.Read(d.buf[idx : idx+1])
 				d.buf[idx] = Backspace
-				idx++
-				continue ReadLoop
 
 			case 'f':
 				_, _ = r.Read(d.buf[idx : idx+1])
 				d.buf[idx] = FormFeed
-				idx++
-				continue ReadLoop
 
 			case 'n':
 				_, _ = r.Read(d.buf[idx : idx+1])
 				d.buf[idx] = LineFeed
-				idx++
-				continue ReadLoop
 
 			case 'r':
 				_, _ = r.Read(d.buf[idx : idx+1])
 				d.buf[idx] = CarriageReturn
-				idx++
-				continue ReadLoop
 
 			case 't':
 				_, _ = r.Read(d.buf[idx : idx+1])
 				d.buf[idx] = HorizontalTab
-				idx++
-				continue ReadLoop
 
 			default:
 				return "", fmt.Errorf("invalid escape sequence")
 			}
+
+			idx++
+			continue ReadLoop
 		}
 
 		_, _ = r.Read(d.buf[idx : idx+1])
