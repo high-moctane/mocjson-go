@@ -197,6 +197,8 @@ func (d *Decoder) ExpectString(r *Reader) (string, error) {
 	}
 
 	idx := 0
+
+ReadLoop:
 	for {
 		b, err := r.Peek()
 		if err != nil {
@@ -205,8 +207,9 @@ func (d *Decoder) ExpectString(r *Reader) (string, error) {
 			}
 			return "", fmt.Errorf("peek error: %v", err)
 		}
-		if b == DoubleQuote {
-			break
+		switch b {
+		case DoubleQuote:
+			break ReadLoop
 		}
 
 		_, _ = r.Read(d.buf[idx : idx+1])
