@@ -98,40 +98,6 @@ func (r *Reader) ConsumeWhitespace() error {
 	}
 }
 
-type EscapedStringReader struct {
-	r        *Reader
-	escaping bool
-}
-
-func NewEscapedStringReader(r *Reader) EscapedStringReader {
-	return EscapedStringReader{r: r}
-}
-
-func (r *EscapedStringReader) Read(b []byte) (int, error) {
-	for i := range len(b) {
-		n, err := r.r.Read(b[i : i+1])
-		if err != nil {
-			return i + n, err
-		}
-
-		switch b[i] {
-		case QuotationMark:
-			if !r.escaping {
-				return i + n, io.EOF
-			}
-			r.escaping = false
-
-		case ReverseSolidus:
-			r.escaping = !r.escaping
-
-		default:
-			r.escaping = false
-		}
-	}
-
-	return len(b), nil
-}
-
 type Decoder struct {
 	buf     []byte
 	bufinit [2 << 10]byte
