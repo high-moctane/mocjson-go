@@ -409,6 +409,11 @@ func TestDecoder_ExpectString(t *testing.T) {
 			want:  "high-moctane",
 		},
 		{
+			name:  "valid: multi-byte",
+			input: []byte(`"灰木炭"`),
+			want:  "灰木炭",
+		},
+		{
 			name:  "valid: with double quote escape",
 			input: []byte(`"\"high\"\"moctane\""`),
 			want:  `"high""moctane"`,
@@ -423,6 +428,11 @@ func TestDecoder_ExpectString(t *testing.T) {
 		// 	input: []byte(`"\"\\\/\b\f\n\r\t\uD834\uDD1E"`),
 		// 	want:  "\"\\/\b\f\n\r\t🎼",
 		// },
+		{
+			name:    "invalid: corrupted utf-8",
+			input:   []byte(`"high-moctane\xFF"`),
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
