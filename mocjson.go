@@ -57,7 +57,7 @@ type Decoder struct {
 	buf [2 << 10]byte
 }
 
-func (d *Decoder) ExpectNull(r io.Reader) error {
+func (d *Decoder) ExpectNull(r *PeekReader) error {
 	if _, err := r.Read(d.buf[:4]); err != nil {
 		return fmt.Errorf("read error: %v", err)
 	}
@@ -67,7 +67,7 @@ func (d *Decoder) ExpectNull(r io.Reader) error {
 	return nil
 }
 
-func (d *Decoder) ExpectBool(r io.Reader) (bool, error) {
+func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return false, fmt.Errorf("read error: %v", err)
 	}
