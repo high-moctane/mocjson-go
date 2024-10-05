@@ -25,6 +25,13 @@ const (
 	FormFeed       = '\f'
 )
 
+var whitespaceMaskTable = [256]bool{
+	Space:          true,
+	HorizontalTab:  true,
+	LineFeed:       true,
+	CarriageReturn: true,
+}
+
 const whitespaceMask = 1<<Space | 1<<HorizontalTab | 1<<LineFeed | 1<<CarriageReturn
 
 func isWhitespace(b byte) bool {
@@ -77,6 +84,30 @@ func (r *PeekReader) Read(b []byte) (int, error) {
 	}
 
 	return r.r.Read(b)
+}
+
+func readExpectedByte(r *PeekReader, buf []byte, expected byte) error {
+	b, err := r.Peek()
+	if err != nil {
+		return err
+	}
+	if b != expected {
+		return fmt.Errorf("unexpected byte: %c", b)
+	}
+	_, _ = r.Read(buf[:1])
+	return nil
+}
+
+func readExpectedByteMask(r *PeekReader, buf []byte, expected *[256]bool) (byte, error) {
+	b, err := r.Peek()
+	if err != nil {
+		return 0, err
+	}
+	if !expected[b] {
+		return 0, fmt.Errorf("unexpected byte: %c", b)
+	}
+	_, _ = r.Read(buf[:1])
+	return b, nil
 }
 
 func consumeWhitespace(r *PeekReader) error {
