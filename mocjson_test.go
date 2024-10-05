@@ -7,7 +7,7 @@ import (
 	"github.com/high-moctane/mocjson-go"
 )
 
-func TestExpectBool(t *testing.T) {
+func TestDecoder_ExpectBool(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -70,9 +70,11 @@ func TestExpectBool(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			var dec mocjson.Decoder
+
 			r := bytes.NewReader(tt.input)
 
-			got, err := mocjson.ExpectBool(r)
+			got, err := dec.ExpectBool(r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -84,12 +86,13 @@ func TestExpectBool(t *testing.T) {
 	}
 }
 
-func BenchmarkExpectBool(b *testing.B) {
+func BenchmarkDecoder_ExpectBool(b *testing.B) {
+	var dec mocjson.Decoder
 	r := bytes.NewReader([]byte("false"))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
-		_, _ = mocjson.ExpectBool(r)
+		_, _ = dec.ExpectBool(r)
 	}
 }
