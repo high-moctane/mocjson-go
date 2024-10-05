@@ -81,7 +81,7 @@ func TestDecoder_ExpectNull(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var dec Decoder
+			dec := NewDecoder()
 
 			r := NewReader(bytes.NewReader(tt.input))
 
@@ -93,7 +93,7 @@ func TestDecoder_ExpectNull(t *testing.T) {
 }
 
 func BenchmarkDecoder_ExpectNull(b *testing.B) {
-	var dec Decoder
+	dec := NewDecoder()
 	r := bytes.NewReader([]byte("null"))
 	rr := NewReader(r)
 
@@ -240,7 +240,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var dec Decoder
+			dec := NewDecoder()
 
 			r := NewReader(bytes.NewReader(tt.input))
 
@@ -257,7 +257,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 }
 
 func BenchmarkDecoder_ExpectBool(b *testing.B) {
-	var dec Decoder
+	dec := NewDecoder()
 	r := bytes.NewReader([]byte("false"))
 	rr := NewReader(r)
 

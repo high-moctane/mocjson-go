@@ -94,7 +94,14 @@ func (r *Reader) ConsumeWhitespace() error {
 }
 
 type Decoder struct {
-	buf [2 << 10]byte
+	buf     []byte
+	bufinit [2 << 10]byte
+}
+
+func NewDecoder() Decoder {
+	ret := Decoder{}
+	ret.buf = ret.bufinit[:]
+	return ret
 }
 
 func (d *Decoder) ExpectNull(r *Reader) error {
