@@ -5,6 +5,54 @@ import (
 	"io"
 )
 
+type PeekReader struct {
+	r      io.Reader
+	buf    [1]byte
+	peeked bool
+}
+
+func NewPeekReader(r io.Reader) PeekReader {
+	return PeekReader{r: r}
+}
+
+func (r *PeekReader) Peek() (byte, error) {
+	if r.peeked {
+		return r.buf[0], nil
+	}
+
+	if _, err := r.r.Read(r.buf[:]); err != nil {
+		return 0, fmt.Errorf("read error: %v", err)
+	}
+	r.peeked = true
+	return r.buf[0], nil
+}
+
+func (r *PeekReader) Read(b []byte) (int, error) {
+	if r.peeked {
+		if len(b) == 0 {
+			return 0, nil
+		}
+
+		r.peeked = false
+		b[0] = r.buf[0]
+		if len(b) == 1 {
+			return 1, nil
+		}
+
+		n, err := r.r.Read(b[1:])
+		if err != nil {
+			return n + 1, fmt.Errorf("read error: %v", err)
+		}
+		return n + 1, nil
+	}
+
+	n, err := r.r.Read(b)
+	if err != nil {
+		return n, fmt.Errorf("read error: %v", err)
+	}
+	return n, nil
+}
+
 type Decoder struct {
 	buf [2 << 10]byte
 }

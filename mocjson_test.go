@@ -1,10 +1,8 @@
-package mocjson_test
+package mocjson
 
 import (
 	"bytes"
 	"testing"
-
-	"github.com/high-moctane/mocjson-go"
 )
 
 func TestDecoder_ExpectNull(t *testing.T) {
@@ -46,7 +44,7 @@ func TestDecoder_ExpectNull(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var dec mocjson.Decoder
+			var dec Decoder
 
 			r := bytes.NewReader(tt.input)
 
@@ -58,7 +56,7 @@ func TestDecoder_ExpectNull(t *testing.T) {
 }
 
 func BenchmarkDecoder_ExpectNull(b *testing.B) {
-	var dec mocjson.Decoder
+	var dec Decoder
 	r := bytes.NewReader([]byte("null"))
 
 	b.ResetTimer()
@@ -131,7 +129,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var dec mocjson.Decoder
+			var dec Decoder
 
 			r := bytes.NewReader(tt.input)
 
@@ -148,7 +146,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 }
 
 func BenchmarkDecoder_ExpectBool(b *testing.B) {
-	var dec mocjson.Decoder
+	var dec Decoder
 	r := bytes.NewReader([]byte("false"))
 
 	b.ResetTimer()
