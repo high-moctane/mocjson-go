@@ -29,12 +29,19 @@ func NewReader(r io.Reader) Reader {
 	return Reader{r: r}
 }
 
+func (r *Reader) readIntoBuf() error {
+	if _, err := r.r.Read(r.buf[:]); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *Reader) Peek() (byte, error) {
 	if r.peeked {
 		return r.buf[0], nil
 	}
 
-	if _, err := r.r.Read(r.buf[:]); err != nil {
+	if err := r.readIntoBuf(); err != nil {
 		return 0, err
 	}
 	r.peeked = true
