@@ -27,16 +27,33 @@ func TestDecoder_ExpectNull(t *testing.T) {
 			input: []byte("null}"),
 		},
 		{
+			name:  "null and end of token: Whitespace EndObject",
+			input: []byte("null \r\n\t}"),
+		},
+		{
 			name:  "null and end of token: EndArray",
 			input: []byte("null]"),
+		},
+		{
+			name:  "null and end of token: Whitespace EndArray",
+			input: []byte("null \r\n\t]"),
 		},
 		{
 			name:  "null and end of token: ValueSeparator",
 			input: []byte("null,"),
 		},
 		{
+			name:  "null and end of token: Whitespace ValueSeparator",
+			input: []byte("null \r\n\t,"),
+		},
+		{
 			name:    "null and some extra characters",
 			input:   []byte("nullabc"),
+			wantErr: true,
+		},
+		{
+			name:    "null and some extra characters: Whitespace",
+			input:   []byte("null \r\n\tabc"),
 			wantErr: true,
 		},
 		{
@@ -52,6 +69,11 @@ func TestDecoder_ExpectNull(t *testing.T) {
 		{
 			name:    "invalid",
 			input:   []byte("invalid"),
+			wantErr: true,
+		},
+		{
+			name:    "begin with whitespace",
+			input:   []byte(" \r\n\tnull"),
 			wantErr: true,
 		},
 	}

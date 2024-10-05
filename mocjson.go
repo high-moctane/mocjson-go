@@ -104,6 +104,11 @@ func (d *Decoder) ExpectNull(r *Reader) error {
 	if d.buf[0] != 'n' || d.buf[1] != 'u' || d.buf[2] != 'l' || d.buf[3] != 'l' {
 		return fmt.Errorf("invalid null value")
 	}
+
+	if err := r.ConsumeWhitespace(); err != nil {
+		return fmt.Errorf("consume whitespace error: %v", err)
+	}
+
 	b, err := r.Peek()
 	if err != nil {
 		if err == io.EOF {
