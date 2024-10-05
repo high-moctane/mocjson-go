@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func (r *Reader) reset() {
+func (r *PeekReader) reset() {
 	r.peeked = false
 }
 
@@ -83,7 +83,7 @@ func TestDecoder_ExpectNull(t *testing.T) {
 
 			dec := NewDecoder()
 
-			r := NewReader(bytes.NewReader(tt.input))
+			r := NewPeekReader(bytes.NewReader(tt.input))
 
 			if err := dec.ExpectNull(&r); (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, tt.wantErr)
@@ -95,7 +95,7 @@ func TestDecoder_ExpectNull(t *testing.T) {
 func BenchmarkDecoder_ExpectNull(b *testing.B) {
 	dec := NewDecoder()
 	r := bytes.NewReader([]byte("null"))
-	rr := NewReader(r)
+	rr := NewPeekReader(r)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -242,7 +242,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 
 			dec := NewDecoder()
 
-			r := NewReader(bytes.NewReader(tt.input))
+			r := NewPeekReader(bytes.NewReader(tt.input))
 
 			got, err := dec.ExpectBool(&r)
 			if (err != nil) != tt.wantErr {
@@ -259,7 +259,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 func BenchmarkDecoder_ExpectBool(b *testing.B) {
 	dec := NewDecoder()
 	r := bytes.NewReader([]byte("false"))
-	rr := NewReader(r)
+	rr := NewPeekReader(r)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -311,7 +311,7 @@ func TestDecoder_ExpectString(t *testing.T) {
 
 			dec := NewDecoder()
 
-			r := NewReader(bytes.NewReader(tt.input))
+			r := NewPeekReader(bytes.NewReader(tt.input))
 
 			got, err := dec.ExpectString(&r)
 			if (err != nil) != tt.wantErr {
@@ -328,7 +328,7 @@ func TestDecoder_ExpectString(t *testing.T) {
 func BenchmarkDecoder_ExpectString(b *testing.B) {
 	dec := NewDecoder()
 	r := bytes.NewReader([]byte(`"high-moctane"`))
-	rr := NewReader(r)
+	rr := NewPeekReader(r)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
