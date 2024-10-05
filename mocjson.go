@@ -78,7 +78,7 @@ func (r *PeekReader) Read(b []byte) (int, error) {
 	return r.r.Read(b)
 }
 
-func ConsumeWhitespace(r *PeekReader) error {
+func consumeWhitespace(r *PeekReader) error {
 	for {
 		b, err := r.Peek()
 		if err != nil {
@@ -113,7 +113,7 @@ func (d *Decoder) ExpectNull(r *PeekReader) error {
 		return fmt.Errorf("invalid null value")
 	}
 
-	if err := ConsumeWhitespace(r); err != nil {
+	if err := consumeWhitespace(r); err != nil {
 		return fmt.Errorf("consume whitespace error: %v", err)
 	}
 
@@ -143,7 +143,7 @@ func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 			return false, fmt.Errorf("invalid bool value")
 		}
 
-		if err := ConsumeWhitespace(r); err != nil {
+		if err := consumeWhitespace(r); err != nil {
 			return false, fmt.Errorf("consume whitespace error: %v", err)
 		}
 
@@ -167,7 +167,7 @@ func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 			return false, fmt.Errorf("invalid bool value")
 		}
 
-		if err := ConsumeWhitespace(r); err != nil {
+		if err := consumeWhitespace(r); err != nil {
 			return false, fmt.Errorf("consume whitespace error: %v", err)
 		}
 
