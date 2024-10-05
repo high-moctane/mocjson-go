@@ -135,6 +135,10 @@ func (d *Decoder) ExpectBool(r *Reader) (bool, error) {
 			return false, fmt.Errorf("invalid bool value")
 		}
 
+		if err := r.ConsumeWhitespace(); err != nil {
+			return false, fmt.Errorf("consume whitespace error: %v", err)
+		}
+
 		b, err := r.Peek()
 		if err != nil {
 			if err == io.EOF {
@@ -153,6 +157,10 @@ func (d *Decoder) ExpectBool(r *Reader) (bool, error) {
 		}
 		if d.buf[0] != 'a' || d.buf[1] != 'l' || d.buf[2] != 's' || d.buf[3] != 'e' {
 			return false, fmt.Errorf("invalid bool value")
+		}
+
+		if err := r.ConsumeWhitespace(); err != nil {
+			return false, fmt.Errorf("consume whitespace error: %v", err)
 		}
 
 		b, err := r.Peek()

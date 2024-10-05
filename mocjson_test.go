@@ -18,9 +18,8 @@ func TestDecoder_ExpectNull(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "null",
-			input:   []byte("null"),
-			wantErr: false,
+			name:  "null",
+			input: []byte("null"),
 		},
 		{
 			name:  "null and end of token: EndObject",
@@ -116,32 +115,49 @@ func TestDecoder_ExpectBool(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "true",
-			input:   []byte("true"),
-			want:    true,
-			wantErr: false,
+			name:  "true",
+			input: []byte("true"),
+			want:  true,
 		},
 		{
-			name:    "true and end of token: EndObject",
-			input:   []byte("true}"),
-			want:    true,
-			wantErr: false,
+			name:  "true and end of token: EndObject",
+			input: []byte("true}"),
+			want:  true,
 		},
 		{
-			name:    "true and end of token: EndArray",
-			input:   []byte("true]"),
-			want:    true,
-			wantErr: false,
+			name:  "true and end of token: Whitespace EndObject",
+			input: []byte("true \r\n\t}"),
+			want:  true,
 		},
 		{
-			name:    "true and end of token: ValueSeparator",
-			input:   []byte("true,"),
-			want:    true,
-			wantErr: false,
+			name:  "true and end of token: EndArray",
+			input: []byte("true]"),
+			want:  true,
+		},
+		{
+			name:  "true and end of token: Whitespace EndArray",
+			input: []byte("true \r\n\t]"),
+			want:  true,
+		},
+		{
+			name:  "true and end of token: ValueSeparator",
+			input: []byte("true,"),
+			want:  true,
+		},
+		{
+			name:  "true and end of token: Whitespace ValueSeparator",
+			input: []byte("true \r\n\t,"),
+			want:  true,
 		},
 		{
 			name:    "true and some extra characters",
 			input:   []byte("trueabc"),
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "true and some extra characters: Whitespace",
+			input:   []byte("true \r\n\tabc"),
 			want:    false,
 			wantErr: true,
 		},
@@ -152,22 +168,35 @@ func TestDecoder_ExpectBool(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "false",
-			input:   []byte("false"),
+			name:    "true: begin with whitespace",
+			input:   []byte(" \r\n\ttrue"),
 			want:    false,
-			wantErr: false,
+			wantErr: true,
 		},
 		{
-			name:    "false and end of token: EndObject",
-			input:   []byte("false}"),
-			want:    false,
-			wantErr: false,
+			name:  "false",
+			input: []byte("false"),
+			want:  false,
 		},
 		{
-			name:    "false and end of token: EndArray",
-			input:   []byte("false]"),
-			want:    false,
-			wantErr: false,
+			name:  "false and end of token: EndObject",
+			input: []byte("false}"),
+			want:  false,
+		},
+		{
+			name:  "false and end of token: Whitespace EndObject",
+			input: []byte("false \r\n\t}"),
+			want:  false,
+		},
+		{
+			name:  "false and end of token: EndArray",
+			input: []byte("false]"),
+			want:  false,
+		},
+		{
+			name:  "false and end of token: Whitespace EndArray",
+			input: []byte("false \r\n\t]"),
+			want:  false,
 		},
 		{
 			name:    "false and some extra characters",
@@ -176,8 +205,20 @@ func TestDecoder_ExpectBool(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "false and some extra characters: Whitespace",
+			input:   []byte("false \r\n\tabc"),
+			want:    false,
+			wantErr: true,
+		},
+		{
 			name:    "false: too short",
 			input:   []byte("fals"),
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "false: begin with whitespace",
+			input:   []byte(" \r\n\tfalse"),
 			want:    false,
 			wantErr: true,
 		},
