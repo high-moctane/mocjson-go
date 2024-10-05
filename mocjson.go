@@ -111,9 +111,6 @@ func (r *EscapedStringReader) Read(b []byte) (int, error) {
 	for i := range len(b) {
 		n, err := r.r.Read(b[i : i+1])
 		if err != nil {
-			if err == io.EOF {
-				return i + n, io.ErrUnexpectedEOF
-			}
 			return i + n, err
 		}
 
