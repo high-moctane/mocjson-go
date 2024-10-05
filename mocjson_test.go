@@ -288,6 +288,16 @@ func TestDecoder_ExpectString(t *testing.T) {
 			input: []byte(`"high-moctane"`),
 			want:  "high-moctane",
 		},
+		{
+			name:  "valid: with double quote escape",
+			input: []byte(`"\"high\"\"moctane\""`),
+			want:  `"high""moctane"`,
+		},
+		// {
+		// 	name:  "valid: with backslash escape",
+		// 	input: []byte(`"\"\\\/\b\f\n\r\t\uD834\uDD1E"`),
+		// 	want:  "\"\\/\b\f\n\r\t🎼",
+		// },
 	}
 
 	for _, tt := range tests {
@@ -304,7 +314,7 @@ func TestDecoder_ExpectString(t *testing.T) {
 				return
 			}
 			if got != tt.want {
-				t.Errorf("UnmarshalString() = %v, want %v", got, tt.want)
+				t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
 			}
 		})
 	}
@@ -321,4 +331,5 @@ func BenchmarkDecoder_ExpectString(b *testing.B) {
 		rr.reset()
 		_, _ = dec.ExpectString(&rr)
 	}
+
 }

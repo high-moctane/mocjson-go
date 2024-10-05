@@ -17,7 +17,7 @@ const (
 	HorizontalTab  = '\t'
 	LineFeed       = '\n'
 	CarriageReturn = '\r'
-	DoubleQuote    = '"'
+	QuotationMark  = '"'
 	Backslash      = '\\'
 )
 
@@ -192,7 +192,7 @@ func (d *Decoder) ExpectString(r *Reader) (string, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return "", fmt.Errorf("read error: %v", err)
 	}
-	if d.buf[0] != DoubleQuote {
+	if d.buf[0] != QuotationMark {
 		return "", fmt.Errorf("invalid string value")
 	}
 
@@ -208,8 +208,32 @@ ReadLoop:
 			return "", fmt.Errorf("peek error: %v", err)
 		}
 		switch b {
-		case DoubleQuote:
+		case QuotationMark:
 			break ReadLoop
+
+		case Backslash:
+			// escape sequence
+
+			_, _ = r.Read(d.buf[idx : idx+1])
+			bb, err := r.Peek()
+			if err != nil {
+				if err == io.EOF {
+					return "", fmt.Errorf("unexpected EOF")
+				}
+				return "", fmt.Errorf("peek error: %v", err)
+			}
+
+			switch bb {
+			case QuotationMark:
+				d.buf[idx] = QuotationMark
+				_, _ = r.Read(d.buf[idx : idx+1])
+				idx++
+				continue ReadLoop
+
+			default:
+				return "", fmt.Errorf("invalid escape sequence")
+			}
+
 		}
 
 		_, _ = r.Read(d.buf[idx : idx+1])
