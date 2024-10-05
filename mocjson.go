@@ -96,6 +96,17 @@ func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 		if d.buf[0] != 'r' || d.buf[1] != 'u' || d.buf[2] != 'e' {
 			return false, fmt.Errorf("invalid bool value")
 		}
+
+		b, err := r.Peek()
+		if err != nil {
+			if err == io.EOF {
+				return true, nil
+			}
+			return false, fmt.Errorf("peek error: %v", err)
+		}
+		if b != EndObject && b != EndArray && b != ValueSeparator {
+			return false, fmt.Errorf("invalid bool value")
+		}
 		return true, nil
 
 	case 'f':
@@ -103,6 +114,17 @@ func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 			return false, fmt.Errorf("read error: %v", err)
 		}
 		if d.buf[0] != 'a' || d.buf[1] != 'l' || d.buf[2] != 's' || d.buf[3] != 'e' {
+			return false, fmt.Errorf("invalid bool value")
+		}
+
+		b, err := r.Peek()
+		if err != nil {
+			if err == io.EOF {
+				return false, nil
+			}
+			return false, fmt.Errorf("peek error: %v", err)
+		}
+		if b != EndObject && b != EndArray && b != ValueSeparator {
 			return false, fmt.Errorf("invalid bool value")
 		}
 		return false, nil

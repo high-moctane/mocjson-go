@@ -100,10 +100,28 @@ func TestDecoder_ExpectBool(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "true and some extra characters",
-			input:   []byte("trueabc"),
+			name:    "true and end of token: EndObject",
+			input:   []byte("true}"),
 			want:    true,
 			wantErr: false,
+		},
+		{
+			name:    "true and end of token: EndArray",
+			input:   []byte("true]"),
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "true and end of token: ValueSeparator",
+			input:   []byte("true,"),
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "true and some extra characters",
+			input:   []byte("trueabc"),
+			want:    false,
+			wantErr: true,
 		},
 		{
 			name:    "true: too short",
@@ -118,10 +136,22 @@ func TestDecoder_ExpectBool(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "false and end of token: EndObject",
+			input:   []byte("false}"),
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "false and end of token: EndArray",
+			input:   []byte("false]"),
+			want:    false,
+			wantErr: false,
+		},
+		{
 			name:    "false and some extra characters",
 			input:   []byte("falseabc"),
 			want:    false,
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "false: too short",
