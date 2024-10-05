@@ -19,20 +19,6 @@ const (
 	CarriageReturn = '\r'
 )
 
-func isEndOfToken(b byte) bool {
-	return b == EOF ||
-		b == BeginArray ||
-		b == BeginObject ||
-		b == EndArray ||
-		b == EndObject ||
-		b == NameSeparator ||
-		b == ValueSeparator ||
-		b == Space ||
-		b == HorizontalTab ||
-		b == LineFeed ||
-		b == CarriageReturn
-}
-
 type PeekReader struct {
 	r      io.Reader
 	buf    [1]byte
@@ -49,7 +35,7 @@ func (r *PeekReader) Peek() (byte, error) {
 	}
 
 	if _, err := r.r.Read(r.buf[:]); err != nil {
-		return 0, fmt.Errorf("read error: %v", err)
+		return 0, err
 	}
 	r.peeked = true
 	return r.buf[0], nil
@@ -68,17 +54,10 @@ func (r *PeekReader) Read(b []byte) (int, error) {
 		}
 
 		n, err := r.r.Read(b[1:])
-		if err != nil {
-			return n + 1, fmt.Errorf("read error: %v", err)
-		}
-		return n + 1, nil
+		return n + 1, err
 	}
 
-	n, err := r.r.Read(b)
-	if err != nil {
-		return n, fmt.Errorf("read error: %v", err)
-	}
-	return n, nil
+	return r.r.Read(b)
 }
 
 type Decoder struct {
@@ -90,6 +69,16 @@ func (d *Decoder) ExpectNull(r *PeekReader) error {
 		return fmt.Errorf("read error: %v", err)
 	}
 	if d.buf[0] != 'n' || d.buf[1] != 'u' || d.buf[2] != 'l' || d.buf[3] != 'l' {
+		return fmt.Errorf("invalid null value")
+	}
+	b, err := r.Peek()
+	if err != nil {
+		if err == io.EOF {
+			return nil
+		}
+		return fmt.Errorf("peek error: %v", err)
+	}
+	if b != EndObject && b != EndArray && b != ValueSeparator {
 		return fmt.Errorf("invalid null value")
 	}
 	return nil

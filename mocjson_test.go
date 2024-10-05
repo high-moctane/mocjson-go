@@ -23,9 +23,21 @@ func TestDecoder_ExpectNull(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:  "null and end of token: EndObject",
+			input: []byte("null}"),
+		},
+		{
+			name:  "null and end of token: EndArray",
+			input: []byte("null]"),
+		},
+		{
+			name:  "null and end of token: ValueSeparator",
+			input: []byte("null,"),
+		},
+		{
 			name:    "null and some extra characters",
 			input:   []byte("nullabc"),
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name:    "null: too short",
