@@ -5,6 +5,19 @@ import (
 	"io"
 )
 
+const (
+	BeginArray     = '['
+	BeginObject    = '{'
+	EndArray       = ']'
+	EndObject      = '}'
+	NameSeparator  = ':'
+	ValueSeparator = ','
+	Space          = ' '
+	HorizontalTab  = '\t'
+	LineFeed       = '\n'
+	CarriageReturn = '\r'
+)
+
 type PeekReader struct {
 	r      io.Reader
 	buf    [1]byte
