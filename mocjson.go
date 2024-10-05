@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	EOF            = '\x00'
 	BeginArray     = '['
 	BeginObject    = '{'
 	EndArray       = ']'
@@ -17,6 +18,20 @@ const (
 	LineFeed       = '\n'
 	CarriageReturn = '\r'
 )
+
+func isEndOfToken(b byte) bool {
+	return b == EOF ||
+		b == BeginArray ||
+		b == BeginObject ||
+		b == EndArray ||
+		b == EndObject ||
+		b == NameSeparator ||
+		b == ValueSeparator ||
+		b == Space ||
+		b == HorizontalTab ||
+		b == LineFeed ||
+		b == CarriageReturn
+}
 
 type PeekReader struct {
 	r      io.Reader
