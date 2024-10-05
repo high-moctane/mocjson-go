@@ -244,64 +244,57 @@ func (d *Decoder) ExpectString(r *PeekReader) (string, error) {
 
 ReadLoop:
 	for {
-		b, err := r.Peek()
+		n, err := readRuneBytes(r, d.buf[idx:])
 		if err != nil {
-			if err == io.EOF {
-				return "", fmt.Errorf("unexpected EOF")
-			}
-			return "", fmt.Errorf("peek error: %v", err)
+			return "", fmt.Errorf("read rune error: %v", err)
 		}
-		switch b {
-		case QuotationMark:
-			break ReadLoop
 
-		case ReverseSolidus:
-			// escape sequence
+		if n == 1 {
+			switch d.buf[idx] {
+			case QuotationMark:
+				break ReadLoop
 
-			_, _ = r.Read(d.buf[idx : idx+1])
-			bb, err := r.Peek()
-			if err != nil {
-				if err == io.EOF {
-					return "", fmt.Errorf("unexpected EOF")
+			case ReverseSolidus:
+				b, err := r.Peek()
+				if err != nil {
+					return "", fmt.Errorf("read error: %v", err)
 				}
-				return "", fmt.Errorf("peek error: %v", err)
+
+				switch b {
+				case QuotationMark, ReverseSolidus, Solidus:
+					// can be read as is
+					_, _ = r.Read(d.buf[idx : idx+1])
+
+				case 'b':
+					_, _ = r.Read(d.buf[idx : idx+1])
+					d.buf[idx] = Backspace
+
+				case 'f':
+					_, _ = r.Read(d.buf[idx : idx+1])
+					d.buf[idx] = FormFeed
+
+				case 'n':
+					_, _ = r.Read(d.buf[idx : idx+1])
+					d.buf[idx] = LineFeed
+
+				case 'r':
+					_, _ = r.Read(d.buf[idx : idx+1])
+					d.buf[idx] = CarriageReturn
+
+				case 't':
+					_, _ = r.Read(d.buf[idx : idx+1])
+					d.buf[idx] = HorizontalTab
+
+				default:
+					return "", fmt.Errorf("invalid escape sequence")
+				}
+
+				idx++
+				continue ReadLoop
 			}
-
-			switch bb {
-			case QuotationMark, ReverseSolidus, Solidus:
-				// can be appended as is
-				_, _ = r.Read(d.buf[idx : idx+1])
-
-			case 'b':
-				_, _ = r.Read(d.buf[idx : idx+1])
-				d.buf[idx] = Backspace
-
-			case 'f':
-				_, _ = r.Read(d.buf[idx : idx+1])
-				d.buf[idx] = FormFeed
-
-			case 'n':
-				_, _ = r.Read(d.buf[idx : idx+1])
-				d.buf[idx] = LineFeed
-
-			case 'r':
-				_, _ = r.Read(d.buf[idx : idx+1])
-				d.buf[idx] = CarriageReturn
-
-			case 't':
-				_, _ = r.Read(d.buf[idx : idx+1])
-				d.buf[idx] = HorizontalTab
-
-			default:
-				return "", fmt.Errorf("invalid escape sequence")
-			}
-
-			idx++
-			continue ReadLoop
 		}
 
-		_, _ = r.Read(d.buf[idx : idx+1])
-		idx++
+		idx += n
 	}
 
 	return string(d.buf[:idx]), nil
