@@ -3,6 +3,7 @@ package mocjson
 import (
 	"fmt"
 	"io"
+	"unicode/utf8"
 )
 
 const (
@@ -92,6 +93,50 @@ func consumeWhitespace(r *PeekReader) error {
 		}
 		_, _ = r.Read(r.buf[:])
 	}
+}
+
+func readRuneBytes(r *PeekReader, buf []byte) (int, error) {
+	_, err := r.Read(buf[:1])
+	if err != nil {
+		return 0, err
+	}
+
+	if !utf8.RuneStart(buf[0]) {
+		return 1, fmt.Errorf("invalid utf-8 sequence")
+	}
+
+	if buf[0] < utf8.RuneSelf {
+		return 1, nil
+	}
+
+	idx := 1
+	for ; ; idx++ {
+		_, err = r.Read(buf[idx : idx+1])
+		if err != nil {
+			return idx, err
+		}
+
+		b, err := r.Peek()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return idx + 1, err
+		}
+
+		if utf8.RuneStart(b) {
+			break
+		}
+		if idx == utf8.UTFMax-1 {
+			return idx + 1, fmt.Errorf("invalid utf-8 sequence")
+		}
+	}
+
+	if !utf8.Valid(buf[:idx+1]) {
+		return idx + 1, fmt.Errorf("invalid utf-8 sequence")
+	}
+
+	return idx + 1, nil
 }
 
 type Decoder struct {
