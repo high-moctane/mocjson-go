@@ -17,3 +17,8 @@ test:
 .PHONY: bench
 bench:
 	go test -bench=. ./... -benchmem
+
+
+.PHONY: analyze
+analyze:
+	go build -gcflags="-m" ./...
