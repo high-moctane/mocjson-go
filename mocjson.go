@@ -24,8 +24,10 @@ const (
 	FormFeed       = '\f'
 )
 
+const whitespaceMask = 1<<Space | 1<<HorizontalTab | 1<<LineFeed | 1<<CarriageReturn
+
 func isWhitespace(b byte) bool {
-	return b == Space || b == HorizontalTab || b == LineFeed || b == CarriageReturn
+	return whitespaceMask&(1<<b) != 0
 }
 
 type PeekReader struct {

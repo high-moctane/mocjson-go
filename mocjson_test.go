@@ -9,6 +9,15 @@ func (r *PeekReader) reset() {
 	r.peeked = false
 }
 
+func Benchmark_isWhitespace(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for j := range 256 {
+			isWhitespace(byte(j))
+		}
+	}
+}
+
 func TestDecoder_ExpectNull(t *testing.T) {
 	t.Parallel()
 
