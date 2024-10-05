@@ -28,24 +28,24 @@ func isWhitespace(b byte) bool {
 	return b == Space || b == HorizontalTab || b == LineFeed || b == CarriageReturn
 }
 
-type Reader struct {
+type PeekReader struct {
 	r      io.Reader
 	buf    [1]byte
 	peeked bool
 }
 
-func NewReader(r io.Reader) Reader {
-	return Reader{r: r}
+func NewPeekReader(r io.Reader) PeekReader {
+	return PeekReader{r: r}
 }
 
-func (r *Reader) readIntoBuf() error {
+func (r *PeekReader) readIntoBuf() error {
 	if _, err := r.r.Read(r.buf[:]); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *Reader) Peek() (byte, error) {
+func (r *PeekReader) Peek() (byte, error) {
 	if r.peeked {
 		return r.buf[0], nil
 	}
@@ -57,7 +57,7 @@ func (r *Reader) Peek() (byte, error) {
 	return r.buf[0], nil
 }
 
-func (r *Reader) Read(b []byte) (int, error) {
+func (r *PeekReader) Read(b []byte) (int, error) {
 	if r.peeked {
 		if len(b) == 0 {
 			return 0, nil
@@ -76,7 +76,7 @@ func (r *Reader) Read(b []byte) (int, error) {
 	return r.r.Read(b)
 }
 
-func ConsumeWhitespace(r *Reader) error {
+func ConsumeWhitespace(r *PeekReader) error {
 	for {
 		b, err := r.Peek()
 		if err != nil {
@@ -103,7 +103,7 @@ func NewDecoder() Decoder {
 	return ret
 }
 
-func (d *Decoder) ExpectNull(r *Reader) error {
+func (d *Decoder) ExpectNull(r *PeekReader) error {
 	if _, err := r.Read(d.buf[:4]); err != nil {
 		return fmt.Errorf("read error: %v", err)
 	}
@@ -128,7 +128,7 @@ func (d *Decoder) ExpectNull(r *Reader) error {
 	return nil
 }
 
-func (d *Decoder) ExpectBool(r *Reader) (bool, error) {
+func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return false, fmt.Errorf("read error: %v", err)
 	}
@@ -185,7 +185,7 @@ func (d *Decoder) ExpectBool(r *Reader) (bool, error) {
 	return false, fmt.Errorf("invalid bool value")
 }
 
-func (d *Decoder) ExpectString(r *Reader) (string, error) {
+func (d *Decoder) ExpectString(r *PeekReader) (string, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return "", fmt.Errorf("read error: %v", err)
 	}
