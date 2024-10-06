@@ -368,7 +368,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := ExpectBool(&dec, &r)
+			got, err := ExpectBool[bool](&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -389,7 +389,7 @@ func BenchmarkDecoder_ExpectBool(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = ExpectBool(&dec, &rr)
+		_, _ = ExpectBool[bool](&dec, &rr)
 	}
 }
 
