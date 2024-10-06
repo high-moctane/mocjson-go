@@ -430,7 +430,7 @@ func TestDecoder_ExpectString(t *testing.T) {
 		},
 		{
 			name:    "invalid: corrupted utf-8",
-			input:   []byte(`"high-moctane\xFF"`),
+			input:   []byte{'"', 0xff, 0xff, 0xff, 0xff, '"'},
 			wantErr: true,
 		},
 	}
