@@ -27,11 +27,10 @@ const (
 	FormFeed       = '\f'
 )
 
-const is64Bit = ^uint(0) >> 63
-
-var (
-	intDigitLen  = [2]int{10, 19}
-	uintDigitLen = [2]int{10, 20}
+const (
+	is64Bit      = int(^uint(0) >> 63)
+	intDigitLen  = 10 + 9*is64Bit
+	uintDigitLen = 10 + 10*is64Bit
 )
 
 type ByteMask [4]uint64
@@ -502,7 +501,7 @@ func (d *Decoder) ExpectInt(r *PeekReader) (int, error) {
 
 	idx := 1
 	ret = sign * digitToValue[int](d.buf[0])
-	for ; idx < intDigitLen[is64Bit]-1; idx++ {
+	for ; idx < intDigitLen-1; idx++ {
 		b, ok, err := peekExpectedByteMask(r, digitByteMask)
 		if err != nil {
 			return 0, fmt.Errorf("peek error: %v", err)
@@ -514,7 +513,7 @@ func (d *Decoder) ExpectInt(r *PeekReader) (int, error) {
 		_, _ = r.Read(d.buf[:1])
 		ret = ret*10 + sign*digitToValue[int](b)
 	}
-	if idx == intDigitLen[is64Bit]-1 {
+	if idx == intDigitLen-1 {
 		b, ok, err := peekExpectedByteMask(r, digitByteMask)
 		if err != nil {
 			return 0, fmt.Errorf("peek error: %v", err)
@@ -672,7 +671,7 @@ func (d *Decoder) ExpectUint(r *PeekReader) (uint, error) {
 
 	idx := 1
 	ret = digitToValue[uint](d.buf[0])
-	for ; idx < uintDigitLen[is64Bit]-1; idx++ {
+	for ; idx < uintDigitLen-1; idx++ {
 		b, ok, err := peekExpectedByteMask(r, digitByteMask)
 		if err != nil {
 			return 0, fmt.Errorf("peek error: %v", err)
@@ -684,7 +683,7 @@ func (d *Decoder) ExpectUint(r *PeekReader) (uint, error) {
 		_, _ = r.Read(d.buf[:1])
 		ret = ret*10 + digitToValue[uint](b)
 	}
-	if idx == uintDigitLen[is64Bit]-1 {
+	if idx == uintDigitLen-1 {
 		b, ok, err := peekExpectedByteMask(r, digitByteMask)
 		if err != nil {
 			return 0, fmt.Errorf("peek error: %v", err)
