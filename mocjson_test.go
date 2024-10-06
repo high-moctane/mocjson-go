@@ -500,6 +500,48 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 			input: []byte("1"),
 			want:  1,
 		},
+		{
+			name:  "one and end of token: EndObject",
+			input: []byte("1}"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: Whitespace EndObject",
+			input: []byte("1 \r\n\t}"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: EndArray",
+			input: []byte("1]"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: Whitespace EndArray",
+			input: []byte("1 \r\n\t]"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: ValueSeparator",
+			input: []byte("1,"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: Whitespace ValueSeparator",
+			input: []byte("1 \r\n\t,"),
+			want:  1,
+		},
+		{
+			name:    "one and some extra characters",
+			input:   []byte("1abc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "one and some extra characters: Whitespace",
+			input:   []byte("1 \r\n\tabc"),
+			want:    0,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
