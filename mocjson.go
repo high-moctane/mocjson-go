@@ -79,7 +79,7 @@ var hexDigitValueTable = [256]int{
 	'F': 15,
 }
 
-func hexDigitToValue[T ~int | ~uint | ~int32 | ~uint32](b byte) T {
+func hexDigitToValue[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](b byte) T {
 	return T(hexDigitValueTable[b])
 }
 
