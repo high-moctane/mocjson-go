@@ -444,6 +444,36 @@ func TestDecoder_ExpectString(t *testing.T) {
 			want:  "hi👁👁h👁",
 		},
 		{
+			name:  "valid: end of token: EndObject",
+			input: []byte(`"high-moctane"}`),
+			want:  "high-moctane",
+		},
+		{
+			name:  "valid: end of token: Whitespace EndObject",
+			input: []byte("\"high-moctane\" \r\n\t}"),
+			want:  "high-moctane",
+		},
+		{
+			name:  "valid: end of token: EndArray",
+			input: []byte(`"high-moctane"]`),
+			want:  "high-moctane",
+		},
+		{
+			name:  "valid: end of token: Whitespace EndArray",
+			input: []byte("\"high-moctane\" \r\n\t]"),
+			want:  "high-moctane",
+		},
+		{
+			name:  "valid: end of token: ValueSeparator",
+			input: []byte(`"high-moctane",`),
+			want:  "high-moctane",
+		},
+		{
+			name:  "valid: end of token: Whitespace ValueSeparator",
+			input: []byte("\"high-moctane\" \r\n\t,"),
+			want:  "high-moctane",
+		},
+		{
 			name:    "invalid: corrupted utf-8",
 			input:   []byte{'"', 0xff, 0xff, 0xff, 0xff, '"'},
 			wantErr: true,
