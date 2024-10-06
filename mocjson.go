@@ -39,9 +39,8 @@ func isWhitespace(b byte) bool {
 }
 
 type PeekReader struct {
-	r      io.Reader
-	buf    [1]byte
-	peeked bool
+	r   io.Reader
+	buf [1]byte
 }
 
 func NewPeekReader(r io.Reader) PeekReader {
@@ -55,26 +54,29 @@ func (r *PeekReader) readIntoBuf() error {
 	return nil
 }
 
+func (r *PeekReader) peeked() bool {
+	return r.buf[0] != 0
+}
+
 func (r *PeekReader) Peek() (byte, error) {
-	if r.peeked {
+	if r.peeked() {
 		return r.buf[0], nil
 	}
 
 	if err := r.readIntoBuf(); err != nil {
 		return 0, err
 	}
-	r.peeked = true
 	return r.buf[0], nil
 }
 
 func (r *PeekReader) Read(b []byte) (int, error) {
-	if r.peeked {
+	if r.peeked() {
 		if len(b) == 0 {
 			return 0, nil
 		}
 
-		r.peeked = false
 		b[0] = r.buf[0]
+		r.buf[0] = 0
 		if len(b) == 1 {
 			return 1, nil
 		}
