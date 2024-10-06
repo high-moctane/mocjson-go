@@ -43,33 +43,15 @@ func isWhitespace(b byte) bool {
 	return matchByteMask(whitespaceASCIIMask, b)
 }
 
-var hexDigitMaskTable = [256]bool{
-	'0': true,
-	'1': true,
-	'2': true,
-	'3': true,
-	'4': true,
-	'5': true,
-	'6': true,
-	'7': true,
-	'8': true,
-	'9': true,
-	'a': true,
-	'b': true,
-	'c': true,
-	'd': true,
-	'e': true,
-	'f': true,
-	'A': true,
-	'B': true,
-	'C': true,
-	'D': true,
-	'E': true,
-	'F': true,
+var hexDigitByteMask = ByteMask{
+	1<<'0' | 1<<'1' | 1<<'2' | 1<<'3' | 1<<'4' | 1<<'5' | 1<<'6' | 1<<'7' | 1<<'8' | 1<<'9',
+	1<<('A'-64) | 1<<('B'-64) | 1<<('C'-64) | 1<<('D'-64) | 1<<('E'-64) | 1<<('F'-64) | 1<<('a'-64) | 1<<('b'-64) | 1<<('c'-64) | 1<<('d'-64) | 1<<('e'-64) | 1<<('f'-64),
+	0,
+	0,
 }
 
 func isHexDigit(b byte) bool {
-	return hexDigitMaskTable[b]
+	return matchByteMask(hexDigitByteMask, b)
 }
 
 var hexDigitValueTable = [256]int{
