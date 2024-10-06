@@ -408,6 +408,9 @@ ReadLoop:
 						return "", fmt.Errorf("invalid escape sequence")
 					}
 				}
+				if !utf8.ValidRune(ru) {
+					return "", fmt.Errorf("invalid escape sequence")
+				}
 				idx += utf8.EncodeRune(d.buf[idx:], ru)
 
 			default:
