@@ -134,6 +134,11 @@ var endOfValueByteMask = ByteMask{
 	1<<(EndArray-64) | 1<<(EndObject-64),
 }
 
+var endOfStringValueByteMask = ByteMask{
+	1<<EOF | 1<<ValueSeparator | 1<<NameSeparator,
+	1<<(EndArray-64) | 1<<(EndObject-64),
+}
+
 type PeekReader struct {
 	r   io.Reader
 	buf [1]byte
@@ -363,7 +368,7 @@ func ExpectBool[T ~bool](d *Decoder, r *PeekReader) (T, error) {
 			return false, fmt.Errorf("invalid bool value")
 		}
 
-		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfStringValueByteMask)
 		if err != nil {
 			return false, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 		}
