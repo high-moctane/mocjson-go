@@ -439,5 +439,20 @@ func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
 
+	if err := consumeWhitespace(r); err != nil {
+		return 0, fmt.Errorf("consume whitespace error: %v", err)
+	}
+
+	b, err := r.Peek()
+	if err != nil {
+		if err == io.EOF {
+			return uint32(d.buf[0] - '0'), nil
+		}
+		return 0, fmt.Errorf("peek error: %v", err)
+	}
+	if b != EndObject && b != EndArray && b != ValueSeparator {
+		return 0, fmt.Errorf("invalid uint32 value")
+	}
+
 	return uint32(d.buf[0] - '0'), nil
 }
