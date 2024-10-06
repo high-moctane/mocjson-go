@@ -29,7 +29,10 @@ const (
 
 const is64Bit = ^uint(0) >> 63
 
-var uintDigitLen = [2]int{10, 20}
+var (
+	intDigitLen  = [2]int{10, 19}
+	uintDigitLen = [2]int{10, 20}
+)
 
 type ByteMask [4]uint64
 
