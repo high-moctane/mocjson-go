@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"strconv"
 	"unicode/utf16"
 	"unicode/utf8"
 )
@@ -112,6 +113,20 @@ func hexDigitToValue[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 
 
 func digitToValue[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](b byte) T {
 	return T(b - '0')
+}
+
+var signByteMask = ByteMask{
+	1<<'-' | 1<<'+',
+	0,
+	0,
+	0,
+}
+
+var expByteMask = ByteMask{
+	0,
+	1<<(('e')-64) | 1<<(('E')-64),
+	0,
+	0,
 }
 
 var endOfValueByteMask = ByteMask{
@@ -781,5 +796,138 @@ ConsumedWhitespace:
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
 
+	return ret, nil
+}
+
+func (d *Decoder) ExpectFloat64(r *PeekReader) (float64, error) {
+	idx := 0
+
+	// minus if negative
+	ok, err := peekExpectedByte(r, '-')
+	if err != nil {
+		return 0, fmt.Errorf("peek error: %v", err)
+	}
+	if ok {
+		_, _ = r.Read(d.buf[:1])
+		idx++
+	}
+
+	// integer part
+	if _, err := r.Read(d.buf[idx : idx+1]); err != nil {
+		return 0, fmt.Errorf("read error: %v", err)
+	}
+	if d.buf[idx] == '0' {
+		// leading zero is not allowed
+		_, ok, err := peekExpectedByteMask(r, digitByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if ok {
+			return 0, fmt.Errorf("invalid float64 value")
+		}
+	} else if !isDigit(d.buf[idx]) {
+		return 0, fmt.Errorf("invalid float64 value")
+	}
+	idx++
+
+	// integer part (remaining)
+	for {
+		_, ok, err := peekExpectedByteMask(r, digitByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if !ok {
+			break
+		}
+
+		_, _ = r.Read(d.buf[idx : idx+1])
+		idx++
+	}
+
+	// fraction part
+	ok, err = peekExpectedByte(r, '.')
+	if err != nil {
+		return 0, fmt.Errorf("peek error: %v", err)
+	}
+	if ok {
+		// .
+		_, _ = r.Read(d.buf[idx : idx+1])
+		idx++
+
+		// fist digit
+		if _, err := readExpectedByteMask(r, d.buf[idx:idx+1], digitByteMask); err != nil {
+			return 0, fmt.Errorf("read error: %v", err)
+		}
+		idx++
+
+		// remaining digits
+		for {
+			_, ok, err := peekExpectedByteMask(r, digitByteMask)
+			if err != nil {
+				return 0, fmt.Errorf("peek error: %v", err)
+			}
+			if !ok {
+				break
+			}
+
+			_, _ = r.Read(d.buf[idx : idx+1])
+			idx++
+		}
+	}
+
+	// exponent part
+	_, ok, err = peekExpectedByteMask(r, expByteMask)
+	if err != nil {
+		return 0, fmt.Errorf("peek error: %v", err)
+	}
+	if ok {
+		// e
+		_, _ = r.Read(d.buf[idx : idx+1])
+		idx++
+
+		// sign
+		_, ok, err := peekExpectedByteMask(r, signByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if ok {
+			_, _ = r.Read(d.buf[idx : idx+1])
+			idx++
+		}
+
+		// first digit (required)
+		if _, err := readExpectedByteMask(r, d.buf[idx:idx+1], digitByteMask); err != nil {
+			return 0, fmt.Errorf("read error: %v", err)
+		}
+		idx++
+
+		// remaining digits
+		for {
+			_, ok, err := peekExpectedByteMask(r, digitByteMask)
+			if err != nil {
+				return 0, fmt.Errorf("peek error: %v", err)
+			}
+			if !ok {
+				break
+			}
+
+			_, _ = r.Read(d.buf[idx : idx+1])
+			idx++
+		}
+	}
+
+	_, ok, err = consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+	if err != nil {
+		return 0, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+	}
+	if !ok {
+		return 0, fmt.Errorf("invalid float64 value")
+	}
+
+	// it's too difficult to parse float64 by hand
+	ret, err := strconv.ParseFloat(string(d.buf[:idx]), 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse float64 error: %v", err)
+	}
 	return ret, nil
 }
