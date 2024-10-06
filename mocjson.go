@@ -315,7 +315,7 @@ func NewDecoder() Decoder {
 	return ret
 }
 
-func (d *Decoder) ExpectNull(r *PeekReader) error {
+func ExpectNull(d *Decoder, r *PeekReader) error {
 	if _, err := r.Read(d.buf[:4]); err != nil {
 		return fmt.Errorf("read error: %v", err)
 	}
@@ -333,7 +333,7 @@ func (d *Decoder) ExpectNull(r *PeekReader) error {
 	return nil
 }
 
-func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
+func ExpectBool(d *Decoder, r *PeekReader) (bool, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return false, fmt.Errorf("read error: %v", err)
 	}
@@ -376,7 +376,7 @@ func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 	return false, fmt.Errorf("invalid bool value")
 }
 
-func (d *Decoder) ExpectString(r *PeekReader) (string, error) {
+func ExpectString(d *Decoder, r *PeekReader) (string, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return "", fmt.Errorf("read error: %v", err)
 	}
@@ -485,7 +485,7 @@ ReadLoop:
 	return string(d.buf[:idx]), nil
 }
 
-func (d *Decoder) ExpectInt(r *PeekReader) (int, error) {
+func ExpectInt(d *Decoder, r *PeekReader) (int, error) {
 	var ret int
 	sign := int(1)
 
@@ -574,7 +574,7 @@ ConsumedWhitespace:
 	return ret, nil
 }
 
-func (d *Decoder) ExpectInt32(r *PeekReader) (int32, error) {
+func ExpectInt32(d *Decoder, r *PeekReader) (int32, error) {
 	var ret int32
 	sign := int32(1)
 
@@ -663,7 +663,7 @@ ConsumedWhitespace:
 	return ret, nil
 }
 
-func (d *Decoder) ExpectUint(r *PeekReader) (uint, error) {
+func ExpectUint(d *Decoder, r *PeekReader) (uint, error) {
 	var ret uint
 
 	if _, err := r.Read(d.buf[:1]); err != nil {
@@ -731,7 +731,7 @@ ConsumedWhitespace:
 	return ret, nil
 }
 
-func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
+func ExpectUint32(d *Decoder, r *PeekReader) (uint32, error) {
 	var ret uint32
 
 	if _, err := r.Read(d.buf[:1]); err != nil {
@@ -799,8 +799,8 @@ ConsumedWhitespace:
 	return ret, nil
 }
 
-func (d *Decoder) ExpectFloat64(r *PeekReader) (float64, error) {
-	idx, err := d.loadNumberValueIntoBuf(r)
+func ExpectFloat64(d *Decoder, r *PeekReader) (float64, error) {
+	idx, err := loadNumberValueIntoBuf(d, r)
 	if err != nil {
 		return 0, fmt.Errorf("load number value into buf error: %v", err)
 	}
@@ -813,8 +813,8 @@ func (d *Decoder) ExpectFloat64(r *PeekReader) (float64, error) {
 	return ret, nil
 }
 
-func (d *Decoder) ExpectFloat32(r *PeekReader) (float32, error) {
-	idx, err := d.loadNumberValueIntoBuf(r)
+func ExpectFloat32(d *Decoder, r *PeekReader) (float32, error) {
+	idx, err := loadNumberValueIntoBuf(d, r)
 	if err != nil {
 		return 0, fmt.Errorf("load number value into buf error: %v", err)
 	}
@@ -827,7 +827,7 @@ func (d *Decoder) ExpectFloat32(r *PeekReader) (float32, error) {
 	return float32(ret), nil
 }
 
-func (d *Decoder) loadNumberValueIntoBuf(r *PeekReader) (int, error) {
+func loadNumberValueIntoBuf(d *Decoder, r *PeekReader) (int, error) {
 	idx := 0
 
 	// minus if negative
@@ -955,7 +955,7 @@ func (d *Decoder) loadNumberValueIntoBuf(r *PeekReader) (int, error) {
 	return idx, nil
 }
 
-func (d *Decoder) ExpectArrayInt(r *PeekReader) ([]int, error) {
+func ExpectArrayInt(d *Decoder, r *PeekReader) ([]int, error) {
 	if err := readExpectedByte(r, d.buf[:1], BeginArray); err != nil {
 		return nil, fmt.Errorf("read expected byte error: %v", err)
 	}
@@ -975,7 +975,7 @@ func (d *Decoder) ExpectArrayInt(r *PeekReader) ([]int, error) {
 
 Loop:
 	for {
-		v, err := d.ExpectInt(r)
+		v, err := ExpectInt(d, r)
 		if err != nil {
 			return nil, fmt.Errorf("expect int error: %v", err)
 		}
