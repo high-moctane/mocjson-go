@@ -26,17 +26,15 @@ const (
 	FormFeed       = '\f'
 )
 
-var whitespaceMaskTable = [256]bool{
-	Space:          true,
-	HorizontalTab:  true,
-	LineFeed:       true,
-	CarriageReturn: true,
+type ASCIIMask [2]bool
+
+var whitespaceASCIIMask = [2]int64{
+	1<<Space | 1<<HorizontalTab | 1<<LineFeed | 1<<CarriageReturn,
+	0,
 }
 
-const whitespaceMask = 1<<Space | 1<<HorizontalTab | 1<<LineFeed | 1<<CarriageReturn
-
 func isWhitespace(b byte) bool {
-	return whitespaceMask&(1<<b) != 0
+	return whitespaceASCIIMask[0]&(1<<b) != 0
 }
 
 var hexDigitMaskTable = [256]bool{
