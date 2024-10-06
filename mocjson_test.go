@@ -2,6 +2,8 @@ package mocjson
 
 import (
 	"bytes"
+	"math"
+	"math/big"
 	"strconv"
 	"testing"
 )
@@ -921,6 +923,266 @@ func FuzzDecoder_ExpectInt32(f *testing.F) {
 		}
 		if got != n {
 			t.Errorf("ExpectInt32() = %v, want %v", got, n)
+		}
+	})
+}
+
+func TestDecoder_ExpectUint(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   []byte
+		want    uint
+		wantErr bool
+	}{
+		{
+			name:  "zero",
+			input: []byte("0"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: EndObject",
+			input: []byte("0}"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: Whitespace EndObject",
+			input: []byte("0 \r\n\t}"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: EndArray",
+			input: []byte("0]"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: Whitespace EndArray",
+			input: []byte("0 \r\n\t]"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: ValueSeparator",
+			input: []byte("0,"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: Whitespace ValueSeparator",
+			input: []byte("0 \r\n\t,"),
+			want:  0,
+		},
+		{
+			name:    "zero and some extra characters",
+			input:   []byte("0abc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "zero and some extra characters: Whitespace",
+			input:   []byte("0 \r\n\tabc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:  "one",
+			input: []byte("1"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: EndObject",
+			input: []byte("1}"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: Whitespace EndObject",
+			input: []byte("1 \r\n\t}"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: EndArray",
+			input: []byte("1]"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: Whitespace EndArray",
+			input: []byte("1 \r\n\t]"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: ValueSeparator",
+			input: []byte("1,"),
+			want:  1,
+		},
+		{
+			name:  "one and end of token: Whitespace ValueSeparator",
+			input: []byte("1 \r\n\t,"),
+			want:  1,
+		},
+		{
+			name:    "one and some extra characters",
+			input:   []byte("1abc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "one and some extra characters: Whitespace",
+			input:   []byte("1 \r\n\tabc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:  "some digits",
+			input: []byte("1234567890"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: EndObject",
+			input: []byte("1234567890}"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: Whitespace EndObject",
+			input: []byte("1234567890 \r\n\t}"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: EndArray",
+			input: []byte("1234567890]"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: Whitespace EndArray",
+			input: []byte("1234567890 \r\n\t]"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: ValueSeparator",
+			input: []byte("1234567890,"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: Whitespace ValueSeparator",
+			input: []byte("1234567890 \r\n\t,"),
+			want:  1234567890,
+		},
+		{
+			name:    "some digits and some extra characters",
+			input:   []byte("1234567890abc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "some digits and some extra characters: Whitespace",
+			input:   []byte("1234567890 \r\n\tabc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:  "max uint",
+			input: []byte(func() string { return strconv.FormatUint(math.MaxUint, 10) }()),
+			want:  math.MaxUint,
+		},
+		{
+			name: "max uint + 1",
+			input: []byte(func() string {
+				n := new(big.Int).SetUint64(math.MaxUint)
+				n.Add(n, big.NewInt(1))
+				return n.String()
+			}()),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "uint128",
+			input:   []byte("340282366920938463463374607431768211455"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: empty",
+			input:   []byte(""),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid",
+			input:   []byte("invalid"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: one byte",
+			input:   []byte("i"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: one digit, whitespace and one digit",
+			input:   []byte("1 2"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: some digits, whitespace and some digits",
+			input:   []byte("123 456"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "begin with whitespace",
+			input:   []byte(" \r\n\t1"),
+			want:    0,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dec := NewDecoder()
+
+			r := NewPeekReader(bytes.NewReader(tt.input))
+
+			got, err := dec.ExpectUint(&r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalUint() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnmarshalUint() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkDecoder_ExpectUint(b *testing.B) {
+	dec := NewDecoder()
+	r := bytes.NewReader([]byte(func() string { return strconv.FormatUint(math.MaxUint, 10) }()))
+	rr := NewPeekReader(r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+		rr.reset()
+		_, _ = dec.ExpectUint(&rr)
+	}
+}
+
+func FuzzDecoder_ExpectUint(f *testing.F) {
+	dec := NewDecoder()
+
+	f.Fuzz(func(t *testing.T, n uint) {
+		s := strconv.FormatUint(uint64(n), 10)
+		r := NewPeekReader(bytes.NewReader([]byte(s)))
+
+		got, err := dec.ExpectUint(&r)
+		if err != nil {
+			t.Errorf("ExpectUint() error = %v", err)
+			return
+		}
+		if got != n {
+			t.Errorf("ExpectUint() = %v, want %v", got, n)
 		}
 	})
 }
