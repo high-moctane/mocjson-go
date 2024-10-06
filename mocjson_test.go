@@ -423,17 +423,19 @@ func TestDecoder_ExpectString(t *testing.T) {
 			input: []byte(`"\"\\\/\b\f\n\r\t"`),
 			want:  "\"\\/\b\f\n\r\t",
 		},
-		// {
-		// 	name:  "valid: with backslash escape",
-		// 	input: []byte(`"\"\\\/\b\f\n\r\t\uD834\uDD1E"`),
-		// 	want:  "\"\\/\b\f\n\r\t🎼",
-		// },
+		{
+			name:  "valid: with backslash escape",
+			input: []byte(`"\"\\\/\b\f\n\r\t\uD834\uDD1E"`),
+			want:  "\"\\/\b\f\n\r\t𝄞",
+		},
 		{
 			name:    "invalid: corrupted utf-8",
 			input:   []byte(`"high-moctane\xFF"`),
 			wantErr: true,
 		},
 	}
+
+	// TODO(high-moctane): Need more test cases for \uXXXX escape sequences
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

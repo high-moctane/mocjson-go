@@ -3,6 +3,7 @@ package mocjson
 import (
 	"fmt"
 	"io"
+	"unicode/utf16"
 	"unicode/utf8"
 )
 
@@ -92,7 +93,7 @@ var hexDigitValueTable = [256]int{
 	'F': 15,
 }
 
-func hexDigitToValue[T ~int | ~uint](b byte) T {
+func hexDigitToValue[T ~int | ~uint | ~int32 | ~uint32](b byte) T {
 	return T(hexDigitValueTable[b])
 }
 
@@ -375,6 +376,29 @@ ReadLoop:
 				case 't':
 					_, _ = r.Read(d.buf[idx : idx+1])
 					d.buf[idx] = HorizontalTab
+
+				case 'u':
+					_, _ = r.Read(d.buf[idx : idx+5])
+					if !isHexDigit(d.buf[idx+1]) || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) {
+						return "", fmt.Errorf("invalid escape sequence")
+					}
+					ru := hexDigitToValue[rune](d.buf[idx+1])<<12 | hexDigitToValue[rune](d.buf[idx+2])<<8 | hexDigitToValue[rune](d.buf[idx+3])<<4 | hexDigitToValue[rune](d.buf[idx+4])
+					if utf16.IsSurrogate(ru) {
+						_, err := r.Read(d.buf[idx : idx+6])
+						if err != nil {
+							return "", fmt.Errorf("read error: %v", err)
+						}
+						if d.buf[idx] != ReverseSolidus || d.buf[idx+1] != 'u' || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) || !isHexDigit(d.buf[idx+5]) {
+							return "", fmt.Errorf("invalid escape sequence")
+						}
+						ru2 := hexDigitToValue[rune](d.buf[idx+2])<<12 | hexDigitToValue[rune](d.buf[idx+3])<<8 | hexDigitToValue[rune](d.buf[idx+4])<<4 | hexDigitToValue[rune](d.buf[idx+5])
+						ru = utf16.DecodeRune(ru, ru2)
+						if ru == utf8.RuneError {
+							return "", fmt.Errorf("invalid escape sequence")
+						}
+					}
+					idx += utf8.EncodeRune(d.buf[idx:], ru)
+					continue ReadLoop
 
 				default:
 					return "", fmt.Errorf("invalid escape sequence")
