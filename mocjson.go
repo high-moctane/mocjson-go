@@ -377,11 +377,28 @@ func ExpectBool[T ~bool](d *Decoder, r *PeekReader) (T, error) {
 }
 
 func ExpectString[T ~string](d *Decoder, r *PeekReader) (T, error) {
+	idx, err := loadStringValueIntoBuf(d, r)
+	if err != nil {
+		return "", fmt.Errorf("load string value into buf error: %v", err)
+	}
+
+	b, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+	if err != nil {
+		return "", fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+	}
+	if !ok {
+		return "", fmt.Errorf("invalid string value: %c", b)
+	}
+
+	return T(d.buf[:idx]), nil
+}
+
+func loadStringValueIntoBuf(d *Decoder, r *PeekReader) (int, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
-		return "", fmt.Errorf("read error: %v", err)
+		return 0, fmt.Errorf("read error: %v", err)
 	}
 	if d.buf[0] != QuotationMark {
-		return "", fmt.Errorf("invalid string value")
+		return 0, fmt.Errorf("invalid string value")
 	}
 
 	idx := 0
@@ -390,7 +407,7 @@ ReadLoop:
 	for {
 		n, err := readRuneBytes(r, d.buf[idx:])
 		if err != nil {
-			return "", fmt.Errorf("read rune error: %v", err)
+			return 0, fmt.Errorf("read rune error: %v", err)
 		}
 
 		if n != 1 {
@@ -406,7 +423,7 @@ ReadLoop:
 		case ReverseSolidus:
 			b, err := r.Peek()
 			if err != nil {
-				return "", fmt.Errorf("read error: %v", err)
+				return 0, fmt.Errorf("read error: %v", err)
 			}
 
 			switch b {
@@ -443,30 +460,30 @@ ReadLoop:
 			case 'u':
 				_, _ = r.Read(d.buf[idx : idx+5])
 				if !isHexDigit(d.buf[idx+1]) || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) {
-					return "", fmt.Errorf("invalid escape sequence")
+					return 0, fmt.Errorf("invalid escape sequence")
 				}
 				ru := hexDigitToValue[rune](d.buf[idx+1])<<12 | hexDigitToValue[rune](d.buf[idx+2])<<8 | hexDigitToValue[rune](d.buf[idx+3])<<4 | hexDigitToValue[rune](d.buf[idx+4])
 				if utf16.IsSurrogate(ru) {
 					_, err := r.Read(d.buf[idx : idx+6])
 					if err != nil {
-						return "", fmt.Errorf("read error: %v", err)
+						return 0, fmt.Errorf("read error: %v", err)
 					}
 					if d.buf[idx] != ReverseSolidus || d.buf[idx+1] != 'u' || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) || !isHexDigit(d.buf[idx+5]) {
-						return "", fmt.Errorf("invalid escape sequence")
+						return 0, fmt.Errorf("invalid escape sequence")
 					}
 					ru2 := hexDigitToValue[rune](d.buf[idx+2])<<12 | hexDigitToValue[rune](d.buf[idx+3])<<8 | hexDigitToValue[rune](d.buf[idx+4])<<4 | hexDigitToValue[rune](d.buf[idx+5])
 					ru = utf16.DecodeRune(ru, ru2)
 					if ru == utf8.RuneError {
-						return "", fmt.Errorf("invalid escape sequence")
+						return 0, fmt.Errorf("invalid escape sequence")
 					}
 				}
 				if !utf8.ValidRune(ru) {
-					return "", fmt.Errorf("invalid escape sequence")
+					return 0, fmt.Errorf("invalid escape sequence")
 				}
 				idx += utf8.EncodeRune(d.buf[idx:], ru)
 
 			default:
-				return "", fmt.Errorf("invalid escape sequence")
+				return 0, fmt.Errorf("invalid escape sequence")
 			}
 
 		default:
@@ -474,15 +491,7 @@ ReadLoop:
 		}
 	}
 
-	b, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
-	if err != nil {
-		return "", fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
-	}
-	if !ok {
-		return "", fmt.Errorf("invalid string value: %c", b)
-	}
-
-	return T(d.buf[:idx]), nil
+	return idx, nil
 }
 
 func ExpectInt[T ~int](d *Decoder, r *PeekReader) (T, error) {
