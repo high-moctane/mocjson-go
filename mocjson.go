@@ -302,18 +302,11 @@ func (d *Decoder) ExpectNull(r *PeekReader) error {
 		return fmt.Errorf("invalid null value")
 	}
 
-	if err := consumeWhitespace(r); err != nil {
-		return fmt.Errorf("consume whitespace error: %v", err)
-	}
-
-	b, err := r.Peek()
+	_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
 	if err != nil {
-		if err == io.EOF {
-			return nil
-		}
-		return fmt.Errorf("peek error: %v", err)
+		return fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 	}
-	if b != EndObject && b != EndArray && b != ValueSeparator {
+	if !ok {
 		return fmt.Errorf("invalid null value")
 	}
 	return nil
@@ -332,18 +325,11 @@ func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 			return false, fmt.Errorf("invalid bool value")
 		}
 
-		if err := consumeWhitespace(r); err != nil {
-			return false, fmt.Errorf("consume whitespace error: %v", err)
-		}
-
-		b, err := r.Peek()
+		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
 		if err != nil {
-			if err == io.EOF {
-				return true, nil
-			}
-			return false, fmt.Errorf("peek error: %v", err)
+			return false, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 		}
-		if b != EndObject && b != EndArray && b != ValueSeparator {
+		if !ok {
 			return false, fmt.Errorf("invalid bool value")
 		}
 		return true, nil
@@ -356,18 +342,11 @@ func (d *Decoder) ExpectBool(r *PeekReader) (bool, error) {
 			return false, fmt.Errorf("invalid bool value")
 		}
 
-		if err := consumeWhitespace(r); err != nil {
-			return false, fmt.Errorf("consume whitespace error: %v", err)
-		}
-
-		b, err := r.Peek()
+		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
 		if err != nil {
-			if err == io.EOF {
-				return false, nil
-			}
-			return false, fmt.Errorf("peek error: %v", err)
+			return false, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 		}
-		if b != EndObject && b != EndArray && b != ValueSeparator {
+		if !ok {
 			return false, fmt.Errorf("invalid bool value")
 		}
 		return false, nil
@@ -547,18 +526,11 @@ func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 	}
 
 ConsumedWhitespace:
-	if err := consumeWhitespace(r); err != nil {
-		return 0, fmt.Errorf("consume whitespace error: %v", err)
-	}
-
-	b, err := r.Peek()
+	_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
 	if err != nil {
-		if err == io.EOF {
-			return ret, nil
-		}
-		return 0, fmt.Errorf("peek error: %v", err)
+		return 0, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 	}
-	if b != EndObject && b != EndArray && b != ValueSeparator {
+	if !ok {
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
 
