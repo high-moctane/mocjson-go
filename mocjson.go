@@ -454,6 +454,9 @@ func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 		}
 		return 0, nil
 	}
+	if !isDigit(d.buf[0]) {
+		return 0, fmt.Errorf("invalid uint32 value")
+	}
 
 	if err := consumeWhitespace(r); err != nil {
 		return 0, fmt.Errorf("consume whitespace error: %v", err)
