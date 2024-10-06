@@ -453,6 +453,14 @@ ReadLoop:
 		}
 	}
 
+	b, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+	if err != nil {
+		return "", fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+	}
+	if !ok {
+		return "", fmt.Errorf("invalid string value: %c", b)
+	}
+
 	return string(d.buf[:idx]), nil
 }
 
