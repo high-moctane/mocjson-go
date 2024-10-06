@@ -589,6 +589,24 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 			want:    0,
 			wantErr: true,
 		},
+		{
+			name:    "invalid: empty",
+			input:   []byte(""),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid",
+			input:   []byte("invalid"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "begin with whitespace",
+			input:   []byte(" \r\n\t1"),
+			want:    0,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
