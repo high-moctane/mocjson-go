@@ -333,7 +333,7 @@ func ExpectNull(d *Decoder, r *PeekReader) error {
 	return nil
 }
 
-func ExpectBool(d *Decoder, r *PeekReader) (bool, error) {
+func ExpectBool[T ~bool](d *Decoder, r *PeekReader) (T, error) {
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return false, fmt.Errorf("read error: %v", err)
 	}
