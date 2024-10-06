@@ -602,6 +602,12 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "invalid: one byte",
+			input:   []byte("i"),
+			want:    0,
+			wantErr: true,
+		},
+		{
 			name:    "begin with whitespace",
 			input:   []byte(" \r\n\t1"),
 			want:    0,
