@@ -740,3 +740,16 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkDecoder_ExpectUint32(b *testing.B) {
+	dec := NewDecoder()
+	r := bytes.NewReader([]byte("4294967295"))
+	rr := NewPeekReader(r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+		rr.reset()
+		_, _ = dec.ExpectUint32(&rr)
+	}
+}
