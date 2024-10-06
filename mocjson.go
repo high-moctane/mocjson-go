@@ -108,6 +108,11 @@ func digitToValue[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~
 	return T(b - '0')
 }
 
+var endOfValueByteMask = ByteMask{
+	1<<EOF | 1<<ValueSeparator,
+	1<<(EndArray-64) | 1<<(EndObject-64),
+}
+
 type PeekReader struct {
 	r   io.Reader
 	buf [1]byte
