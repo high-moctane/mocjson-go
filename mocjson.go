@@ -813,6 +813,20 @@ func (d *Decoder) ExpectFloat64(r *PeekReader) (float64, error) {
 	return ret, nil
 }
 
+func (d *Decoder) ExpectFloat32(r *PeekReader) (float32, error) {
+	idx, err := d.loadNumberValueIntoBuf(r)
+	if err != nil {
+		return 0, fmt.Errorf("load number value into buf error: %v", err)
+	}
+
+	// it's too difficult to parse float32 by hand
+	ret, err := strconv.ParseFloat(string(d.buf[:idx]), 32)
+	if err != nil {
+		return 0, fmt.Errorf("parse float32 error: %v", err)
+	}
+	return float32(ret), nil
+}
+
 func (d *Decoder) loadNumberValueIntoBuf(r *PeekReader) (int, error) {
 	idx := 0
 
