@@ -225,6 +225,20 @@ func consumeWhitespace(r *PeekReader) error {
 	}
 }
 
+func consumeWhitespaceAndPeekExpectedByte(r *PeekReader, expected byte) (bool, error) {
+	if err := consumeWhitespace(r); err != nil {
+		return false, err
+	}
+	return peekExpectedByte(r, expected)
+}
+
+func consumeWhitespaceAndPeekExpectedByteMask(r *PeekReader, expected ByteMask) (byte, bool, error) {
+	if err := consumeWhitespace(r); err != nil {
+		return 0, false, err
+	}
+	return peekExpectedByteMask(r, expected)
+}
+
 func readRuneBytes(r *PeekReader, buf []byte) (int, error) {
 	_, err := r.Read(buf[:1])
 	if err != nil {
