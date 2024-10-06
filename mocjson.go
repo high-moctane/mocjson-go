@@ -67,6 +67,35 @@ func isHexDigit(b byte) bool {
 	return hexDigitMaskTable[b]
 }
 
+var hexDigitValueTable = [256]int{
+	'0': 0,
+	'1': 1,
+	'2': 2,
+	'3': 3,
+	'4': 4,
+	'5': 5,
+	'6': 6,
+	'7': 7,
+	'8': 8,
+	'9': 9,
+	'a': 10,
+	'b': 11,
+	'c': 12,
+	'd': 13,
+	'e': 14,
+	'f': 15,
+	'A': 10,
+	'B': 11,
+	'C': 12,
+	'D': 13,
+	'E': 14,
+	'F': 15,
+}
+
+func hexDigitToValue[T ~int | ~uint](b byte) T {
+	return T(hexDigitValueTable[b])
+}
+
 type PeekReader struct {
 	r   io.Reader
 	buf [1]byte
