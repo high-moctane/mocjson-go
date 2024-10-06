@@ -430,3 +430,14 @@ ReadLoop:
 
 	return string(d.buf[:idx]), nil
 }
+
+func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
+	if _, err := r.Read(d.buf[:1]); err != nil {
+		return 0, fmt.Errorf("read error: %v", err)
+	}
+	if !isNonZeroDigit(d.buf[0]) {
+		return 0, fmt.Errorf("invalid uint32 value")
+	}
+
+	return uint32(d.buf[0] - '0'), nil
+}

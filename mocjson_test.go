@@ -485,3 +485,39 @@ func BenchmarkDecoder_ExpectString(b *testing.B) {
 	}
 
 }
+
+func TestDecoder_ExpectUint32(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   []byte
+		want    uint32
+		wantErr bool
+	}{
+		{
+			name:  "one",
+			input: []byte("1"),
+			want:  1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dec := NewDecoder()
+
+			r := NewPeekReader(bytes.NewReader(tt.input))
+
+			got, err := dec.ExpectUint32(&r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalUint32() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnmarshalUint32() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
