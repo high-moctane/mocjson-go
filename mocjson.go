@@ -341,75 +341,82 @@ ReadLoop:
 			return "", fmt.Errorf("read rune error: %v", err)
 		}
 
-		if n == 1 {
-			switch d.buf[idx] {
-			case QuotationMark:
-				break ReadLoop
-
-			case ReverseSolidus:
-				b, err := r.Peek()
-				if err != nil {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-
-				switch b {
-				case QuotationMark, ReverseSolidus, Solidus:
-					// can be read as is
-					_, _ = r.Read(d.buf[idx : idx+1])
-
-				case 'b':
-					_, _ = r.Read(d.buf[idx : idx+1])
-					d.buf[idx] = Backspace
-
-				case 'f':
-					_, _ = r.Read(d.buf[idx : idx+1])
-					d.buf[idx] = FormFeed
-
-				case 'n':
-					_, _ = r.Read(d.buf[idx : idx+1])
-					d.buf[idx] = LineFeed
-
-				case 'r':
-					_, _ = r.Read(d.buf[idx : idx+1])
-					d.buf[idx] = CarriageReturn
-
-				case 't':
-					_, _ = r.Read(d.buf[idx : idx+1])
-					d.buf[idx] = HorizontalTab
-
-				case 'u':
-					_, _ = r.Read(d.buf[idx : idx+5])
-					if !isHexDigit(d.buf[idx+1]) || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) {
-						return "", fmt.Errorf("invalid escape sequence")
-					}
-					ru := hexDigitToValue[rune](d.buf[idx+1])<<12 | hexDigitToValue[rune](d.buf[idx+2])<<8 | hexDigitToValue[rune](d.buf[idx+3])<<4 | hexDigitToValue[rune](d.buf[idx+4])
-					if utf16.IsSurrogate(ru) {
-						_, err := r.Read(d.buf[idx : idx+6])
-						if err != nil {
-							return "", fmt.Errorf("read error: %v", err)
-						}
-						if d.buf[idx] != ReverseSolidus || d.buf[idx+1] != 'u' || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) || !isHexDigit(d.buf[idx+5]) {
-							return "", fmt.Errorf("invalid escape sequence")
-						}
-						ru2 := hexDigitToValue[rune](d.buf[idx+2])<<12 | hexDigitToValue[rune](d.buf[idx+3])<<8 | hexDigitToValue[rune](d.buf[idx+4])<<4 | hexDigitToValue[rune](d.buf[idx+5])
-						ru = utf16.DecodeRune(ru, ru2)
-						if ru == utf8.RuneError {
-							return "", fmt.Errorf("invalid escape sequence")
-						}
-					}
-					idx += utf8.EncodeRune(d.buf[idx:], ru)
-					continue ReadLoop
-
-				default:
-					return "", fmt.Errorf("invalid escape sequence")
-				}
-
-				idx++
-				continue ReadLoop
-			}
+		if n != 1 {
+			idx += n
+			continue ReadLoop
 		}
 
-		idx += n
+		// n == 1
+		switch d.buf[idx] {
+		case QuotationMark:
+			break ReadLoop
+
+		case ReverseSolidus:
+			b, err := r.Peek()
+			if err != nil {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+
+			switch b {
+			case QuotationMark, ReverseSolidus, Solidus:
+				// can be read as is
+				_, _ = r.Read(d.buf[idx : idx+1])
+				idx++
+
+			case 'b':
+				_, _ = r.Read(d.buf[idx : idx+1])
+				d.buf[idx] = Backspace
+				idx++
+
+			case 'f':
+				_, _ = r.Read(d.buf[idx : idx+1])
+				d.buf[idx] = FormFeed
+				idx++
+
+			case 'n':
+				_, _ = r.Read(d.buf[idx : idx+1])
+				d.buf[idx] = LineFeed
+				idx++
+
+			case 'r':
+				_, _ = r.Read(d.buf[idx : idx+1])
+				d.buf[idx] = CarriageReturn
+				idx++
+
+			case 't':
+				_, _ = r.Read(d.buf[idx : idx+1])
+				d.buf[idx] = HorizontalTab
+				idx++
+
+			case 'u':
+				_, _ = r.Read(d.buf[idx : idx+5])
+				if !isHexDigit(d.buf[idx+1]) || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) {
+					return "", fmt.Errorf("invalid escape sequence")
+				}
+				ru := hexDigitToValue[rune](d.buf[idx+1])<<12 | hexDigitToValue[rune](d.buf[idx+2])<<8 | hexDigitToValue[rune](d.buf[idx+3])<<4 | hexDigitToValue[rune](d.buf[idx+4])
+				if utf16.IsSurrogate(ru) {
+					_, err := r.Read(d.buf[idx : idx+6])
+					if err != nil {
+						return "", fmt.Errorf("read error: %v", err)
+					}
+					if d.buf[idx] != ReverseSolidus || d.buf[idx+1] != 'u' || !isHexDigit(d.buf[idx+2]) || !isHexDigit(d.buf[idx+3]) || !isHexDigit(d.buf[idx+4]) || !isHexDigit(d.buf[idx+5]) {
+						return "", fmt.Errorf("invalid escape sequence")
+					}
+					ru2 := hexDigitToValue[rune](d.buf[idx+2])<<12 | hexDigitToValue[rune](d.buf[idx+3])<<8 | hexDigitToValue[rune](d.buf[idx+4])<<4 | hexDigitToValue[rune](d.buf[idx+5])
+					ru = utf16.DecodeRune(ru, ru2)
+					if ru == utf8.RuneError {
+						return "", fmt.Errorf("invalid escape sequence")
+					}
+				}
+				idx += utf8.EncodeRune(d.buf[idx:], ru)
+
+			default:
+				return "", fmt.Errorf("invalid escape sequence")
+			}
+
+		default:
+			idx += n
+		}
 	}
 
 	return string(d.buf[:idx]), nil
