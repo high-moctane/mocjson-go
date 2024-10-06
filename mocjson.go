@@ -103,6 +103,10 @@ func hexDigitToValue[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 
 	return T(hexDigitValueTable[b])
 }
 
+func digitToValue[T ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](b byte) T {
+	return T(b - '0')
+}
+
 type PeekReader struct {
 	r   io.Reader
 	buf [1]byte
@@ -432,6 +436,8 @@ ReadLoop:
 }
 
 func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
+	var ret uint32
+
 	if _, err := r.Read(d.buf[:1]); err != nil {
 		return 0, fmt.Errorf("read error: %v", err)
 	}
@@ -458,6 +464,23 @@ func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
 
+	idx := 1
+	ret = digitToValue[uint32](d.buf[0])
+	for ; idx < 10; idx++ {
+		b, err := r.Peek()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if !isDigit(b) {
+			break
+		}
+		_, _ = r.Read(d.buf[:1])
+		ret = ret*10 + digitToValue[uint32](d.buf[0])
+	}
+
 	if err := consumeWhitespace(r); err != nil {
 		return 0, fmt.Errorf("consume whitespace error: %v", err)
 	}
@@ -465,7 +488,7 @@ func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 	b, err := r.Peek()
 	if err != nil {
 		if err == io.EOF {
-			return uint32(d.buf[0] - '0'), nil
+			return ret, nil
 		}
 		return 0, fmt.Errorf("peek error: %v", err)
 	}
@@ -473,5 +496,5 @@ func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
 
-	return uint32(d.buf[0] - '0'), nil
+	return ret, nil
 }

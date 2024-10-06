@@ -590,6 +590,53 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:  "some digits",
+			input: []byte("1234567890"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: EndObject",
+			input: []byte("1234567890}"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: Whitespace EndObject",
+			input: []byte("1234567890 \r\n\t}"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: EndArray",
+			input: []byte("1234567890]"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: Whitespace EndArray",
+			input: []byte("1234567890 \r\n\t]"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: ValueSeparator",
+			input: []byte("1234567890,"),
+			want:  1234567890,
+		},
+		{
+			name:  "some digits and end of token: Whitespace ValueSeparator",
+			input: []byte("1234567890 \r\n\t,"),
+			want:  1234567890,
+		},
+		{
+			name:    "some digits and some extra characters",
+			input:   []byte("1234567890abc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "some digits and some extra characters: Whitespace",
+			input:   []byte("1234567890 \r\n\tabc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
 			name:    "invalid: empty",
 			input:   []byte(""),
 			want:    0,
@@ -604,6 +651,18 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 		{
 			name:    "invalid: one byte",
 			input:   []byte("i"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: one digit, whitespace and one digit",
+			input:   []byte("1 2"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: some digits, whitespace and some digits",
+			input:   []byte("123 456"),
 			want:    0,
 			wantErr: true,
 		},
