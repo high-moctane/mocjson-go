@@ -464,6 +464,95 @@ ReadLoop:
 	return string(d.buf[:idx]), nil
 }
 
+func (d *Decoder) ExpectInt32(r *PeekReader) (int32, error) {
+	var ret int32
+	sign := int32(1)
+
+	if _, err := r.Read(d.buf[:1]); err != nil {
+		return 0, fmt.Errorf("read error: %v", err)
+	}
+	if d.buf[0] == '-' {
+		sign = -1
+		if _, err := r.Read(d.buf[:1]); err != nil {
+			return 0, fmt.Errorf("read error: %v", err)
+		}
+	}
+
+	if d.buf[0] == '0' {
+		// must be exactly int32(0)
+		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+		}
+		if !ok {
+			return 0, fmt.Errorf("invalid int32 value")
+		}
+		return 0, nil
+	}
+	if !isDigit(d.buf[0]) {
+		return 0, fmt.Errorf("invalid int32 value")
+	}
+
+	idx := 1
+	ret = sign * digitToValue[int32](d.buf[0])
+	for ; idx < 9; idx++ {
+		b, ok, err := peekExpectedByteMask(r, digitByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if !ok {
+			goto ConsumedWhitespace
+		}
+
+		_, _ = r.Read(d.buf[:1])
+		ret = ret*10 + sign*digitToValue[int32](b)
+	}
+	if idx == 9 {
+		b, ok, err := peekExpectedByteMask(r, digitByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if !ok {
+			goto ConsumedWhitespace
+		}
+
+		if sign == 1 {
+			if ret > math.MaxInt32/10 {
+				return 0, fmt.Errorf("int32 overflow")
+			}
+			ret *= 10
+			_, _ = r.Read(d.buf[:1])
+			v := digitToValue[int32](b)
+			if ret > math.MaxInt32-v {
+				return 0, fmt.Errorf("int32 overflow")
+			}
+			ret += v
+		} else {
+			if ret < math.MinInt32/10 {
+				return 0, fmt.Errorf("int32 overflow")
+			}
+			ret *= 10
+			_, _ = r.Read(d.buf[:1])
+			v := digitToValue[int32](b)
+			if ret < math.MinInt32+v {
+				return 0, fmt.Errorf("int32 overflow")
+			}
+			ret -= v
+		}
+	}
+
+ConsumedWhitespace:
+	_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+	if err != nil {
+		return 0, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+	}
+	if !ok {
+		return 0, fmt.Errorf("invalid int32 value")
+	}
+
+	return ret, nil
+}
+
 func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 	var ret uint32
 
