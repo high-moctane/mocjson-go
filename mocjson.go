@@ -800,6 +800,20 @@ ConsumedWhitespace:
 }
 
 func (d *Decoder) ExpectFloat64(r *PeekReader) (float64, error) {
+	idx, err := d.loadNumberValueIntoBuf(r)
+	if err != nil {
+		return 0, fmt.Errorf("load number value into buf error: %v", err)
+	}
+
+	// it's too difficult to parse float64 by hand
+	ret, err := strconv.ParseFloat(string(d.buf[:idx]), 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse float64 error: %v", err)
+	}
+	return ret, nil
+}
+
+func (d *Decoder) loadNumberValueIntoBuf(r *PeekReader) (int, error) {
 	idx := 0
 
 	// minus if negative
@@ -823,10 +837,10 @@ func (d *Decoder) ExpectFloat64(r *PeekReader) (float64, error) {
 			return 0, fmt.Errorf("peek error: %v", err)
 		}
 		if ok {
-			return 0, fmt.Errorf("invalid float64 value")
+			return 0, fmt.Errorf("invalid number value")
 		}
 	} else if !isDigit(d.buf[idx]) {
-		return 0, fmt.Errorf("invalid float64 value")
+		return 0, fmt.Errorf("invalid number value")
 	}
 	idx++
 
@@ -921,13 +935,8 @@ func (d *Decoder) ExpectFloat64(r *PeekReader) (float64, error) {
 		return 0, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 	}
 	if !ok {
-		return 0, fmt.Errorf("invalid float64 value")
+		return 0, fmt.Errorf("invalid number value")
 	}
 
-	// it's too difficult to parse float64 by hand
-	ret, err := strconv.ParseFloat(string(d.buf[:idx]), 64)
-	if err != nil {
-		return 0, fmt.Errorf("parse float64 error: %v", err)
-	}
-	return ret, nil
+	return idx, nil
 }
