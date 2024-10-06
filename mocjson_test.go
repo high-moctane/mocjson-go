@@ -6,7 +6,7 @@ import (
 )
 
 func (r *PeekReader) reset() {
-	r.peeked = false
+	r.buf[0] = 0
 }
 
 func Benchmark_isWhitespace(b *testing.B) {
