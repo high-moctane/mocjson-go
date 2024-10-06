@@ -187,6 +187,28 @@ func readExpectedByteMask(r *PeekReader, buf []byte, expected ByteMask) (byte, e
 	return b, nil
 }
 
+func peekExpectedByte(r *PeekReader, expected byte) (bool, error) {
+	b, err := r.Peek()
+	if err != nil {
+		if err == io.EOF {
+			return expected == 0, nil
+		}
+		return false, err
+	}
+	return b == expected, nil
+}
+
+func peekExpectedByteMask(r *PeekReader, expected ByteMask) (byte, bool, error) {
+	b, err := r.Peek()
+	if err != nil {
+		if err == io.EOF {
+			return 0, matchByteMask(expected, 0), nil
+		}
+		return 0, false, err
+	}
+	return b, matchByteMask(expected, b), nil
+}
+
 func consumeWhitespace(r *PeekReader) error {
 	for {
 		b, err := r.Peek()
