@@ -156,12 +156,12 @@ func readExpectedByte(r *PeekReader, buf []byte, expected byte) error {
 	return nil
 }
 
-func readExpectedByteMask(r *PeekReader, buf []byte, expected *[256]bool) (byte, error) {
+func readExpectedByteMask(r *PeekReader, buf []byte, expected ByteMask) (byte, error) {
 	b, err := r.Peek()
 	if err != nil {
 		return 0, err
 	}
-	if !expected[b] {
+	if !matchByteMask(expected, b) {
 		return 0, fmt.Errorf("unexpected byte: %c", b)
 	}
 	_, _ = r.Read(buf[:1])
