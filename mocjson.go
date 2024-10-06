@@ -557,6 +557,74 @@ ConsumedWhitespace:
 	return ret, nil
 }
 
+func (d *Decoder) ExpectUint(r *PeekReader) (uint, error) {
+	var ret uint
+
+	if _, err := r.Read(d.buf[:1]); err != nil {
+		return 0, fmt.Errorf("read error: %v", err)
+	}
+	if d.buf[0] == '0' {
+		// must be exactly uint(0)
+		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+		}
+		if !ok {
+			return 0, fmt.Errorf("invalid uint value")
+		}
+		return 0, nil
+	}
+	if !isDigit(d.buf[0]) {
+		return 0, fmt.Errorf("invalid uint value")
+	}
+
+	idx := 1
+	ret = digitToValue[uint](d.buf[0])
+	for ; idx < digitLen[is64Bit]-1; idx++ {
+		b, ok, err := peekExpectedByteMask(r, digitByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if !ok {
+			goto ConsumedWhitespace
+		}
+
+		_, _ = r.Read(d.buf[:1])
+		ret = ret*10 + digitToValue[uint](b)
+	}
+	if idx == digitLen[is64Bit]-1 {
+		b, ok, err := peekExpectedByteMask(r, digitByteMask)
+		if err != nil {
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if !ok {
+			goto ConsumedWhitespace
+		}
+
+		if ret > math.MaxUint/10 {
+			return 0, fmt.Errorf("uint overflow")
+		}
+		ret *= 10
+		_, _ = r.Read(d.buf[:1])
+		v := digitToValue[uint](b)
+		if ret > math.MaxUint-v {
+			return 0, fmt.Errorf("uint overflow")
+		}
+		ret += v
+	}
+
+ConsumedWhitespace:
+	_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+	if err != nil {
+		return 0, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+	}
+	if !ok {
+		return 0, fmt.Errorf("invalid uint value")
+	}
+
+	return ret, nil
+}
+
 func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 	var ret uint32
 
