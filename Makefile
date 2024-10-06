@@ -14,6 +14,10 @@ test:
 	go test -shuffle=on ./...
 
 
+.PHONY: fuzz
+fuzz:
+	go test -fuzz ./...
+
 .PHONY: bench
 bench:
 	go test -bench=. ./... -benchmem

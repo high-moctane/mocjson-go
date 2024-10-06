@@ -2,6 +2,7 @@ package mocjson
 
 import (
 	"bytes"
+	"strconv"
 	"testing"
 )
 
@@ -752,4 +753,22 @@ func BenchmarkDecoder_ExpectUint32(b *testing.B) {
 		rr.reset()
 		_, _ = dec.ExpectUint32(&rr)
 	}
+}
+
+func FuzzDecoder_ExpectUint32(f *testing.F) {
+	dec := NewDecoder()
+
+	f.Fuzz(func(t *testing.T, n uint32) {
+		s := strconv.Itoa(int(n))
+		r := NewPeekReader(bytes.NewReader([]byte(s)))
+
+		got, err := dec.ExpectUint32(&r)
+		if err != nil {
+			t.Errorf("UnmarshalUint32() error = %v", err)
+			return
+		}
+		if got != n {
+			t.Errorf("UnmarshalUint32() = %v, want %v", got, n)
+		}
+	})
 }
