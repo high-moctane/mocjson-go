@@ -637,6 +637,23 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:  "max uint32",
+			input: []byte("4294967295"),
+			want:  4294967295,
+		},
+		{
+			name:    "max uint32 + 1",
+			input:   []byte("4294967296"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "uint64",
+			input:   []byte("18446744073709551615"),
+			want:    0,
+			wantErr: true,
+		},
+		{
 			name:    "invalid: empty",
 			input:   []byte(""),
 			want:    0,

@@ -3,6 +3,7 @@ package mocjson
 import (
 	"fmt"
 	"io"
+	"math"
 	"unicode/utf16"
 	"unicode/utf8"
 )
@@ -466,21 +467,45 @@ func (d *Decoder) ExpectUint32(r *PeekReader) (uint32, error) {
 
 	idx := 1
 	ret = digitToValue[uint32](d.buf[0])
-	for ; idx < 10; idx++ {
+	for ; idx < 9; idx++ {
 		b, err := r.Peek()
 		if err != nil {
 			if err == io.EOF {
-				break
+				return ret, nil
 			}
 			return 0, fmt.Errorf("peek error: %v", err)
 		}
 		if !isDigit(b) {
-			break
+			goto ConsumedWhitespace
 		}
 		_, _ = r.Read(d.buf[:1])
 		ret = ret*10 + digitToValue[uint32](d.buf[0])
 	}
+	if idx == 9 {
+		b, err := r.Peek()
+		if err != nil {
+			if err == io.EOF {
+				return ret, nil
+			}
+			return 0, fmt.Errorf("peek error: %v", err)
+		}
+		if !isDigit(b) {
+			goto ConsumedWhitespace
+		}
 
+		if ret > math.MaxUint32/10 {
+			return 0, fmt.Errorf("uint32 overflow")
+		}
+		ret *= 10
+		_, _ = r.Read(d.buf[:1])
+		v := digitToValue[uint32](d.buf[0])
+		if ret > math.MaxUint32-v {
+			return 0, fmt.Errorf("uint32 overflow")
+		}
+		ret += v
+	}
+
+ConsumedWhitespace:
 	if err := consumeWhitespace(r); err != nil {
 		return 0, fmt.Errorf("consume whitespace error: %v", err)
 	}
