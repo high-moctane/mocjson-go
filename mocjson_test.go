@@ -496,6 +496,53 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name:  "zero",
+			input: []byte("0"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: EndObject",
+			input: []byte("0}"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: Whitespace EndObject",
+			input: []byte("0 \r\n\t}"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: EndArray",
+			input: []byte("0]"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: Whitespace EndArray",
+			input: []byte("0 \r\n\t]"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: ValueSeparator",
+			input: []byte("0,"),
+			want:  0,
+		},
+		{
+			name:  "zero and end of token: Whitespace ValueSeparator",
+			input: []byte("0 \r\n\t,"),
+			want:  0,
+		},
+		{
+			name:    "zero and some extra characters",
+			input:   []byte("0abc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "zero and some extra characters: Whitespace",
+			input:   []byte("0 \r\n\tabc"),
+			want:    0,
+			wantErr: true,
+		},
+		{
 			name:  "one",
 			input: []byte("1"),
 			want:  1,
