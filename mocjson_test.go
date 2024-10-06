@@ -209,7 +209,7 @@ func TestDecoder_ExpectNull(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			if err := dec.ExpectNull(&r); (err != nil) != tt.wantErr {
+			if err := ExpectNull(&dec, &r); (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -225,7 +225,7 @@ func BenchmarkDecoder_ExpectNull(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_ = dec.ExpectNull(&rr)
+		_ = ExpectNull(&dec, &rr)
 	}
 }
 
@@ -368,7 +368,7 @@ func TestDecoder_ExpectBool(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectBool(&r)
+			got, err := ExpectBool(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -389,7 +389,7 @@ func BenchmarkDecoder_ExpectBool(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectBool(&rr)
+		_, _ = ExpectBool(&dec, &rr)
 	}
 }
 
@@ -494,7 +494,7 @@ func TestDecoder_ExpectString(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectString(&r)
+			got, err := ExpectString(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalString() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -515,7 +515,7 @@ func BenchmarkDecoder_ExpectString(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectString(&rr)
+		_, _ = ExpectString(&dec, &rr)
 	}
 
 }
@@ -893,7 +893,7 @@ func TestDecoder_ExpectInt(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectInt(&r)
+			got, err := ExpectInt(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExpectInt() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -914,7 +914,7 @@ func BenchmarkDecoder_ExpectInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectInt(&rr)
+		_, _ = ExpectInt(&dec, &rr)
 	}
 }
 
@@ -925,7 +925,7 @@ func FuzzDecoder_ExpectInt(f *testing.F) {
 		s := strconv.Itoa(int(n))
 		r := NewPeekReader(bytes.NewReader([]byte(s)))
 
-		got, err := dec.ExpectInt(&r)
+		got, err := ExpectInt(&dec, &r)
 		if err != nil {
 			t.Errorf("ExpectInt() error = %v", err)
 			return
@@ -1301,7 +1301,7 @@ func TestDecoder_ExpectInt32(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectInt32(&r)
+			got, err := ExpectInt32(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExpectInt32() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1322,7 +1322,7 @@ func BenchmarkDecoder_ExpectInt32(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectInt32(&rr)
+		_, _ = ExpectInt32(&dec, &rr)
 	}
 }
 
@@ -1333,7 +1333,7 @@ func FuzzDecoder_ExpectInt32(f *testing.F) {
 		s := strconv.Itoa(int(n))
 		r := NewPeekReader(bytes.NewReader([]byte(s)))
 
-		got, err := dec.ExpectInt32(&r)
+		got, err := ExpectInt32(&dec, &r)
 		if err != nil {
 			t.Errorf("ExpectInt32() error = %v", err)
 			return
@@ -1561,7 +1561,7 @@ func TestDecoder_ExpectUint(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectUint(&r)
+			got, err := ExpectUint(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalUint() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1582,7 +1582,7 @@ func BenchmarkDecoder_ExpectUint(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectUint(&rr)
+		_, _ = ExpectUint(&dec, &rr)
 	}
 }
 
@@ -1593,7 +1593,7 @@ func FuzzDecoder_ExpectUint(f *testing.F) {
 		s := strconv.FormatUint(uint64(n), 10)
 		r := NewPeekReader(bytes.NewReader([]byte(s)))
 
-		got, err := dec.ExpectUint(&r)
+		got, err := ExpectUint(&dec, &r)
 		if err != nil {
 			t.Errorf("ExpectUint() error = %v", err)
 			return
@@ -1817,7 +1817,7 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectUint32(&r)
+			got, err := ExpectUint32(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UnmarshalUint32() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -1838,7 +1838,7 @@ func BenchmarkDecoder_ExpectUint32(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectUint32(&rr)
+		_, _ = ExpectUint32(&dec, &rr)
 	}
 }
 
@@ -1849,7 +1849,7 @@ func FuzzDecoder_ExpectUint32(f *testing.F) {
 		s := strconv.Itoa(int(n))
 		r := NewPeekReader(bytes.NewReader([]byte(s)))
 
-		got, err := dec.ExpectUint32(&r)
+		got, err := ExpectUint32(&dec, &r)
 		if err != nil {
 			t.Errorf("UnmarshalUint32() error = %v", err)
 			return
@@ -2074,7 +2074,7 @@ func TestDecoder_ExpectFloat64(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectFloat64(&r)
+			got, err := ExpectFloat64(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExpectFloat64() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2096,7 +2096,7 @@ func BenchmarkDecoder_ExpectFloat64(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectFloat64(&rr)
+		_, _ = ExpectFloat64(&dec, &rr)
 	}
 }
 
@@ -2107,7 +2107,7 @@ func FuzzDecoder_ExpectFloat64(f *testing.F) {
 		s := strconv.FormatFloat(n, 'g', -1, 64)
 		r := NewPeekReader(bytes.NewReader([]byte(s)))
 
-		got, err := dec.ExpectFloat64(&r)
+		got, err := ExpectFloat64(&dec, &r)
 		if err != nil {
 			t.Errorf("ExpectFloat64() error = %v", err)
 			return
@@ -2332,7 +2332,7 @@ func TestDecoder_ExpectFloat32(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectFloat32(&r)
+			got, err := ExpectFloat32(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExpectFloat32() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2354,7 +2354,7 @@ func BenchmarkDecoder_ExpectFloat32(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectFloat32(&rr)
+		_, _ = ExpectFloat32(&dec, &rr)
 	}
 }
 
@@ -2365,7 +2365,7 @@ func FuzzDecoder_ExpectFloat32(f *testing.F) {
 		s := strconv.FormatFloat(float64(n), 'g', -1, 32)
 		r := NewPeekReader(bytes.NewReader([]byte(s)))
 
-		got, err := dec.ExpectFloat32(&r)
+		got, err := ExpectFloat32(&dec, &r)
 		if err != nil {
 			t.Errorf("ExpectFloat32() error = %v", err)
 			return
@@ -2451,7 +2451,7 @@ func TestDecoder_ExpectArrayInt(t *testing.T) {
 
 			r := NewPeekReader(bytes.NewReader(tt.input))
 
-			got, err := dec.ExpectArrayInt(&r)
+			got, err := ExpectArrayInt(&dec, &r)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExpectArrayInt() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2483,6 +2483,6 @@ func BenchmarkDecoder_ExpectArrayInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		r.Seek(0, 0)
 		rr.reset()
-		_, _ = dec.ExpectArrayInt(&rr)
+		_, _ = ExpectArrayInt(&dec, &rr)
 	}
 }
