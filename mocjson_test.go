@@ -429,6 +429,21 @@ func TestDecoder_ExpectString(t *testing.T) {
 			want:  "\"\\/\b\f\n\r\t𝄞",
 		},
 		{
+			name:  "valid: unicode escape",
+			input: []byte(`"\u0068\u0069\u0067\u0068\u002D\u006D\u006F\u0063\u0074\u0061\u006E\u0065"`),
+			want:  "high-moctane",
+		},
+		{
+			name:  "valid: unicode escape with surrogate pair",
+			input: []byte(`"\ud83d\udc41"`),
+			want:  "👁",
+		},
+		{
+			name:  "valid: unicode escape with single and surrogate pair",
+			input: []byte(`"\u0068\u0069\ud83d\udc41\ud83d\udc41\u0068\ud83d\udc41"`),
+			want:  "hi👁👁h👁",
+		},
+		{
 			name:    "invalid: corrupted utf-8",
 			input:   []byte{'"', 0xff, 0xff, 0xff, 0xff, '"'},
 			wantErr: true,
