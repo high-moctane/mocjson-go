@@ -29,7 +29,7 @@ const (
 
 const is64Bit = ^uint(0) >> 63
 
-var digitLen = [2]int{10, 20}
+var uintDigitLen = [2]int{10, 20}
 
 type ByteMask [4]uint64
 
@@ -580,7 +580,7 @@ func (d *Decoder) ExpectUint(r *PeekReader) (uint, error) {
 
 	idx := 1
 	ret = digitToValue[uint](d.buf[0])
-	for ; idx < digitLen[is64Bit]-1; idx++ {
+	for ; idx < uintDigitLen[is64Bit]-1; idx++ {
 		b, ok, err := peekExpectedByteMask(r, digitByteMask)
 		if err != nil {
 			return 0, fmt.Errorf("peek error: %v", err)
@@ -592,7 +592,7 @@ func (d *Decoder) ExpectUint(r *PeekReader) (uint, error) {
 		_, _ = r.Read(d.buf[:1])
 		ret = ret*10 + digitToValue[uint](b)
 	}
-	if idx == digitLen[is64Bit]-1 {
+	if idx == uintDigitLen[is64Bit]-1 {
 		b, ok, err := peekExpectedByteMask(r, digitByteMask)
 		if err != nil {
 			return 0, fmt.Errorf("peek error: %v", err)
