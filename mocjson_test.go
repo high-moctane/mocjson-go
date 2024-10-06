@@ -2116,3 +2116,261 @@ func FuzzDecoder_ExpectFloat64(f *testing.F) {
 		}
 	})
 }
+
+func TestDecoder_ExpectFloat32(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   []byte
+		want    float32
+		wantErr bool
+	}{
+		{
+			name:  "int: zero",
+			input: []byte("0"),
+			want:  0,
+		},
+		{
+			name:  "int: one digit",
+			input: []byte("1"),
+			want:  1,
+		},
+		{
+			name:  "int: some digits",
+			input: []byte("1234567890"),
+			want:  1234567890,
+		},
+		{
+			name:  "minus int: zero",
+			input: []byte("-0"),
+			want:  0,
+		},
+		{
+			name:  "minus int: one digit",
+			input: []byte("-1"),
+			want:  -1,
+		},
+		{
+			name:  "minus int: some digits",
+			input: []byte("-1234567890"),
+			want:  -1234567890,
+		},
+		{
+			name:  "int frac: zero",
+			input: []byte("0.0"),
+			want:  0,
+		},
+		{
+			name:  "int frac: one digit",
+			input: []byte("1.5"),
+			want:  1.5,
+		},
+		{
+			name:  "int frac: some digits",
+			input: []byte("1234567890.56"),
+			want:  1234567890.56,
+		},
+		{
+			name:  "minus int frac: zero",
+			input: []byte("-0.0"),
+			want:  0,
+		},
+		{
+			name:  "minus int frac: one digit",
+			input: []byte("-1.5"),
+			want:  -1.5,
+		},
+		{
+			name:  "minus int frac: some digits",
+			input: []byte("-1234567890.56"),
+			want:  -1234567890.56,
+		},
+		{
+			name:  "int exp: zero",
+			input: []byte("0e0"),
+			want:  0,
+		},
+		{
+			name:  "int exp: one digit",
+			input: []byte("1e2"),
+			want:  100,
+		},
+		{
+			name:  "int exp: some digits",
+			input: []byte("1234567890e-3"),
+			want:  1234567.89,
+		},
+		{
+			name:  "minus int exp: zero",
+			input: []byte("-0e0"),
+			want:  0,
+		},
+		{
+			name:  "minus int exp: one digit",
+			input: []byte("-1e2"),
+			want:  -100,
+		},
+		{
+			name:  "minus int exp: some digits",
+			input: []byte("-1234567890e-3"),
+			want:  -1234567.89,
+		},
+		{
+			name:  "int frac exp: zero",
+			input: []byte("0.0e0"),
+			want:  0,
+		},
+		{
+			name:  "int frac exp: one digit",
+			input: []byte("1.5e2"),
+			want:  150,
+		},
+		{
+			name:  "int frac exp: some digits",
+			input: []byte("1234567890.56e-3"),
+			want:  1234567.89056,
+		},
+		{
+			name:  "minus int frac exp: zero",
+			input: []byte("-0.0e0"),
+			want:  0,
+		},
+		{
+			name:  "minus int frac exp: one digit",
+			input: []byte("-1.5e2"),
+			want:  -150,
+		},
+		{
+			name:  "minus int frac exp: some digits",
+			input: []byte("-1234567890.56e-3"),
+			want:  -1234567.89056,
+		},
+		{
+			name:  "minus int frac exp: end of token: whitespace EndObject",
+			input: []byte("-1234567890.56e-3 \r\n\t}"),
+			want:  -1234567.89056,
+		},
+		{
+			name:  "max float32",
+			input: []byte("340282346638528859811704183484516925440"),
+			want:  340282346638528859811704183484516925440,
+		},
+		{
+			name:    "max float32 + 1",
+			input:   []byte("3402823466385288598117041834845169254400"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:  "min float32",
+			input: []byte("-340282346638528859811704183484516925440"),
+			want:  -340282346638528859811704183484516925440,
+		},
+		{
+			name:    "min float32 - 1",
+			input:   []byte("-3402823466385288598117041834845169254400"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: empty",
+			input:   []byte(""),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid",
+			input:   []byte("invalid"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: one byte",
+			input:   []byte("i"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: one digit, whitespace and one digit",
+			input:   []byte("1 2"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: some digits, whitespace and some digits",
+			input:   []byte("123 456"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "begin with whitespace",
+			input:   []byte(" \r\n\t1"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: leading zero",
+			input:   []byte("01"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: leading dot",
+			input:   []byte(".1"),
+			want:    0,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dec := NewDecoder()
+
+			r := NewPeekReader(bytes.NewReader(tt.input))
+
+			got, err := dec.ExpectFloat32(&r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ExpectFloat32() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ExpectFloat32() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkDecoder_ExpectFloat32(b *testing.B) {
+	dec := NewDecoder()
+
+	r := bytes.NewReader([]byte("-340282346638528859811704183484516925440"))
+	rr := NewPeekReader(r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+		rr.reset()
+		_, _ = dec.ExpectFloat32(&rr)
+	}
+}
+
+func FuzzDecoder_ExpectFloat32(f *testing.F) {
+	dec := NewDecoder()
+
+	f.Fuzz(func(t *testing.T, n float32) {
+		s := strconv.FormatFloat(float64(n), 'g', -1, 32)
+		r := NewPeekReader(bytes.NewReader([]byte(s)))
+
+		got, err := dec.ExpectFloat32(&r)
+		if err != nil {
+			t.Errorf("ExpectFloat32() error = %v", err)
+			return
+		}
+		if got != n {
+			t.Errorf("ExpectFloat32() = %v, want %v", got, n)
+		}
+	})
+}
