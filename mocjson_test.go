@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"math"
 	"math/big"
+	"reflect"
 	"strconv"
 	"testing"
 )
@@ -2373,4 +2374,115 @@ func FuzzDecoder_ExpectFloat32(f *testing.F) {
 			t.Errorf("ExpectFloat32() = %v, want %v", got, n)
 		}
 	})
+}
+
+func TestDecoder_ExpectArrayInt(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   []byte
+		want    []int
+		wantErr bool
+	}{
+		{
+			name:  "valid: empty",
+			input: []byte("[]"),
+			want:  []int{},
+		},
+		{
+			name:  "valid: one element",
+			input: []byte("[0]"),
+			want:  []int{0},
+		},
+		{
+			name:  "valid: some elements",
+			input: []byte("[0,1,2,3,4,5,6,7,8,9]"),
+			want:  []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+		},
+		{
+			name:  "valid: whitespace",
+			input: []byte("[ \r\n\t0 \r\n\t, \r\n\t1 \r\n\t, \r\n\t2 \r\n\t, \r\n\t3 \r\n\t, \r\n\t4 \r\n\t, \r\n\t5 \r\n\t, \r\n\t6 \r\n\t, \r\n\t7 \r\n\t, \r\n\t8 \r\n\t, \r\n\t9 \r\n\t]"),
+			want:  []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+		},
+		{
+			name:    "invalid: empty",
+			input:   []byte(""),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: begin with whitespace",
+			input:   []byte(" \r\n\t[]"),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: one byte",
+			input:   []byte("["),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: without close bracket; one element",
+			input:   []byte("[0"),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: without close bracket; some elements",
+			input:   []byte("[0,1,2,3,4,5,6,7,8,9"),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: trailing comma",
+			input:   []byte("[0,]"),
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dec := NewDecoder()
+
+			r := NewPeekReader(bytes.NewReader(tt.input))
+
+			got, err := dec.ExpectArrayInt(&r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ExpectArrayInt() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ExpectArrayInt() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkDecoder_ExpectArrayInt(b *testing.B) {
+	dec := NewDecoder()
+
+	var buf bytes.Buffer
+	buf.WriteString("[")
+	for i := 0; i < 1000; i++ {
+		if i > 0 {
+			buf.WriteString(",")
+		}
+		buf.WriteString(strconv.Itoa(i))
+	}
+	buf.WriteString("]")
+
+	r := bytes.NewReader(buf.Bytes())
+	rr := NewPeekReader(r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+		rr.reset()
+		_, _ = dec.ExpectArrayInt(&rr)
+	}
 }

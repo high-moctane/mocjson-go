@@ -954,3 +954,72 @@ func (d *Decoder) loadNumberValueIntoBuf(r *PeekReader) (int, error) {
 
 	return idx, nil
 }
+
+func (d *Decoder) ExpectArrayInt(r *PeekReader) ([]int, error) {
+	if err := readExpectedByte(r, d.buf[:1], BeginArray); err != nil {
+		return nil, fmt.Errorf("read expected byte error: %v", err)
+	}
+	if err := consumeWhitespace(r); err != nil {
+		return nil, fmt.Errorf("consume whitespace error: %v", err)
+	}
+
+	var ret []int
+
+	ok, err := consumeWhitespaceAndPeekExpectedByte(r, EndArray)
+	if err != nil {
+		return nil, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+	}
+	if ok {
+		goto CheckEndOfValue
+	}
+
+Loop:
+	for {
+		v, err := d.ExpectInt(r)
+		if err != nil {
+			return nil, fmt.Errorf("expect int error: %v", err)
+		}
+		ret = append(ret, v)
+
+		if err := consumeWhitespace(r); err != nil {
+			return nil, fmt.Errorf("consume whitespace error: %v", err)
+		}
+
+		b, err := r.Peek()
+		if err != nil {
+			return nil, fmt.Errorf("peek error: %v", err)
+		}
+		switch b {
+		case EndArray:
+			break Loop
+
+		case ValueSeparator:
+			_, _ = r.Read(d.buf[:1])
+			if err := consumeWhitespace(r); err != nil {
+				return nil, fmt.Errorf("consume whitespace error: %v", err)
+			}
+
+		default:
+			return nil, fmt.Errorf("invalid array value")
+		}
+	}
+
+	if err := readExpectedByte(r, d.buf[:1], EndArray); err != nil {
+		return nil, fmt.Errorf("read expected byte error: %v", err)
+	}
+
+CheckEndOfValue:
+	_, ok, err = consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+	if err != nil {
+		return nil, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
+	}
+	if !ok {
+		return nil, fmt.Errorf("invalid array value")
+	}
+
+	if ret == nil {
+		ret = []int{}
+	}
+
+	return ret, nil
+}
