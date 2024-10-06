@@ -54,6 +54,15 @@ func isDigit(b byte) bool {
 	return matchByteMask(digitByteMask, b)
 }
 
+var nonZeroDigitByteMask = ByteMask{
+	1<<'1' | 1<<'2' | 1<<'3' | 1<<'4' | 1<<'5' | 1<<'6' | 1<<'7' | 1<<'8' | 1<<'9',
+	0,
+}
+
+func isNonZeroDigit(b byte) bool {
+	return matchByteMask(nonZeroDigitByteMask, b)
+}
+
 var hexDigitByteMask = ByteMask{
 	1<<'0' | 1<<'1' | 1<<'2' | 1<<'3' | 1<<'4' | 1<<'5' | 1<<'6' | 1<<'7' | 1<<'8' | 1<<'9',
 	1<<('A'-64) | 1<<('B'-64) | 1<<('C'-64) | 1<<('D'-64) | 1<<('E'-64) | 1<<('F'-64) | 1<<('a'-64) | 1<<('b'-64) | 1<<('c'-64) | 1<<('d'-64) | 1<<('e'-64) | 1<<('f'-64),
