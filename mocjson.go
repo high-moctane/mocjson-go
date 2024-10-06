@@ -27,6 +27,10 @@ const (
 	FormFeed       = '\f'
 )
 
+const is64Bit = ^uint(0) >> 63
+
+var digitLen = [2]int{10, 20}
+
 type ByteMask [4]uint64
 
 func matchByteMask(mask ByteMask, b byte) bool {
