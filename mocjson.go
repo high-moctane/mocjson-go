@@ -344,7 +344,7 @@ func ExpectBool[T ~bool](d *Decoder, r *PeekReader) (T, error) {
 	}
 	switch d.buf[0] {
 	case 't':
-		if _, err := r.Read(d.buf[:4]); err != nil {
+		if _, err := r.Read(d.buf[:3]); err != nil {
 			return false, fmt.Errorf("read error: %v", err)
 		}
 		if d.buf[0] != 'r' || d.buf[1] != 'u' || d.buf[2] != 'e' {
@@ -361,14 +361,14 @@ func ExpectBool[T ~bool](d *Decoder, r *PeekReader) (T, error) {
 		return true, nil
 
 	case 'f':
-		if _, err := r.Read(d.buf[:5]); err != nil {
+		if _, err := r.Read(d.buf[:4]); err != nil {
 			return false, fmt.Errorf("read error: %v", err)
 		}
 		if d.buf[0] != 'a' || d.buf[1] != 'l' || d.buf[2] != 's' || d.buf[3] != 'e' {
 			return false, fmt.Errorf("invalid bool value")
 		}
 
-		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfStringValueByteMask)
+		_, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
 		if err != nil {
 			return false, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 		}

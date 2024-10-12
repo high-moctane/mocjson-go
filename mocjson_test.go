@@ -298,48 +298,6 @@ func TestDecoder_ExpectBool(t *testing.T) {
 			want:  true,
 		},
 		{
-			name:  "true and end of token: EndObject",
-			input: []byte("true}"),
-			want:  true,
-		},
-		{
-			name:  "true and end of token: Whitespace EndObject",
-			input: []byte("true \r\n\t}"),
-			want:  true,
-		},
-		{
-			name:  "true and end of token: EndArray",
-			input: []byte("true]"),
-			want:  true,
-		},
-		{
-			name:  "true and end of token: Whitespace EndArray",
-			input: []byte("true \r\n\t]"),
-			want:  true,
-		},
-		{
-			name:  "true and end of token: ValueSeparator",
-			input: []byte("true,"),
-			want:  true,
-		},
-		{
-			name:  "true and end of token: Whitespace ValueSeparator",
-			input: []byte("true \r\n\t,"),
-			want:  true,
-		},
-		{
-			name:    "true and some extra characters",
-			input:   []byte("trueabc"),
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name:    "true and some extra characters: Whitespace",
-			input:   []byte("true \r\n\tabc"),
-			want:    false,
-			wantErr: true,
-		},
-		{
 			name:    "true: too short",
 			input:   []byte("tru"),
 			want:    false,
@@ -355,38 +313,6 @@ func TestDecoder_ExpectBool(t *testing.T) {
 			name:  "false",
 			input: []byte("false"),
 			want:  false,
-		},
-		{
-			name:  "false and end of token: EndObject",
-			input: []byte("false}"),
-			want:  false,
-		},
-		{
-			name:  "false and end of token: Whitespace EndObject",
-			input: []byte("false \r\n\t}"),
-			want:  false,
-		},
-		{
-			name:  "false and end of token: EndArray",
-			input: []byte("false]"),
-			want:  false,
-		},
-		{
-			name:  "false and end of token: Whitespace EndArray",
-			input: []byte("false \r\n\t]"),
-			want:  false,
-		},
-		{
-			name:    "false and some extra characters",
-			input:   []byte("falseabc"),
-			want:    false,
-			wantErr: true,
-		},
-		{
-			name:    "false and some extra characters: Whitespace",
-			input:   []byte("false \r\n\tabc"),
-			want:    false,
-			wantErr: true,
 		},
 		{
 			name:    "false: too short",
@@ -414,6 +340,59 @@ func TestDecoder_ExpectBool(t *testing.T) {
 		},
 	}
 
+	suffixes := []struct {
+		name    string
+		suffix  []byte
+		wantErr bool
+	}{
+		{
+			name:   "EOF",
+			suffix: []byte{'\x00'},
+		},
+		{
+			name:    "BeginArray",
+			suffix:  []byte{'['},
+			wantErr: true,
+		},
+		{
+			name:    "BeginObject",
+			suffix:  []byte{'{'},
+			wantErr: true,
+		},
+		{
+			name:   "EndArray",
+			suffix: []byte{']'},
+		},
+		{
+			name:   "EndObject",
+			suffix: []byte{'}'},
+		},
+		{
+			name:    "NameSeparator",
+			suffix:  []byte{':'},
+			wantErr: true,
+		},
+		{
+			name:   "ValueSeparator",
+			suffix: []byte{','},
+		},
+		{
+			name:    "QuotationMark",
+			suffix:  []byte{'"'},
+			wantErr: true,
+		},
+		{
+			name:    "Alphabet",
+			suffix:  []byte("abc"),
+			wantErr: true,
+		},
+		{
+			name:    "Number",
+			suffix:  []byte("123"),
+			wantErr: true,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -427,10 +406,64 @@ func TestDecoder_ExpectBool(t *testing.T) {
 				t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if err != nil {
+				return
+			}
 			if got != tt.want {
 				t.Errorf("UnmarshalBool() = %v, want %v", got, tt.want)
 			}
 		})
+
+		for _, s := range suffixes {
+			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectBool[bool](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalBool() = %v, want %v", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectBool[bool](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalBool() = %v, want %v", got, tt.want)
+				}
+			})
+		}
 	}
 }
 
