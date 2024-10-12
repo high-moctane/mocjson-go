@@ -139,6 +139,36 @@ var endOfStringValueByteMask = ByteMask{
 	1<<(EndArray-64) | 1<<(EndObject-64),
 }
 
+type Chunk uint64
+
+type ChunkReader struct {
+	r   io.Reader
+	buf [8]byte
+}
+
+func NewChunkReader(r io.Reader) ChunkReader {
+	return ChunkReader{r: r}
+}
+
+func (r *ChunkReader) ReadChunk() (int, Chunk, error) {
+	n, err := r.r.Read(r.buf[:])
+	if err != nil {
+		return 0, 0, err
+	}
+
+	chunk := Chunk(r.buf[0])<<56 |
+		Chunk(r.buf[1])<<48 |
+		Chunk(r.buf[2])<<40 |
+		Chunk(r.buf[3])<<32 |
+		Chunk(r.buf[4])<<24 |
+		Chunk(r.buf[5])<<16 |
+		Chunk(r.buf[6])<<8 |
+		Chunk(r.buf[7])
+	chunk &= ^(0xFFFFFFFFFFFFFFFF >> (8 >> n))
+
+	return n, chunk, nil
+}
+
 type PeekReader struct {
 	r   io.Reader
 	buf [1]byte
