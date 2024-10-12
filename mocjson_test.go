@@ -695,93 +695,9 @@ func TestDecoder_ExpectInt(t *testing.T) {
 			want:  0,
 		},
 		{
-			name:  "zero and end of token: EndObject",
-			input: []byte("0}"),
-			want:  0,
-		},
-		{
-			name:  "zero and end of token: Whitespace EndObject",
-			input: []byte("0 \r\n\t}"),
-			want:  0,
-		},
-		{
-			name:  "zero and end of token: EndArray",
-			input: []byte("0]"),
-			want:  0,
-		},
-		{
-			name:  "zero and end of token: Whitespace EndArray",
-			input: []byte("0 \r\n\t]"),
-			want:  0,
-		},
-		{
-			name:  "zero and end of token: ValueSeparator",
-			input: []byte("0,"),
-			want:  0,
-		},
-		{
-			name:  "zero and end of token: Whitespace ValueSeparator",
-			input: []byte("0 \r\n\t,"),
-			want:  0,
-		},
-		{
-			name:    "zero and some extra characters",
-			input:   []byte("0abc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name:    "zero and some extra characters: Whitespace",
-			input:   []byte("0 \r\n\tabc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
 			name:  "minus zero",
 			input: []byte("-0"),
 			want:  0,
-		},
-		{
-			name:  "minus zero and end of token: EndObject",
-			input: []byte("-0}"),
-			want:  0,
-		},
-		{
-			name:  "minus zero and end of token: Whitespace EndObject",
-			input: []byte("-0 \r\n\t}"),
-			want:  0,
-		},
-		{
-			name:  "minus zero and end of token: EndArray",
-			input: []byte("-0]"),
-			want:  0,
-		},
-		{
-			name:  "minus zero and end of token: Whitespace EndArray",
-			input: []byte("-0 \r\n\t]"),
-			want:  0,
-		},
-		{
-			name:  "minus zero and end of token: ValueSeparator",
-			input: []byte("-0,"),
-			want:  0,
-		},
-		{
-			name:  "minus zero and end of token: Whitespace ValueSeparator",
-			input: []byte("-0 \r\n\t,"),
-			want:  0,
-		},
-		{
-			name:    "minus zero and some extra characters",
-			input:   []byte("-0abc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name:    "minus zero and some extra characters: Whitespace",
-			input:   []byte("-0 \r\n\tabc"),
-			want:    0,
-			wantErr: true,
 		},
 		{
 			name:  "one",
@@ -789,93 +705,9 @@ func TestDecoder_ExpectInt(t *testing.T) {
 			want:  1,
 		},
 		{
-			name:  "one and end of token: EndObject",
-			input: []byte("1}"),
-			want:  1,
-		},
-		{
-			name:  "one and end of token: Whitespace EndObject",
-			input: []byte("1 \r\n\t}"),
-			want:  1,
-		},
-		{
-			name:  "one and end of token: EndArray",
-			input: []byte("1]"),
-			want:  1,
-		},
-		{
-			name:  "one and end of token: Whitespace EndArray",
-			input: []byte("1 \r\n\t]"),
-			want:  1,
-		},
-		{
-			name:  "one and end of token: ValueSeparator",
-			input: []byte("1,"),
-			want:  1,
-		},
-		{
-			name:  "one and end of token: Whitespace ValueSeparator",
-			input: []byte("1 \r\n\t,"),
-			want:  1,
-		},
-		{
-			name:    "one and some extra characters",
-			input:   []byte("1abc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name:    "one and some extra characters: Whitespace",
-			input:   []byte("1 \r\n\tabc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
 			name:  "minus one",
 			input: []byte("-1"),
 			want:  -1,
-		},
-		{
-			name:  "minus one and end of token: EndObject",
-			input: []byte("-1}"),
-			want:  -1,
-		},
-		{
-			name:  "minus one and end of token: Whitespace EndObject",
-			input: []byte("-1 \r\n\t}"),
-			want:  -1,
-		},
-		{
-			name:  "minus one and end of token: EndArray",
-			input: []byte("-1]"),
-			want:  -1,
-		},
-		{
-			name:  "minus one and end of token: Whitespace EndArray",
-			input: []byte("-1 \r\n\t]"),
-			want:  -1,
-		},
-		{
-			name:  "minus one and end of token: ValueSeparator",
-			input: []byte("-1,"),
-			want:  -1,
-		},
-		{
-			name:  "minus one and end of token: Whitespace ValueSeparator",
-			input: []byte("-1 \r\n\t,"),
-			want:  -1,
-		},
-		{
-			name:    "minus one and some extra characters",
-			input:   []byte("-1abc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name:    "minus one and some extra characters: Whitespace",
-			input:   []byte("-1 \r\n\tabc"),
-			want:    0,
-			wantErr: true,
 		},
 		{
 			name:  "some digits",
@@ -883,93 +715,9 @@ func TestDecoder_ExpectInt(t *testing.T) {
 			want:  1234567890,
 		},
 		{
-			name:  "some digits and end of token: EndObject",
-			input: []byte("1234567890}"),
-			want:  1234567890,
-		},
-		{
-			name:  "some digits and end of token: Whitespace EndObject",
-			input: []byte("1234567890 \r\n\t}"),
-			want:  1234567890,
-		},
-		{
-			name:  "some digits and end of token: EndArray",
-			input: []byte("1234567890]"),
-			want:  1234567890,
-		},
-		{
-			name:  "some digits and end of token: Whitespace EndArray",
-			input: []byte("1234567890 \r\n\t]"),
-			want:  1234567890,
-		},
-		{
-			name:  "some digits and end of token: ValueSeparator",
-			input: []byte("1234567890,"),
-			want:  1234567890,
-		},
-		{
-			name:  "some digits and end of token: Whitespace ValueSeparator",
-			input: []byte("1234567890 \r\n\t,"),
-			want:  1234567890,
-		},
-		{
-			name:    "some digits and some extra characters",
-			input:   []byte("1234567890abc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name:    "some digits and some extra characters: Whitespace",
-			input:   []byte("1234567890 \r\n\tabc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
 			name:  "some digits minus",
 			input: []byte("-1234567890"),
 			want:  -1234567890,
-		},
-		{
-			name:  "some digits minus and end of token: EndObject",
-			input: []byte("-1234567890}"),
-			want:  -1234567890,
-		},
-		{
-			name:  "some digits minus and end of token: Whitespace EndObject",
-			input: []byte("-1234567890 \r\n\t}"),
-			want:  -1234567890,
-		},
-		{
-			name:  "some digits minus and end of token: EndArray",
-			input: []byte("-1234567890]"),
-			want:  -1234567890,
-		},
-		{
-			name:  "some digits minus and end of token: Whitespace EndArray",
-			input: []byte("-1234567890 \r\n\t]"),
-			want:  -1234567890,
-		},
-		{
-			name:  "some digits minus and end of token: ValueSeparator",
-			input: []byte("-1234567890,"),
-			want:  -1234567890,
-		},
-		{
-			name:  "some digits minus and end of token: Whitespace ValueSeparator",
-			input: []byte("-1234567890 \r\n\t,"),
-			want:  -1234567890,
-		},
-		{
-			name:    "some digits minus and some extra characters",
-			input:   []byte("-1234567890abc"),
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name:    "some digits minus and some extra characters: Whitespace",
-			input:   []byte("-1234567890 \r\n\tabc"),
-			want:    0,
-			wantErr: true,
 		},
 		{
 			name:  "max int",
@@ -1045,6 +793,59 @@ func TestDecoder_ExpectInt(t *testing.T) {
 		},
 	}
 
+	suffixes := []struct {
+		name    string
+		suffix  []byte
+		wantErr bool
+	}{
+		{
+			name:   "EOF",
+			suffix: []byte{'\x00'},
+		},
+		{
+			name:    "BeginArray",
+			suffix:  []byte{'['},
+			wantErr: true,
+		},
+		{
+			name:    "BeginObject",
+			suffix:  []byte{'{'},
+			wantErr: true,
+		},
+		{
+			name:   "EndArray",
+			suffix: []byte{']'},
+		},
+		{
+			name:   "EndObject",
+			suffix: []byte{'}'},
+		},
+		{
+			name:    "NameSeparator",
+			suffix:  []byte{':'},
+			wantErr: true,
+		},
+		{
+			name:   "ValueSeparator",
+			suffix: []byte{','},
+		},
+		{
+			name:    "QuotationMark",
+			suffix:  []byte{'"'},
+			wantErr: true,
+		},
+		{
+			name:    "Alphabet",
+			suffix:  []byte("abc"),
+			wantErr: true,
+		},
+		{
+			name:    "Number",
+			suffix:  []byte("12345678901234567890"),
+			wantErr: true,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -1062,6 +863,57 @@ func TestDecoder_ExpectInt(t *testing.T) {
 				t.Errorf("ExpectInt() = %v, want %v", got, tt.want)
 			}
 		})
+
+		for _, s := range suffixes {
+			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectInt[int](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("ExpectInt() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ExpectInt() = %v, want %v", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectInt[int](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("ExpectInt() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ExpectInt() = %v, want %v", got, tt.want)
+				}
+			})
+		}
 	}
 }
 
