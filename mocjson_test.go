@@ -535,38 +535,60 @@ func TestDecoder_ExpectString(t *testing.T) {
 			want:  "hi👁👁h👁",
 		},
 		{
-			name:  "valid: end of token: EndObject",
-			input: []byte(`"high-moctane"}`),
-			want:  "high-moctane",
-		},
-		{
-			name:  "valid: end of token: Whitespace EndObject",
-			input: []byte("\"high-moctane\" \r\n\t}"),
-			want:  "high-moctane",
-		},
-		{
-			name:  "valid: end of token: EndArray",
-			input: []byte(`"high-moctane"]`),
-			want:  "high-moctane",
-		},
-		{
-			name:  "valid: end of token: Whitespace EndArray",
-			input: []byte("\"high-moctane\" \r\n\t]"),
-			want:  "high-moctane",
-		},
-		{
-			name:  "valid: end of token: ValueSeparator",
-			input: []byte(`"high-moctane",`),
-			want:  "high-moctane",
-		},
-		{
-			name:  "valid: end of token: Whitespace ValueSeparator",
-			input: []byte("\"high-moctane\" \r\n\t,"),
-			want:  "high-moctane",
-		},
-		{
 			name:    "invalid: corrupted utf-8",
 			input:   []byte{'"', 0xff, 0xff, 0xff, 0xff, '"'},
+			wantErr: true,
+		},
+	}
+
+	suffixes := []struct {
+		name    string
+		suffix  []byte
+		wantErr bool
+	}{
+		{
+			name:   "EOF",
+			suffix: []byte{'\x00'},
+		},
+		{
+			name:    "BeginArray",
+			suffix:  []byte{'['},
+			wantErr: true,
+		},
+		{
+			name:    "BeginObject",
+			suffix:  []byte{'{'},
+			wantErr: true,
+		},
+		{
+			name:   "EndArray",
+			suffix: []byte{']'},
+		},
+		{
+			name:   "EndObject",
+			suffix: []byte{'}'},
+		},
+		{
+			name:   "NameSeparator",
+			suffix: []byte{':'},
+		},
+		{
+			name:   "ValueSeparator",
+			suffix: []byte{','},
+		},
+		{
+			name:    "QuotationMark",
+			suffix:  []byte{'"'},
+			wantErr: true,
+		},
+		{
+			name:    "Alphabet",
+			suffix:  []byte("abc"),
+			wantErr: true,
+		},
+		{
+			name:    "Number",
+			suffix:  []byte("123"),
 			wantErr: true,
 		},
 	}
@@ -590,6 +612,57 @@ func TestDecoder_ExpectString(t *testing.T) {
 				t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
 			}
 		})
+
+		for _, s := range suffixes {
+			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectString[string](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalString() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectString[string](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalString() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
+				}
+			})
+		}
 	}
 }
 

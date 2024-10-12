@@ -387,7 +387,7 @@ func ExpectString[T ~string](d *Decoder, r *PeekReader) (T, error) {
 		return "", fmt.Errorf("load string value into buf error: %v", err)
 	}
 
-	b, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfValueByteMask)
+	b, ok, err := consumeWhitespaceAndPeekExpectedByteMask(r, endOfStringValueByteMask)
 	if err != nil {
 		return "", fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 	}
