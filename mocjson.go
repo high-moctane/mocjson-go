@@ -973,9 +973,6 @@ func ExpectArrayInt[T ~int](d *Decoder, r *PeekReader) ([]T, error) {
 	if err := readExpectedByte(r, d.buf[:1], BeginArray); err != nil {
 		return nil, fmt.Errorf("read expected byte error: %v", err)
 	}
-	if err := consumeWhitespace(r); err != nil {
-		return nil, fmt.Errorf("consume whitespace error: %v", err)
-	}
 
 	var ret []T
 
@@ -984,6 +981,7 @@ func ExpectArrayInt[T ~int](d *Decoder, r *PeekReader) ([]T, error) {
 		return nil, fmt.Errorf("consume whitespace and peek expected byte error: %v", err)
 	}
 	if ok {
+		_, _ = r.Read(d.buf[:1])
 		goto CheckEndOfValue
 	}
 
