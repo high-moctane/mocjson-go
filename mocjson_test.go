@@ -1810,11 +1810,6 @@ func TestDecoder_ExpectFloat64(t *testing.T) {
 			want:  -1234567.89056,
 		},
 		{
-			name:  "minus int frac exp: end of token: whitespace EndObject",
-			input: []byte("-1234567890.56e-3 \r\n\t}"),
-			want:  -1234567.89056,
-		},
-		{
 			name:  "max float64",
 			input: []byte("1.7976931348623157e308"),
 			want:  1.7976931348623157e308,
@@ -1886,6 +1881,59 @@ func TestDecoder_ExpectFloat64(t *testing.T) {
 		},
 	}
 
+	suffixes := []struct {
+		name    string
+		suffix  []byte
+		wantErr bool
+	}{
+		{
+			name:   "EOF",
+			suffix: []byte{'\x00'},
+		},
+		{
+			name:    "BeginArray",
+			suffix:  []byte{'['},
+			wantErr: true,
+		},
+		{
+			name:    "BeginObject",
+			suffix:  []byte{'{'},
+			wantErr: true,
+		},
+		{
+			name:   "EndArray",
+			suffix: []byte{']'},
+		},
+		{
+			name:   "EndObject",
+			suffix: []byte{'}'},
+		},
+		{
+			name:    "NameSeparator",
+			suffix:  []byte{':'},
+			wantErr: true,
+		},
+		{
+			name:   "ValueSeparator",
+			suffix: []byte{','},
+		},
+		{
+			name:    "QuotationMark",
+			suffix:  []byte{'"'},
+			wantErr: true,
+		},
+		{
+			name:    "Alphabet",
+			suffix:  []byte("abc"),
+			wantErr: true,
+		},
+		// {
+		// 	name:    "Number",
+		// 	suffix:  []byte("123456789012345678901234567890"),
+		// 	wantErr: true,
+		// },
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -1903,6 +1951,57 @@ func TestDecoder_ExpectFloat64(t *testing.T) {
 				t.Errorf("ExpectFloat64() = %v, want %v", got, tt.want)
 			}
 		})
+
+		for _, s := range suffixes {
+			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectFloat64[float64](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("ExpectFloat64() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ExpectFloat64() = %v, want %v", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectFloat64[float64](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("ExpectFloat64() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("ExpectFloat64() = %v, want %v", got, tt.want)
+				}
+			})
+		}
 	}
 }
 
