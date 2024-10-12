@@ -2461,6 +2461,59 @@ func TestDecoder_ExpectArrayInt(t *testing.T) {
 		},
 	}
 
+	suffixes := []struct {
+		name    string
+		suffix  []byte
+		wantErr bool
+	}{
+		{
+			name:   "EOF",
+			suffix: []byte{'\x00'},
+		},
+		{
+			name:    "BeginArray",
+			suffix:  []byte{'['},
+			wantErr: true,
+		},
+		{
+			name:    "BeginObject",
+			suffix:  []byte{'{'},
+			wantErr: true,
+		},
+		{
+			name:   "EndArray",
+			suffix: []byte{']'},
+		},
+		{
+			name:   "EndObject",
+			suffix: []byte{'}'},
+		},
+		{
+			name:    "NameSeparator",
+			suffix:  []byte{':'},
+			wantErr: true,
+		},
+		{
+			name:   "ValueSeparator",
+			suffix: []byte{','},
+		},
+		{
+			name:    "QuotationMark",
+			suffix:  []byte{'"'},
+			wantErr: true,
+		},
+		{
+			name:    "Alphabet",
+			suffix:  []byte("abc"),
+			wantErr: true,
+		},
+		{
+			name:    "Number",
+			suffix:  []byte("123456789012345678901234567890"),
+			wantErr: true,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -2478,6 +2531,57 @@ func TestDecoder_ExpectArrayInt(t *testing.T) {
 				t.Errorf("ExpectArrayInt() = %v, want %v", got, tt.want)
 			}
 		})
+
+		for _, s := range suffixes {
+			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectArrayInt[int](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("ExpectArrayInt() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ExpectArrayInt() = %v, want %v", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				got, err := ExpectArrayInt[int](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("ExpectArrayInt() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if !reflect.DeepEqual(got, tt.want) {
+					t.Errorf("ExpectArrayInt() = %v, want %v", got, tt.want)
+				}
+			})
+		}
 	}
 }
 
