@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/bits"
 	"strconv"
 	"unicode/utf16"
 	"unicode/utf8"
@@ -141,6 +142,14 @@ var endOfStringValueByteMask = ByteMask{
 
 type Chunk uint64
 
+const (
+	ChunkSize                 = 8
+	WhitespaceChunk     Chunk = 0x2020202020202020
+	TabChunk            Chunk = 0x0909090909090909
+	CarriageReturnChunk Chunk = 0x0d0d0d0d0d0d0d0d
+	LineFeedChunk       Chunk = 0x0a0a0a0a0a0a0a0a
+)
+
 type ChunkReader struct {
 	r   io.Reader
 	buf [8]byte
@@ -167,6 +176,11 @@ func (r *ChunkReader) ReadChunk() (int, Chunk, error) {
 	chunk &= ^(0xFFFFFFFFFFFFFFFF >> (8 >> n))
 
 	return n, chunk, nil
+}
+
+func whitespaceCount(c Chunk) int {
+	a := c ^ WhitespaceChunk&c ^ TabChunk&c ^ CarriageReturnChunk&c ^ LineFeedChunk
+	return bits.LeadingZeros64(uint64(a)) >> 3
 }
 
 type PeekReader struct {
