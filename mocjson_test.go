@@ -146,40 +146,6 @@ func TestDecoder_ExpectNull(t *testing.T) {
 			input: []byte("null"),
 		},
 		{
-			name:  "null and end of token: EndObject",
-			input: []byte("null}"),
-		},
-		{
-			name:  "null and end of token: Whitespace EndObject",
-			input: []byte("null \r\n\t}"),
-		},
-		{
-			name:  "null and end of token: EndArray",
-			input: []byte("null]"),
-		},
-		{
-			name:  "null and end of token: Whitespace EndArray",
-			input: []byte("null \r\n\t]"),
-		},
-		{
-			name:  "null and end of token: ValueSeparator",
-			input: []byte("null,"),
-		},
-		{
-			name:  "null and end of token: Whitespace ValueSeparator",
-			input: []byte("null \r\n\t,"),
-		},
-		{
-			name:    "null and some extra characters",
-			input:   []byte("nullabc"),
-			wantErr: true,
-		},
-		{
-			name:    "null and some extra characters: Whitespace",
-			input:   []byte("null \r\n\tabc"),
-			wantErr: true,
-		},
-		{
 			name:    "null: too short",
 			input:   []byte("nul"),
 			wantErr: true,
@@ -201,6 +167,59 @@ func TestDecoder_ExpectNull(t *testing.T) {
 		},
 	}
 
+	suffixes := []struct {
+		name    string
+		suffix  []byte
+		wantErr bool
+	}{
+		{
+			name:   "EOF",
+			suffix: []byte{'\x00'},
+		},
+		{
+			name:    "BeginArray",
+			suffix:  []byte{'['},
+			wantErr: true,
+		},
+		{
+			name:    "BeginObject",
+			suffix:  []byte{'{'},
+			wantErr: true,
+		},
+		{
+			name:   "EndArray",
+			suffix: []byte{']'},
+		},
+		{
+			name:   "EndObject",
+			suffix: []byte{'}'},
+		},
+		{
+			name:    "NameSeparator",
+			suffix:  []byte{':'},
+			wantErr: true,
+		},
+		{
+			name:   "ValueSeparator",
+			suffix: []byte{','},
+		},
+		{
+			name:    "QuotationMark",
+			suffix:  []byte{'"'},
+			wantErr: true,
+		},
+		{
+			name:    "Alphabet",
+			suffix:  []byte("abc"),
+			wantErr: true,
+		},
+		{
+			name:    "Number",
+			suffix:  []byte("123"),
+			wantErr: true,
+		},
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -213,6 +232,41 @@ func TestDecoder_ExpectNull(t *testing.T) {
 				t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+
+		for _, s := range suffixes {
+			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				if err := ExpectNull(&dec, &r); (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, s.wantErr)
+				}
+			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name, func(t *testing.T) {
+				t.Parallel()
+
+				dec := NewDecoder()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				r := NewPeekReader(&buf)
+
+				if err := ExpectNull(&dec, &r); (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, s.wantErr)
+				}
+			})
+		}
 	}
 }
 
