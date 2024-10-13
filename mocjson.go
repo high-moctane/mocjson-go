@@ -153,10 +153,15 @@ const (
 	TabChunk            Chunk = 0x0909090909090909
 	CarriageReturnChunk Chunk = 0x0d0d0d0d0d0d0d0d
 	LineFeedChunk       Chunk = 0x0a0a0a0a0a0a0a0a
+	NULLChunk           Chunk = 'n'<<56 | 'u'<<48 | 'l'<<40 | 'l'<<32
 )
 
 func NewChunk(b []byte) Chunk {
 	return Chunk(binary.BigEndian.Uint64(b))
+}
+
+func (c Chunk) MatchBytes(other Chunk) int {
+	return bits.LeadingZeros64(uint64(c^other)) >> 3
 }
 
 type ChunkScanner struct {
