@@ -148,13 +148,13 @@ func (c Chunk) String() string {
 }
 
 const (
-	ChunkSize                 = 8
-	OnesChunk                 = 0xFFFFFFFFFFFFFFFF
-	WhitespaceChunk     Chunk = 0x2020202020202020
-	TabChunk            Chunk = 0x0909090909090909
-	CarriageReturnChunk Chunk = 0x0d0d0d0d0d0d0d0d
-	LineFeedChunk       Chunk = 0x0a0a0a0a0a0a0a0a
-	NULLChunk           Chunk = 'n'<<56 | 'u'<<48 | 'l'<<40 | 'l'<<32
+	ChunkSize           = 8
+	OnesChunk           = 0xFFFFFFFFFFFFFFFF
+	WhitespaceChunk     = 0x2020202020202020
+	TabChunk            = 0x0909090909090909
+	CarriageReturnChunk = 0x0d0d0d0d0d0d0d0d
+	LineFeedChunk       = 0x0a0a0a0a0a0a0a0a
+	NULLChunk           = 'n'<<56 | 'u'<<48 | 'l'<<40 | 'l'<<32
 )
 
 func NewChunk(b []byte) Chunk {
