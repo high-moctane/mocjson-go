@@ -1908,6 +1908,12 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "invalid: leading zero",
+			input:   []byte("0123456789"),
+			want:    0,
+			wantErr: true,
+		},
+		{
 			name:    "begin with whitespace",
 			input:   []byte(" \r\n\t1"),
 			want:    0,

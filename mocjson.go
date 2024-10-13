@@ -1143,6 +1143,11 @@ func ExpectUint32_2[T ~uint32](sc *ChunkScanner) (T, error) {
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
 
+	// leading zero is not allowed
+	if (mask&0xC0) == 0xC0 && c>>56 == '0' {
+		return 0, fmt.Errorf("leading zero is not allowed")
+	}
+
 	n := 0
 	for ; mask&0x80 != 0; mask <<= 1 {
 		c = Chunk(bits.RotateLeft64(uint64(c), 8))
