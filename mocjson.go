@@ -193,35 +193,30 @@ func (c Chunk) DigitMask() uint8 {
 		mask3 = 0xFEFEFEFEFEFEFEFE
 	)
 
-	is1to7mask := ^((c ^ mask0) & mask1)
-	is1to7mask = is1to7mask & (is1to7mask >> 1)
-	is1to7mask = is1to7mask & (is1to7mask >> 2)
-	is1to7mask = is1to7mask & (is1to7mask >> 4)
+	is1to7 := ^((c ^ mask0) & mask1)
+	is1to7 = is1to7 & (is1to7 >> 1)
+	is1to7 = is1to7 & (is1to7 >> 2)
+	is1to7 = is1to7 & (is1to7 >> 4)
 
-	is1to7 := (is1to7mask&0x0100000000000000)>>49 |
-		(is1to7mask&0x0001000000000000)>>42 |
-		(is1to7mask&0x0000010000000000)>>35 |
-		(is1to7mask&0x0000000100000000)>>28 |
-		(is1to7mask&0x0000000001000000)>>21 |
-		(is1to7mask&0x0000000000010000)>>14 |
-		(is1to7mask&0x0000000000000100)>>7 |
-		(is1to7mask & 0x0000000000000001)
+	is8to9 := ^((c ^ mask2) & mask3)
+	is8to9 = is8to9 & (is8to9 >> 1)
+	is8to9 = is8to9 & (is8to9 >> 2)
+	is8to9 = is8to9 & (is8to9 >> 4)
 
-	is8to9mask := ^((c ^ mask2) & mask3)
-	is8to9mask = is8to9mask & (is8to9mask >> 1)
-	is8to9mask = is8to9mask & (is8to9mask >> 2)
-	is8to9mask = is8to9mask & (is8to9mask >> 4)
+	// added
+	is1to7 |= is8to9
+	is1to7 = is1to7 & 0x0101010101010101
 
-	is8to9 := (is8to9mask&0x0100000000000000)>>49 |
-		(is8to9mask&0x0001000000000000)>>42 |
-		(is8to9mask&0x0000010000000000)>>35 |
-		(is8to9mask&0x0000000100000000)>>28 |
-		(is8to9mask&0x0000000001000000)>>21 |
-		(is8to9mask&0x0000000000010000)>>14 |
-		(is8to9mask&0x0000000000000100)>>7 |
-		(is8to9mask & 0x0000000000000001)
+	is1to7 = is1to7>>49 |
+		is1to7>>42 |
+		is1to7>>35 |
+		is1to7>>28 |
+		is1to7>>21 |
+		is1to7>>14 |
+		is1to7>>7 |
+		is1to7
 
-	return uint8(is1to7 | is8to9)
+	return uint8(is1to7)
 }
 
 func (c Chunk) FirstByte() byte {
