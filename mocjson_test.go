@@ -10,6 +10,61 @@ import (
 	"testing"
 )
 
+func TestChunk_DigitMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		c    Chunk
+		want uint8
+	}{
+		{
+			name: "0-7",
+			c:    NewChunk([]byte("01234567")),
+			want: 0b11111111,
+		},
+		{
+			name: "8-9",
+			c:    NewChunk([]byte("89898989")),
+			want: 0b11111111,
+		},
+		{
+			name: "hex",
+			c:    NewChunk([]byte("abcdefab")),
+			want: 0b00000000,
+		},
+		{
+			name: "empty",
+			c:    NewChunk([]byte{0, 0, 0, 0, 0, 0, 0, 0}),
+			want: 0b00000000,
+		},
+		{
+			name: "mixed",
+			c:    NewChunk([]byte("0a1b8 9\n")),
+			want: 0b10101010,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.c.DigitMask(); got != tt.want {
+				t.Errorf("DigitMask() = %b, want %b", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkChunk_DigitMask(b *testing.B) {
+	c := NewChunk([]byte("0123456789"))
+
+	b.ResetTimer()
+	for range b.N {
+		_ = c.DigitMask()
+	}
+}
+
 func TestChunkScanner(t *testing.T) {
 	t.Parallel()
 

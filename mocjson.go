@@ -173,6 +173,57 @@ func (c Chunk) WhitespaceCount() int {
 	return bits.LeadingZeros64(uint64(a)) >> 3
 }
 
+func (c Chunk) DigitMask() uint8 {
+	// 0-9 ascii
+	// 0: 0b00110000
+	// 1: 0b00110001
+	// 2: 0b00110010
+	// 3: 0b00110011
+	// 4: 0b00110100
+	// 5: 0b00110101
+	// 6: 0b00110110
+	// 7: 0b00110111
+	// 8: 0b00111000
+	// 9: 0b00111001
+
+	const (
+		mask0 = 0x3030303030303030
+		mask1 = 0xF8F8F8F8F8F8F8F8
+		mask2 = 0x3838383838383838
+		mask3 = 0xFEFEFEFEFEFEFEFE
+	)
+
+	is1to7mask := ^((c ^ mask0) & mask1)
+	is1to7mask = is1to7mask & (is1to7mask >> 1)
+	is1to7mask = is1to7mask & (is1to7mask >> 2)
+	is1to7mask = is1to7mask & (is1to7mask >> 4)
+
+	is1to7 := (is1to7mask&0x0100000000000000)>>49 |
+		(is1to7mask&0x0001000000000000)>>42 |
+		(is1to7mask&0x0000010000000000)>>35 |
+		(is1to7mask&0x0000000100000000)>>28 |
+		(is1to7mask&0x0000000001000000)>>21 |
+		(is1to7mask&0x0000000000010000)>>14 |
+		(is1to7mask&0x0000000000000100)>>7 |
+		(is1to7mask & 0x0000000000000001)
+
+	is8to9mask := ^((c ^ mask2) & mask3)
+	is8to9mask = is8to9mask & (is8to9mask >> 1)
+	is8to9mask = is8to9mask & (is8to9mask >> 2)
+	is8to9mask = is8to9mask & (is8to9mask >> 4)
+
+	is8to9 := (is8to9mask&0x0100000000000000)>>49 |
+		(is8to9mask&0x0001000000000000)>>42 |
+		(is8to9mask&0x0000010000000000)>>35 |
+		(is8to9mask&0x0000000100000000)>>28 |
+		(is8to9mask&0x0000000001000000)>>21 |
+		(is8to9mask&0x0000000000010000)>>14 |
+		(is8to9mask&0x0000000000000100)>>7 |
+		(is8to9mask & 0x0000000000000001)
+
+	return uint8(is1to7 | is8to9)
+}
+
 func (c Chunk) FirstByte() byte {
 	return byte(c >> 56)
 }
