@@ -164,6 +164,11 @@ func (c Chunk) MatchBytes(other Chunk) int {
 	return bits.LeadingZeros64(uint64(c^other)) >> 3
 }
 
+func (c Chunk) WhitespaceCount() int {
+	a := c ^ WhitespaceChunk&c ^ TabChunk&c ^ CarriageReturnChunk&c ^ LineFeedChunk
+	return bits.LeadingZeros64(uint64(a)) >> 3
+}
+
 type ChunkScanner struct {
 	r io.Reader
 	c Chunk
@@ -186,11 +191,6 @@ func (r *ChunkScanner) ShiftN(n int) (int, error) {
 	r.c = r.c<<(n<<3) | Chunk(bits.RotateLeft64(c, n<<3))
 
 	return nn, err
-}
-
-func whitespaceCount(c Chunk) int {
-	a := c ^ WhitespaceChunk&c ^ TabChunk&c ^ CarriageReturnChunk&c ^ LineFeedChunk
-	return bits.LeadingZeros64(uint64(a)) >> 3
 }
 
 type PeekReader struct {
