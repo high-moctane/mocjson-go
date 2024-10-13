@@ -149,6 +149,7 @@ func (c Chunk) String() string {
 
 const (
 	ChunkSize                 = 8
+	OnesChunk                 = 0xFFFFFFFFFFFFFFFF
 	WhitespaceChunk     Chunk = 0x2020202020202020
 	TabChunk            Chunk = 0x0909090909090909
 	CarriageReturnChunk Chunk = 0x0d0d0d0d0d0d0d0d
@@ -166,7 +167,7 @@ func (c Chunk) MatchBytes(other Chunk) int {
 
 func (c Chunk) WhitespaceCount() int {
 	a := (c ^ WhitespaceChunk) & (c ^ TabChunk) & (c ^ CarriageReturnChunk) & (c ^ LineFeedChunk)
-	a |= ^(0xFFFFFFFFFFFFFFFF << (uint64(bits.TrailingZeros64(uint64(c))) & 0xFFFFFFFFFFFFFFFF))
+	a |= ^(OnesChunk << (uint64(bits.TrailingZeros64(uint64(c))) & OnesChunk))
 	return bits.LeadingZeros64(uint64(a)) >> 3
 }
 
@@ -192,7 +193,7 @@ func (r *ChunkScanner) ShiftN(n int) (int, error) {
 	nn, err := r.r.Read(r.b[:n])
 
 	c := binary.BigEndian.Uint64(r.b[:])
-	c &= ^(0xFFFFFFFFFFFFFFFF >> (nn << 3))
+	c &= ^(OnesChunk >> (nn << 3))
 	r.c = r.c<<(n<<3) | Chunk(bits.RotateLeft64(c, n<<3))
 
 	return nn, err
