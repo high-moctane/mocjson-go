@@ -2033,6 +2033,29 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 				}
 			})
 
+			t.Run(tt.name+s.name+"_(ExpectUint32_2)", func(t *testing.T) {
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				got, err := ExpectUint32_2[uint32](&sc)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalUint32() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalUint32() = %v, want %v", got, tt.want)
+				}
+			})
+
 			t.Run(tt.name+"_whitespaces_"+s.name, func(t *testing.T) {
 				t.Parallel()
 
@@ -2046,6 +2069,30 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 				r := NewPeekReader(&buf)
 
 				got, err := ExpectUint32[uint32](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalUint32() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalUint32() = %v, want %v", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name+"_(ExpectUint32_2)", func(t *testing.T) {
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				got, err := ExpectUint32_2[uint32](&sc)
 				if (err != nil) != (tt.wantErr || s.wantErr) {
 					t.Errorf("UnmarshalUint32() error = %v, wantErr %v", err, s.wantErr)
 					return

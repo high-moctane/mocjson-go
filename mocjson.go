@@ -1204,6 +1204,21 @@ func ExpectUint32_2[T ~uint32](sc *ChunkScanner) (T, error) {
 	}
 
 CheckSuffix:
+	for {
+		cnt := sc.Chunk().WhitespaceCount()
+		if cnt == 0 {
+			break
+		}
+
+		_, err := sc.ShiftN(cnt)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return 0, fmt.Errorf("read error: %v", err)
+		}
+	}
+
 	if !matchByteMask(endOfValueByteMask, sc.Chunk().FirstByte()) {
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
