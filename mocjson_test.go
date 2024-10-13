@@ -2,12 +2,103 @@ package mocjson
 
 import (
 	"bytes"
+	"io"
 	"math"
 	"math/big"
 	"reflect"
 	"strconv"
 	"testing"
 )
+
+func TestChunkScanner(t *testing.T) {
+	t.Parallel()
+
+	t.Run("read 8 bytes", func(t *testing.T) {
+		t.Parallel()
+
+		r := NewChunkScanner(bytes.NewReader([]byte("hello, world")))
+
+		n, err := r.ShiftN(8)
+		if err != nil {
+			t.Errorf("ShiftN() error = %v", err)
+		}
+		if n != 8 {
+			t.Errorf("ShiftN() = %v, want %v", n, 8)
+		}
+		if r.Chunk() != NewChunk([]byte("hello, w")) {
+			t.Errorf("Chunk() = %v, want %v", r.Chunk(), NewChunk([]byte("hello, w")))
+		}
+
+		n, err = r.ShiftN(8)
+		if err != nil {
+			t.Errorf("ShiftN() error = %v", err)
+		}
+		if n != 4 {
+			t.Errorf("ShiftN() = %v, want %v", n, 4)
+		}
+		if r.Chunk() != NewChunk([]byte("orld\x00\x00\x00\x00")) {
+			t.Errorf("Chunk() = %v, want %v", r.Chunk(), NewChunk([]byte("orld\x00\x00\x00\x00")))
+		}
+
+		n, err = r.ShiftN(8)
+		if err != io.EOF {
+			t.Errorf("ShiftN() error = %v, want %v", err, io.EOF)
+		}
+		if n != 0 {
+			t.Errorf("ShiftN() = %v, want %v", n, 0)
+		}
+	})
+
+	t.Run("read 1 bytes", func(t *testing.T) {
+		t.Parallel()
+
+		r := NewChunkScanner(bytes.NewReader([]byte("abcdefghij")))
+
+		n, err := r.ShiftN(8)
+		if err != nil {
+			t.Errorf("ShiftN() error = %v", err)
+		}
+		if n != 8 {
+			t.Errorf("ShiftN() = %v, want %v", n, 8)
+		}
+		if r.Chunk() != NewChunk([]byte("abcdefgh")) {
+			t.Errorf("Chunk() = %v, want %v", r.Chunk(), NewChunk([]byte("abcdefgh")))
+		}
+
+		n, err = r.ShiftN(1)
+		if err != nil {
+			t.Errorf("ShiftN() error = %v", err)
+		}
+		if n != 1 {
+			t.Errorf("ShiftN() = %v, want %v", n, 1)
+		}
+		if r.Chunk() != NewChunk([]byte("bcdefghi")) {
+			t.Errorf("Chunk() = %v, want %v", r.Chunk(), NewChunk([]byte("bcdefghi")))
+		}
+
+		n, err = r.ShiftN(1)
+		if err != nil {
+			t.Errorf("ShiftN() error = %v", err)
+		}
+		if n != 1 {
+			t.Errorf("ShiftN() = %v, want %v", n, 1)
+		}
+		if r.Chunk() != NewChunk([]byte("cdefghij")) {
+			t.Errorf("Chunk() = %v, want %v", r.Chunk(), NewChunk([]byte("cdefghij")))
+		}
+
+		n, err = r.ShiftN(1)
+		if err != io.EOF {
+			t.Errorf("ShiftN() error = %v, want %v", err, io.EOF)
+		}
+		if n != 0 {
+			t.Errorf("ShiftN() = %v, want %v", n, 0)
+		}
+		if r.Chunk() != NewChunk([]byte("defghij\x00")) {
+			t.Errorf("Chunk() = %v, want %v", r.Chunk(), NewChunk([]byte("j\x00\x00\x00\x00\x00\x00\x00")))
+		}
+	})
+}
 
 func (r *PeekReader) reset() {
 	r.buf[0] = 0

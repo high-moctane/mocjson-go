@@ -1,6 +1,7 @@
 package mocjson
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 	"math"
@@ -142,6 +143,10 @@ var endOfStringValueByteMask = ByteMask{
 
 type Chunk uint64
 
+func (c Chunk) String() string {
+	return fmt.Sprintf("%q%q%q%q%q%q%q%q", byte(c>>56), byte(c>>48), byte(c>>40), byte(c>>32), byte(c>>24), byte(c>>16), byte(c>>8), byte(c))
+}
+
 const (
 	ChunkSize                 = 8
 	WhitespaceChunk     Chunk = 0x2020202020202020
@@ -150,32 +155,32 @@ const (
 	LineFeedChunk       Chunk = 0x0a0a0a0a0a0a0a0a
 )
 
-type ChunkReader struct {
-	r   io.Reader
-	buf [8]byte
+func NewChunk(b []byte) Chunk {
+	return Chunk(binary.BigEndian.Uint64(b))
 }
 
-func NewChunkReader(r io.Reader) ChunkReader {
-	return ChunkReader{r: r}
+type ChunkScanner struct {
+	r io.Reader
+	c Chunk
+	b [8]byte
 }
 
-func (r *ChunkReader) ReadChunk() (int, Chunk, error) {
-	n, err := r.r.Read(r.buf[:])
-	if err != nil {
-		return 0, 0, err
-	}
+func NewChunkScanner(r io.Reader) ChunkScanner {
+	return ChunkScanner{r: r}
+}
 
-	chunk := Chunk(r.buf[0])<<56 |
-		Chunk(r.buf[1])<<48 |
-		Chunk(r.buf[2])<<40 |
-		Chunk(r.buf[3])<<32 |
-		Chunk(r.buf[4])<<24 |
-		Chunk(r.buf[5])<<16 |
-		Chunk(r.buf[6])<<8 |
-		Chunk(r.buf[7])
-	chunk &= ^(0xFFFFFFFFFFFFFFFF >> (8 >> n))
+func (r *ChunkScanner) Chunk() Chunk {
+	return r.c
+}
 
-	return n, chunk, nil
+func (r *ChunkScanner) ShiftN(n int) (int, error) {
+	nn, err := r.r.Read(r.b[:n])
+
+	c := binary.BigEndian.Uint64(r.b[:])
+	c &= ^(0xFFFFFFFFFFFFFFFF >> (nn << 3))
+	r.c = r.c<<(n<<3) | Chunk(bits.RotateLeft64(c, n<<3))
+
+	return nn, err
 }
 
 func whitespaceCount(c Chunk) int {
