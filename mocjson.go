@@ -169,6 +169,10 @@ func (c Chunk) WhitespaceCount() int {
 	return bits.LeadingZeros64(uint64(a)) >> 3
 }
 
+func (c Chunk) FirstByte() byte {
+	return byte(c >> 56)
+}
+
 type ChunkScanner struct {
 	r io.Reader
 	c Chunk
