@@ -324,6 +324,17 @@ func TestDecoder_ExpectNull(t *testing.T) {
 			}
 		})
 
+		t.Run(tt.name+"_(ExpectNull2)", func(t *testing.T) {
+			t.Parallel()
+
+			sc := NewChunkScanner(bytes.NewReader(tt.input))
+			sc.ShiftN(8)
+
+			if err := ExpectNull2(&sc); (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+
 		for _, s := range suffixes {
 			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
 				t.Parallel()
@@ -337,6 +348,21 @@ func TestDecoder_ExpectNull(t *testing.T) {
 				r := NewPeekReader(&buf)
 
 				if err := ExpectNull(&dec, &r); (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, s.wantErr)
+				}
+			})
+
+			t.Run(tt.name+"_"+s.name+"_(ExpectNull2)", func(t *testing.T) {
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				if err := ExpectNull2(&sc); (err != nil) != (tt.wantErr || s.wantErr) {
 					t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, s.wantErr)
 				}
 			})
@@ -357,6 +383,22 @@ func TestDecoder_ExpectNull(t *testing.T) {
 					t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, s.wantErr)
 				}
 			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name+"_(ExpectNull2)", func(t *testing.T) {
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				if err := ExpectNull2(&sc); (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalNull() error = %v, wantErr %v", err, s.wantErr)
+				}
+			})
 		}
 	}
 }
@@ -371,6 +413,19 @@ func BenchmarkDecoder_ExpectNull(b *testing.B) {
 		r.Seek(0, 0)
 		rr.reset()
 		_ = ExpectNull(&dec, &rr)
+	}
+}
+
+func BenchmarkExpectNull2(b *testing.B) {
+	r := bytes.NewReader([]byte("null"))
+	sc := NewChunkScanner(r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+
+		sc.ShiftN(8)
+		_ = ExpectNull2(&sc)
 	}
 }
 

@@ -165,7 +165,8 @@ func (c Chunk) MatchBytes(other Chunk) int {
 }
 
 func (c Chunk) WhitespaceCount() int {
-	a := c ^ WhitespaceChunk&c ^ TabChunk&c ^ CarriageReturnChunk&c ^ LineFeedChunk
+	a := (c ^ WhitespaceChunk) & (c ^ TabChunk) & (c ^ CarriageReturnChunk) & (c ^ LineFeedChunk)
+	a |= ^(0xFFFFFFFFFFFFFFFF << (uint64(bits.TrailingZeros64(uint64(c))) & 0xFFFFFFFFFFFFFFFF))
 	return bits.LeadingZeros64(uint64(a)) >> 3
 }
 
@@ -393,6 +394,42 @@ func ExpectNull(d *Decoder, r *PeekReader) error {
 	if !ok {
 		return fmt.Errorf("invalid null value")
 	}
+	return nil
+}
+
+func ExpectNull2(sc *ChunkScanner) error {
+	if sc.Chunk().MatchBytes(NULLChunk) < 4 {
+		return fmt.Errorf("invalid null value")
+	}
+
+	_, err := sc.ShiftN(4)
+	if err != nil {
+		if err == io.EOF {
+			goto CheckSuffix
+		}
+		return fmt.Errorf("read error: %v", err)
+	}
+
+	for {
+		c := sc.Chunk().WhitespaceCount()
+		if c == 0 {
+			goto CheckSuffix
+		}
+
+		_, err := sc.ShiftN(c)
+		if err != nil {
+			if err == io.EOF {
+				goto CheckSuffix
+			}
+			return fmt.Errorf("read error: %v", err)
+		}
+	}
+
+CheckSuffix:
+	if !matchByteMask(endOfValueByteMask, sc.Chunk().FirstByte()) {
+		return fmt.Errorf("invalid null value")
+	}
+
 	return nil
 }
 
