@@ -219,6 +219,67 @@ func (c Chunk) DigitMask() uint8 {
 	return uint8(is1to7)
 }
 
+func (c Chunk) HexMask() uint8 {
+	return c.DigitMask() | c.aToFMask()
+}
+
+func (c Chunk) aToFMask() uint8 {
+	// A-g a-g ascii
+	// A: 0b01000001
+	// B: 0b01000010
+	// C: 0b01000011
+	// D: 0b01000100
+	// E: 0b01000101
+	// F: 0b01000110
+	// G: 0b01000111
+	// a: 0b01100001
+	// b: 0b01100010
+	// c: 0b01100011
+	// d: 0b01100100
+	// e: 0b01100101
+	// f: 0b01100110
+	// g: 0b01100111
+
+	const (
+		mask0 = 0x4040404040404040
+		mask1 = 0xF8F8F8F8F8F8F8F8
+		maskG = 0x4747474747474747
+	)
+
+	// to upper case
+	c &= 0xDFDFDFDFDFDFDFDF
+
+	isBacktickToG := ^((c ^ mask0) & mask1)
+	isBacktickToG = isBacktickToG & (isBacktickToG >> 1)
+	isBacktickToG = isBacktickToG & (isBacktickToG >> 2)
+	isBacktickToG = isBacktickToG & (isBacktickToG >> 4)
+
+	isBacktick := ^(c ^ mask0)
+	isBacktick = isBacktick & (isBacktick >> 1)
+	isBacktick = isBacktick & (isBacktick >> 2)
+	isBacktick = isBacktick & (isBacktick >> 4)
+
+	isG := ^(c ^ maskG)
+	isG = isG & (isG >> 1)
+	isG = isG & (isG >> 2)
+	isG = isG & (isG >> 4)
+
+	isAtoF := isBacktickToG ^ isBacktick ^ isG
+
+	isAtoF = isAtoF & 0x0101010101010101
+
+	isAtoF = isAtoF>>49 |
+		isAtoF>>42 |
+		isAtoF>>35 |
+		isAtoF>>28 |
+		isAtoF>>21 |
+		isAtoF>>14 |
+		isAtoF>>7 |
+		isAtoF
+
+	return uint8(isAtoF)
+}
+
 func (c Chunk) FirstByte() byte {
 	return byte(c >> 56)
 }
