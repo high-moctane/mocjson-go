@@ -560,6 +560,25 @@ func TestDecoder_ExpectBool(t *testing.T) {
 			}
 		})
 
+		t.Run(tt.name+"_(ExpectBool2)", func(t *testing.T) {
+			t.Parallel()
+
+			sc := NewChunkScanner(bytes.NewReader(tt.input))
+			sc.ShiftN(8)
+
+			got, err := ExpectBool2[bool](&sc)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err != nil {
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnmarshalBool() = %v, want %v", got, tt.want)
+			}
+		})
+
 		for _, s := range suffixes {
 			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
 				t.Parallel()
@@ -573,6 +592,29 @@ func TestDecoder_ExpectBool(t *testing.T) {
 				r := NewPeekReader(&buf)
 
 				got, err := ExpectBool[bool](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalBool() = %v, want %v", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_"+s.name+"_(ExpectBool2)", func(t *testing.T) {
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				got, err := ExpectBool2[bool](&sc)
 				if (err != nil) != (tt.wantErr || s.wantErr) {
 					t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, s.wantErr)
 					return
@@ -609,6 +651,30 @@ func TestDecoder_ExpectBool(t *testing.T) {
 					t.Errorf("UnmarshalBool() = %v, want %v", got, tt.want)
 				}
 			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name+"_(ExpectBool2)", func(t *testing.T) {
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				got, err := ExpectBool2[bool](&sc)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalBool() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalBool() = %v, want %v", got, tt.want)
+				}
+			})
 		}
 	}
 }
@@ -623,6 +689,19 @@ func BenchmarkDecoder_ExpectBool(b *testing.B) {
 		r.Seek(0, 0)
 		rr.reset()
 		_, _ = ExpectBool[bool](&dec, &rr)
+	}
+}
+
+func BenchmarkExpectBool2(b *testing.B) {
+	r := bytes.NewReader([]byte("false"))
+	sc := NewChunkScanner(r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+
+		sc.ShiftN(8)
+		_, _ = ExpectBool2[bool](&sc)
 	}
 }
 

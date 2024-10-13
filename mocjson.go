@@ -155,6 +155,8 @@ const (
 	CarriageReturnChunk = 0x0d0d0d0d0d0d0d0d
 	LineFeedChunk       = 0x0a0a0a0a0a0a0a0a
 	NULLChunk           = 'n'<<56 | 'u'<<48 | 'l'<<40 | 'l'<<32
+	TrueChunk           = 't'<<56 | 'r'<<48 | 'u'<<40 | 'e'<<32
+	FalseChunk          = 'f'<<56 | 'a'<<48 | 'l'<<40 | 's'<<32 | 'e'<<24
 )
 
 func NewChunk(b []byte) Chunk {
@@ -475,6 +477,64 @@ func ExpectBool[T ~bool](d *Decoder, r *PeekReader) (T, error) {
 	}
 
 	return false, fmt.Errorf("invalid bool value")
+}
+
+func ExpectBool2[T ~bool](sc *ChunkScanner) (T, error) {
+	var ret bool
+
+	switch sc.Chunk().FirstByte() {
+	case 't':
+		if sc.Chunk().MatchBytes(TrueChunk) < 4 {
+			return false, fmt.Errorf("invalid bool value")
+		}
+		ret = true
+
+		_, err := sc.ShiftN(4)
+		if err != nil {
+			if err == io.EOF {
+				goto CheckSuffix
+			}
+			return false, fmt.Errorf("read error: %v", err)
+		}
+
+	case 'f':
+		if sc.Chunk().MatchBytes(FalseChunk) < 5 {
+			return false, fmt.Errorf("invalid bool value")
+		}
+
+		_, err := sc.ShiftN(5)
+		if err != nil {
+			if err == io.EOF {
+				goto CheckSuffix
+			}
+			return false, fmt.Errorf("read error: %v", err)
+		}
+
+	default:
+		return false, fmt.Errorf("invalid bool value")
+	}
+
+	for {
+		c := sc.Chunk().WhitespaceCount()
+		if c == 0 {
+			goto CheckSuffix
+		}
+
+		_, err := sc.ShiftN(c)
+		if err != nil {
+			if err == io.EOF {
+				goto CheckSuffix
+			}
+			return false, fmt.Errorf("read error: %v", err)
+		}
+	}
+
+CheckSuffix:
+	if !matchByteMask(endOfValueByteMask, sc.Chunk().FirstByte()) {
+		return false, fmt.Errorf("invalid bool value")
+	}
+
+	return T(ret), nil
 }
 
 func ExpectString[T ~string](d *Decoder, r *PeekReader) (T, error) {
