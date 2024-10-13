@@ -1133,6 +1133,79 @@ ConsumedWhitespace:
 	return ret, nil
 }
 
+func ExpectUint32_2[T ~uint32](sc *ChunkScanner) (T, error) {
+	var ret T
+
+	c := sc.Chunk()
+	mask := c.DigitMask()
+
+	if mask == 0 {
+		return 0, fmt.Errorf("invalid uint32 value")
+	}
+
+	n := 0
+	for ; mask&0x80 != 0; mask <<= 1 {
+		c = Chunk(bits.RotateLeft64(uint64(c), 8))
+		ret = ret*10 + T(c&0x0F)
+		n++
+	}
+	if _, err := sc.ShiftN(n); err != nil {
+		if err == io.EOF {
+			goto CheckSuffix
+		}
+		return 0, fmt.Errorf("read error: %v", err)
+	}
+
+	if n == 8 {
+		c = sc.Chunk()
+		mask := c.DigitMask()
+
+		if mask^0xE0 == 0 {
+			return 0, fmt.Errorf("uint32 overflow")
+		}
+		if mask&0x80 == 0 {
+			goto CheckSuffix
+		}
+
+		c = Chunk(bits.RotateLeft64(uint64(c), 8))
+		ret = ret*10 + T(c&0x0F)
+
+		if mask&0x40 == 0 {
+			if _, err := sc.ShiftN(1); err != nil {
+				if err == io.EOF {
+					goto CheckSuffix
+				}
+				return 0, fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		c = Chunk(bits.RotateLeft64(uint64(c), 8))
+		hi, lo := bits.Mul32(uint32(ret), 10)
+		if hi != 0 {
+			return 0, fmt.Errorf("uint32 overflow")
+		}
+		sum, carry := bits.Add32(lo, uint32(c&0x0F), 0)
+		if carry != 0 {
+			return 0, fmt.Errorf("uint32 overflow")
+		}
+		ret = T(sum)
+
+		if _, err := sc.ShiftN(2); err != nil {
+			if err == io.EOF {
+				goto CheckSuffix
+			}
+			return 0, fmt.Errorf("read error: %v", err)
+		}
+	}
+
+CheckSuffix:
+	if !matchByteMask(endOfValueByteMask, sc.Chunk().FirstByte()) {
+		return 0, fmt.Errorf("invalid uint32 value")
+	}
+
+	return ret, nil
+}
+
 func ExpectFloat64[T ~float64](d *Decoder, r *PeekReader) (T, error) {
 	idx, err := loadNumberValueIntoBuf(d, r)
 	if err != nil {

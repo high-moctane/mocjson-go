@@ -1986,6 +1986,22 @@ func TestDecoder_ExpectUint32(t *testing.T) {
 			}
 		})
 
+		t.Run(tt.name+"_(ExpectUint32_2)", func(t *testing.T) {
+			t.Parallel()
+
+			sc := NewChunkScanner(bytes.NewReader(tt.input))
+			sc.ShiftN(8)
+
+			got, err := ExpectUint32_2[uint32](&sc)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalUint32() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnmarshalUint32() = %v, want %v", got, tt.want)
+			}
+		})
+
 		for _, s := range suffixes {
 			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
 				t.Parallel()
@@ -2052,7 +2068,20 @@ func BenchmarkDecoder_ExpectUint32(b *testing.B) {
 	}
 }
 
-func FuzzDecoder_ExpectUint32(f *testing.F) {
+func BenchmarkDecoder_ExpectUint32_2(b *testing.B) {
+	r := bytes.NewReader([]byte("4294967295"))
+	sc := NewChunkScanner(r)
+	sc.ShiftN(8)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+		sc.ShiftN(8)
+		_, _ = ExpectUint32_2[uint32](&sc)
+	}
+}
+
+func FuzzExpectUint32(f *testing.F) {
 	dec := NewDecoder()
 
 	f.Fuzz(func(t *testing.T, n uint32) {
@@ -2060,6 +2089,23 @@ func FuzzDecoder_ExpectUint32(f *testing.F) {
 		r := NewPeekReader(bytes.NewReader([]byte(s)))
 
 		got, err := ExpectUint32[uint32](&dec, &r)
+		if err != nil {
+			t.Errorf("UnmarshalUint32() error = %v", err)
+			return
+		}
+		if got != n {
+			t.Errorf("UnmarshalUint32() = %v, want %v", got, n)
+		}
+	})
+}
+
+func FuzzExpectUint32_2(f *testing.F) {
+	f.Fuzz(func(t *testing.T, n uint32) {
+		s := strconv.Itoa(int(n))
+		r := NewChunkScanner(bytes.NewReader([]byte(s)))
+		r.ShiftN(8)
+
+		got, err := ExpectUint32_2[uint32](&r)
 		if err != nil {
 			t.Errorf("UnmarshalUint32() error = %v", err)
 			return
