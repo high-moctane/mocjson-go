@@ -220,25 +220,82 @@ func (c Chunk) DigitMask() uint8 {
 }
 
 func (c Chunk) HexMask() uint8 {
-	return c.DigitMask() | c.aToFMask()
-}
-
-func (c Chunk) aToFMask() uint8 {
-	// A-g a-g ascii
+	// 0-9 A-f a-f ascii
+	// 0: 0b00110000
+	// 1: 0b00110001
+	// 2: 0b00110010
+	// 3: 0b00110011
+	// 4: 0b00110100
+	// 5: 0b00110101
+	// 6: 0b00110110
+	// 7: 0b00110111
+	// 8: 0b00111000
+	// 9: 0b00111001
 	// A: 0b01000001
 	// B: 0b01000010
 	// C: 0b01000011
 	// D: 0b01000100
 	// E: 0b01000101
 	// F: 0b01000110
-	// G: 0b01000111
 	// a: 0b01100001
 	// b: 0b01100010
 	// c: 0b01100011
 	// d: 0b01100100
 	// e: 0b01100101
 	// f: 0b01100110
-	// g: 0b01100111
+
+	const (
+		mask0 = 0x3030303030303030
+		mask1 = 0xF8F8F8F8F8F8F8F8
+		mask2 = 0x3838383838383838
+		mask3 = 0xFEFEFEFEFEFEFEFE
+		mask4 = 0x4040404040404040
+		mask5 = 0xF8F8F8F8F8F8F8F8
+		mask6 = 0x4747474747474747
+	)
+
+	is1to7 := ^((c ^ mask0) & mask1)
+	is1to7 = is1to7 & (is1to7 >> 1)
+	is1to7 = is1to7 & (is1to7 >> 2)
+	is1to7 = is1to7 & (is1to7 >> 4)
+
+	is8to9 := ^((c ^ mask2) & mask3)
+	is8to9 = is8to9 & (is8to9 >> 1)
+	is8to9 = is8to9 & (is8to9 >> 2)
+	is8to9 = is8to9 & (is8to9 >> 4)
+
+	upper := c & 0xDFDFDFDFDFDFDFDF
+
+	isBacktickToG := ^((upper ^ mask4) & mask5)
+	isBacktickToG = isBacktickToG & (isBacktickToG >> 1)
+	isBacktickToG = isBacktickToG & (isBacktickToG >> 2)
+	isBacktickToG = isBacktickToG & (isBacktickToG >> 4)
+
+	isBacktick := ^(upper ^ mask4)
+	isBacktick = isBacktick & (isBacktick >> 1)
+	isBacktick = isBacktick & (isBacktick >> 2)
+	isBacktick = isBacktick & (isBacktick >> 4)
+
+	isG := ^(upper ^ mask6)
+	isG = isG & (isG >> 1)
+	isG = isG & (isG >> 2)
+	isG = isG & (isG >> 4)
+
+	res := (is1to7 | is8to9) | (isBacktickToG ^ isBacktick ^ isG)
+	res &= 0x0101010101010101
+	res = res>>49 |
+		res>>42 |
+		res>>35 |
+		res>>28 |
+		res>>21 |
+		res>>14 |
+		res>>7 |
+		res
+
+	return uint8(res)
+}
+
+func (c Chunk) aToFMask() uint8 {
 
 	const (
 		mask0 = 0x4040404040404040

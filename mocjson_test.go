@@ -65,6 +65,61 @@ func BenchmarkChunk_DigitMask(b *testing.B) {
 	}
 }
 
+func TestChunk_HexMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		c    Chunk
+		want uint8
+	}{
+		{
+			name: "hex",
+			c:    NewChunk([]byte("`abcdefg")),
+			want: 0b01111110,
+		},
+		{
+			name: "HEX",
+			c:    NewChunk([]byte("`ABCDEFG")),
+			want: 0b01111110,
+		},
+		{
+			name: "0-9",
+			c:    NewChunk([]byte("01234567")),
+			want: 0b11111111,
+		},
+		{
+			name: "empty",
+			c:    NewChunk([]byte{0, 0, 0, 0, 0, 0, 0, 0}),
+			want: 0b00000000,
+		},
+		{
+			name: "mixed",
+			c:    NewChunk([]byte("0a1B8 9\n")),
+			want: 0b11111010,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.c.HexMask(); got != tt.want {
+				t.Errorf("HexMask() = %b, want %b", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkChunk_HexMask(b *testing.B) {
+	c := NewChunk([]byte("0a1B8 9\n"))
+
+	b.ResetTimer()
+	for range b.N {
+		_ = c.HexMask()
+	}
+}
+
 func TestChunk_aToFMask(t *testing.T) {
 	t.Parallel()
 
