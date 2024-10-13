@@ -296,7 +296,6 @@ func (c Chunk) HexMask() uint8 {
 }
 
 func (c Chunk) aToFMask() uint8 {
-
 	const (
 		mask0 = 0x4040404040404040
 		mask1 = 0xF8F8F8F8F8F8F8F8
@@ -335,6 +334,21 @@ func (c Chunk) aToFMask() uint8 {
 		isAtoF
 
 	return uint8(isAtoF)
+}
+
+func (c Chunk) ASCIIMask() uint8 {
+	c &= 0x8080808080808080
+	c >>= 7
+	c = c>>49 |
+		c>>42 |
+		c>>35 |
+		c>>28 |
+		c>>21 |
+		c>>14 |
+		c>>7 |
+		c
+
+	return ^uint8(c)
 }
 
 func (c Chunk) FirstByte() byte {

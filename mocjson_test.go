@@ -175,6 +175,56 @@ func BenchmarkChunk_aToFMask(b *testing.B) {
 	}
 }
 
+func TestChunk_ASCIIMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		c    Chunk
+		want uint8
+	}{
+		{
+			name: "ascii",
+			c:    NewChunk([]byte("01234567")),
+			want: 0b11111111,
+		},
+		{
+			name: "non-ascii",
+			c:    NewChunk([]byte("[]{}\x88\x99\xF1\xFF")),
+			want: 0b11110000,
+		},
+		{
+			name: "empty",
+			c:    NewChunk([]byte{0, 0, 0, 0, 0, 0, 0, 0}),
+			want: 0b11111111,
+		},
+		{
+			name: "mixed",
+			c:    NewChunk([]byte("0a1B8 9\n")),
+			want: 0b11111111,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.c.ASCIIMask(); got != tt.want {
+				t.Errorf("ASCIIMask() = %b, want %b", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkChunk_ASCIIMask(b *testing.B) {
+	c := NewChunk([]byte("0a1B8 9\n"))
+
+	b.ResetTimer()
+	for range b.N {
+		_ = c.ASCIIMask()
+	}
+}
+
 func TestChunkScanner(t *testing.T) {
 	t.Parallel()
 
