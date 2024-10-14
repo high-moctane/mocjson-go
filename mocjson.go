@@ -456,6 +456,70 @@ func (c Chunk) UTF8ThreeBytesMask() uint8 {
 	return uint8((res0 & (res1 << 1) & (res1 << 2)) | ((res0 >> 1) & res1 & (res1 << 1)) | ((res0 >> 2) & (res1 >> 1) & res1))
 }
 
+func (c Chunk) UTF8FourBytesMask() uint8 {
+	const (
+		mask00   = 0xF0F0F0F0F0F0F0F0
+		mask01   = 0xF8F8F8F8F8F8F8F8
+		mask10   = 0x8080808080808080
+		mask11   = 0xC0C0C0C0C0C0C0C0
+		mask0ng0 = 0xF080F080F080F080
+		mask0ng1 = 0xFFF0FFF0FFF0FFF0
+		mask1ng0 = 0x80F080F080F080F0
+		mask1ng1 = 0xF0FFF0FFF0FFF0FF
+	)
+
+	m0 := ^((c ^ mask00) & mask01)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+
+	m1 := ^((c ^ mask10) & mask11)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+
+	m0ng := ^((c ^ mask0ng0) & mask0ng1)
+	m0ng = m0ng & (m0ng >> 1)
+	m0ng = m0ng & (m0ng >> 2)
+	m0ng = m0ng & (m0ng >> 4)
+	m0ng = m0ng & (m0ng >> 8)
+
+	m1ng := ^((c ^ mask1ng0) & mask1ng1)
+	m1ng = m1ng & (m1ng >> 1)
+	m1ng = m1ng & (m1ng >> 2)
+	m1ng = m1ng & (m1ng >> 4)
+	m1ng = m1ng & (m1ng >> 8)
+
+	mng := m0ng | m1ng
+
+	res0 := (m0 & ^mng) & 0x0101010101010101
+	res0 = res0>>49 |
+		res0>>42 |
+		res0>>35 |
+		res0>>28 |
+		res0>>21 |
+		res0>>14 |
+		res0>>7 |
+		res0
+
+	res1 := (m1 & ^mng) & 0x0101010101010101
+	res1 = res1>>49 |
+		res1>>42 |
+		res1>>35 |
+		res1>>28 |
+		res1>>21 |
+		res1>>14 |
+		res1>>7 |
+		res1
+
+	return uint8(
+		(res0 & (res1 << 1) & (res1 << 2) & (res1 << 3)) |
+			((res0 >> 1) & res1 & (res1 << 1) & (res1 << 2)) |
+			((res0 >> 2) & (res1 >> 1) & res1 & (res1 << 1)) |
+			((res0 >> 3) & (res1 >> 2) & (res1 >> 1) & res1),
+	)
+}
+
 func (c Chunk) FirstByte() byte {
 	return byte(c >> 56)
 }

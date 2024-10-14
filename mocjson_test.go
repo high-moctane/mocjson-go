@@ -350,6 +350,71 @@ func BenchmarkChunk_UTF8ThreeBytesMask(b *testing.B) {
 	}
 }
 
+func TestChunk_UTF8FourBytesMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		c    Chunk
+		want uint8
+	}{
+		{
+			name: "ascii",
+			c:    NewChunk([]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}),
+			want: 0b00000000,
+		},
+		{
+			name: "utf-8 2 bytes",
+			c:    NewChunk([]byte{0xC2, 0xA2, 0xC2, 0xA3, 0xC2, 0xA4, 0xC2, 0xA5}),
+			want: 0b00000000,
+		},
+		{
+			name: "utf-8 3 bytes",
+			c:    NewChunk([]byte{0xE2, 0x82, 0xAC, 0xE2, 0x82, 0xAD, 0xE2, 0x82}),
+			want: 0b00000000,
+		},
+		{
+			name: "utf-8 4 bytes",
+			c:    NewChunk([]byte{0xF0, 0x9F, 0x8E, 0xBC, 0xF0, 0x9F, 0x8E, 0xBD}),
+			want: 0b11111111,
+		},
+		{
+			name: "empty",
+			c:    NewChunk([]byte{0, 0, 0, 0, 0, 0, 0, 0}),
+			want: 0b00000000,
+		},
+		{
+			name: "mixed",
+			c:    NewChunk([]byte{0xF0, 0x9F, 0x8E, 0xBC, 'a', 0xE2, 0x82, 0xAD}),
+			want: 0b11110000,
+		},
+		{
+			name: "invalid 4 bytes utf-8",
+			c:    NewChunk([]byte{0xF0, 0x80, 0x00, 0xF0, 0x9F, 0xFF, 0xF0, 0x82}),
+			want: 0b00000000,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.c.UTF8FourBytesMask(); got != tt.want {
+				t.Errorf("UTF8FourBytesMask() = %b, want %b", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkChunk_UTF8FourBytesMask(b *testing.B) {
+	c := NewChunk([]byte{0xF0, 0x9F, 0x8E, 0xBC, 'a', 0xE2, 0x82, 0xAD})
+
+	b.ResetTimer()
+	for range b.N {
+		_ = c.UTF8FourBytesMask()
+	}
+}
+
 func TestChunkScanner(t *testing.T) {
 	t.Parallel()
 
