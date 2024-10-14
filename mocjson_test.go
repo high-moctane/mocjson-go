@@ -244,6 +244,26 @@ func TestChunk_UTF8TwoBytesMask(t *testing.T) {
 			want: 0b11111111,
 		},
 		{
+			name: "utf-8 2 bytes (shifted 1)",
+			c:    NewChunk([]byte{0xA2, 0xC2, 0xA3, 0xC2, 0xA4, 0xC2, 0xA5, 0xC2}),
+			want: 0b01111110,
+		},
+		{
+			name: "utf-8 2 bytes; min max",
+			c:    NewChunk([]byte{0xC2, 0x80, 0xDF, 0xBF, 0xC2, 0x80, 0xDF, 0xBF}),
+			want: 0b11111111,
+		},
+		{
+			name: "utf-8 2 bytes; min max (shifted 1)",
+			c:    NewChunk([]byte{0x80, 0xC2, 0xBF, 0xDF, 0xBF, 0xC2, 0x80, 0xDF}),
+			want: 0b01111110,
+		},
+		{
+			name: "invalid utf-8 2 bytes; too small",
+			c:    NewChunk([]byte{0xC0, 0x80, 0xC1, 0x80, 0xC0, 0xBF, 0xC1, 0xBF}),
+			want: 0b00000000,
+		},
+		{
 			name: "utf-8 3 bytes",
 			c:    NewChunk([]byte{0xE2, 0x82, 0xAC, 0xE2, 0x82, 0xAD, 0xE2, 0x82}),
 			want: 0b00000000,
