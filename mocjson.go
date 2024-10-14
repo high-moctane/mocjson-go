@@ -352,7 +352,188 @@ func (c Chunk) ASCIIMask() uint8 {
 }
 
 func (c Chunk) UTF8Mask() uint8 {
-	return c.ASCIIMask() | c.UTF8TwoBytesMask() | c.UTF8ThreeBytesMask() | c.UTF8FourBytesMask()
+	const (
+		mask01    = 0x8080808080808080
+		mask02    = 0xC0C0C0C0C0C0C0C0
+		mask1     = 0x8080808080808080
+		mask21    = 0xC0C0C0C0C0C0C0C0
+		mask22    = 0xE0E0E0E0E0E0E0E0
+		mask2ng1  = 0xC0C0C0C0C0C0C0C0
+		mask2ng2  = 0xFEFEFEFEFEFEFEFE
+		mask31    = 0xE0E0E0E0E0E0E0E0
+		mask32    = 0xF0F0F0F0F0F0F0F0
+		mask3ng11 = 0xE080E080E080E080
+		mask3ng12 = 0xFFFEFFFEFFFEFFFE
+		mask3ng21 = 0x80E080E080E080E0
+		mask3ng22 = 0xFEFFFEFFFEFFFEFF
+		mask41    = 0xF0F0F0F0F0F0F0F0
+		mask42    = 0xF8F8F8F8F8F8F8F8
+		mask4ng11 = 0xF080F080F080F080
+		mask4ng12 = 0xFFF0FFF0FFF0FFF0
+		mask4ng21 = 0x80F080F080F080F0
+		mask4ng22 = 0xF0FFF0FFF0FFF0FF
+	)
+
+	m0 := ^((c ^ mask01) & mask02)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := (c & mask1) >> 7
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := ^uint8(m1)
+
+	m2 := ^((c ^ mask21) & mask22)
+	m2 = m2 & (m2 >> 1)
+	m2 = m2 & (m2 >> 2)
+	m2 = m2 & (m2 >> 4)
+	m2 &= 0x0101010101010101
+	m2 = m2>>49 |
+		m2>>42 |
+		m2>>35 |
+		m2>>28 |
+		m2>>21 |
+		m2>>14 |
+		m2>>7 |
+		m2
+	r2 := uint8(m2)
+
+	m2ng := ^((c ^ mask2ng1) & mask2ng2)
+	m2ng = m2ng & (m2ng >> 1)
+	m2ng = m2ng & (m2ng >> 2)
+	m2ng = m2ng & (m2ng >> 4)
+	m2ng &= 0x0101010101010101
+	m2ng = m2ng>>49 |
+		m2ng>>42 |
+		m2ng>>35 |
+		m2ng>>28 |
+		m2ng>>21 |
+		m2ng>>14 |
+		m2ng>>7 |
+		m2ng
+	r2ng := uint8(m2ng)
+	r2 &= ^r2ng
+	r20 := r0 & ^r2ng
+
+	m3 := ^((c ^ mask31) & mask32)
+	m3 = m3 & (m3 >> 1)
+	m3 = m3 & (m3 >> 2)
+	m3 = m3 & (m3 >> 4)
+	m3 &= 0x0101010101010101
+	m3 = m3>>49 |
+		m3>>42 |
+		m3>>35 |
+		m3>>28 |
+		m3>>21 |
+		m3>>14 |
+		m3>>7 |
+		m3
+	r3 := uint8(m3)
+
+	m3ng1 := ^((c ^ mask3ng11) & mask3ng12)
+	m3ng1 = m3ng1 & (m3ng1 >> 1)
+	m3ng1 = m3ng1 & (m3ng1 >> 2)
+	m3ng1 = m3ng1 & (m3ng1 >> 4)
+	m3ng1 = m3ng1 & (m3ng1 >> 8)
+	m3ng1 &= 0x0101010101010101
+	m3ng1 = m3ng1>>49 |
+		m3ng1>>42 |
+		m3ng1>>35 |
+		m3ng1>>28 |
+		m3ng1>>21 |
+		m3ng1>>14 |
+		m3ng1>>7 |
+		m3ng1
+	r3ng1 := uint8(m3ng1)
+
+	m3ng2 := ^((c ^ mask3ng21) & mask3ng22)
+	m3ng2 = m3ng2 & (m3ng2 >> 1)
+	m3ng2 = m3ng2 & (m3ng2 >> 2)
+	m3ng2 = m3ng2 & (m3ng2 >> 4)
+	m3ng2 = m3ng2 & (m3ng2 >> 8)
+	m3ng2 &= 0x0101010101010101
+	m3ng2 = m3ng2>>49 |
+		m3ng2>>42 |
+		m3ng2>>35 |
+		m3ng2>>28 |
+		m3ng2>>21 |
+		m3ng2>>14 |
+		m3ng2>>7 |
+		m3ng2
+	r3ng2 := uint8(m3ng2)
+	r3ng := r3ng1 | r3ng2
+	r3 &= ^r3ng
+	r30 := r0 & ^r3ng
+
+	m4 := ^((c ^ mask41) & mask42)
+	m4 = m4 & (m4 >> 1)
+	m4 = m4 & (m4 >> 2)
+	m4 = m4 & (m4 >> 4)
+	m4 &= 0x0101010101010101
+	m4 = m4>>49 |
+		m4>>42 |
+		m4>>35 |
+		m4>>28 |
+		m4>>21 |
+		m4>>14 |
+		m4>>7 |
+		m4
+	r4 := uint8(m4)
+
+	m4ng1 := ^((c ^ mask4ng11) & mask4ng12)
+	m4ng1 = m4ng1 & (m4ng1 >> 1)
+	m4ng1 = m4ng1 & (m4ng1 >> 2)
+	m4ng1 = m4ng1 & (m4ng1 >> 4)
+	m4ng1 = m4ng1 & (m4ng1 >> 8)
+	m4ng1 &= 0x0101010101010101
+	m4ng1 = m4ng1>>49 |
+		m4ng1>>42 |
+		m4ng1>>35 |
+		m4ng1>>28 |
+		m4ng1>>21 |
+		m4ng1>>14 |
+		m4ng1>>7 |
+		m4ng1
+
+	m4ng2 := ^((c ^ mask4ng21) & mask4ng22)
+	m4ng2 = m4ng2 & (m4ng2 >> 1)
+	m4ng2 = m4ng2 & (m4ng2 >> 2)
+	m4ng2 = m4ng2 & (m4ng2 >> 4)
+	m4ng2 = m4ng2 & (m4ng2 >> 8)
+	m4ng2 &= 0x0101010101010101
+	m4ng2 = m4ng2>>49 |
+		m4ng2>>42 |
+		m4ng2>>35 |
+		m4ng2>>28 |
+		m4ng2>>21 |
+		m4ng2>>14 |
+		m4ng2>>7 |
+		m4ng2
+	r4ng := uint8(m4ng1 | m4ng2)
+	r4 &= ^r4ng
+	r40 := r0 & ^r4ng
+
+	return r1 |
+		(r2&(r20<<1) | (r2>>1)&r20) |
+		(r3&(r30<<1)&(r30<<2) | (r3>>1)&r30&(r30<<1) | (r3>>2)&(r30>>1)&r30) |
+		(r4&(r40<<1)&(r40<<2)&(r40<<3) | (r4>>1)&r40&(r40<<1)&(r40<<2) | (r4>>2)&(r40>>1)&r40&(r40<<1) | (r4>>3)&(r40>>2)&(r40>>1)&r40)
 }
 
 func (c Chunk) UTF8TwoBytesMask() uint8 {
