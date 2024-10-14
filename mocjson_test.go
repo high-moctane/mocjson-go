@@ -329,6 +329,26 @@ func TestChunk_UTF8ThreeBytesMask(t *testing.T) {
 			want: 0b11111100,
 		},
 		{
+			name: "utf-8 3 bytes (shifted 1)",
+			c:    NewChunk([]byte{0xAC, 0xE2, 0x82, 0xAD, 0xE2, 0x82, 0xAC, 0xE2}),
+			want: 0b01111110,
+		},
+		{
+			name: "utf-8 3 bytes (shifted 2)",
+			c:    NewChunk([]byte{0x82, 0xAC, 0xE2, 0x82, 0xAD, 0xE2, 0x82, 0xAC}),
+			want: 0b00111111,
+		},
+		{
+			name: "utf-8 3 bytes; min max",
+			c:    NewChunk([]byte{0xE0, 0xA0, 0x80, 0xEF, 0xBF, 0xBF, 0xE0, 0xA0}),
+			want: 0b11111100,
+		},
+		{
+			name: "invalid utf-8 3 bytes; too small",
+			c:    NewChunk([]byte{0xE0, 0x80, 0x80, 0xE0, 0x9F, 0xBF, 0xEF, 0xBF}),
+			want: 0b00000000,
+		},
+		{
 			name: "utf-8 4 bytes",
 			c:    NewChunk([]byte{0xF0, 0x9F, 0x8E, 0xBC, 0xF0, 0x9F, 0x8E, 0xBD}),
 			want: 0b00000000,
@@ -342,11 +362,6 @@ func TestChunk_UTF8ThreeBytesMask(t *testing.T) {
 			name: "mixed",
 			c:    NewChunk([]byte{0xE2, 0x82, 0xAC, 'a', 0xE2, 0x82, 0xAD, 'b'}),
 			want: 0b11101110,
-		},
-		{
-			name: "invalid 3 bytes utf-8",
-			c:    NewChunk([]byte{0xE0, 0x80, 0x00, 0xE0, 0x9F, 0xFF, 0xE0, 0x82}),
-			want: 0b00000000,
 		},
 	}
 

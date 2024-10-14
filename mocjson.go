@@ -385,6 +385,7 @@ func (c Chunk) UTF8TwoBytesMask() uint8 {
 		res0>>14 |
 		res0>>7 |
 		res0
+	r0 := uint8(res0)
 
 	res1 := m1 & 0x0101010101010101
 	res1 = res1>>49 |
@@ -395,8 +396,9 @@ func (c Chunk) UTF8TwoBytesMask() uint8 {
 		res1>>14 |
 		res1>>7 |
 		res1
+	r1 := uint8(res1)
 
-	return uint8((res0 & (res1 << 1)) | ((res0 >> 1) & res1))
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) UTF8ThreeBytesMask() uint8 {
@@ -444,6 +446,7 @@ func (c Chunk) UTF8ThreeBytesMask() uint8 {
 		res0>>14 |
 		res0>>7 |
 		res0
+	r0 := uint8(res0)
 
 	res1 := (m1 & ^mng) & 0x0101010101010101
 	res1 = res1>>49 |
@@ -454,8 +457,9 @@ func (c Chunk) UTF8ThreeBytesMask() uint8 {
 		res1>>14 |
 		res1>>7 |
 		res1
+	r1 := uint8(res1)
 
-	return uint8((res0 & (res1 << 1) & (res1 << 2)) | ((res0 >> 1) & res1 & (res1 << 1)) | ((res0 >> 2) & (res1 >> 1) & res1))
+	return r0&(r1<<1)&(r1<<2) | (r0>>1)&r1&(r1<<1) | (r0>>2)&(r1>>1)&r1
 }
 
 func (c Chunk) UTF8FourBytesMask() uint8 {
@@ -503,6 +507,7 @@ func (c Chunk) UTF8FourBytesMask() uint8 {
 		res0>>14 |
 		res0>>7 |
 		res0
+	r0 := uint8(res0)
 
 	res1 := (m1 & ^mng) & 0x0101010101010101
 	res1 = res1>>49 |
@@ -513,13 +518,12 @@ func (c Chunk) UTF8FourBytesMask() uint8 {
 		res1>>14 |
 		res1>>7 |
 		res1
+	r1 := uint8(res1)
 
-	return uint8(
-		(res0 & (res1 << 1) & (res1 << 2) & (res1 << 3)) |
-			((res0 >> 1) & res1 & (res1 << 1) & (res1 << 2)) |
-			((res0 >> 2) & (res1 >> 1) & res1 & (res1 << 1)) |
-			((res0 >> 3) & (res1 >> 2) & (res1 >> 1) & res1),
-	)
+	return r0&(r1<<1)&(r1<<2)&(r1<<3) |
+		(r0>>1)&r1&(r1<<1)&(r1<<2) |
+		(r0>>2)&(r1>>1)&r1&(r1<<1) |
+		(r0>>3)&(r1>>2)&(r1>>1)&r1
 }
 
 func (c Chunk) FirstByte() byte {
