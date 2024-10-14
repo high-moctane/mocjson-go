@@ -425,11 +425,13 @@ func (c Chunk) UTF8ThreeBytesMask() uint8 {
 	m0ng = m0ng & (m0ng >> 1)
 	m0ng = m0ng & (m0ng >> 2)
 	m0ng = m0ng & (m0ng >> 4)
+	m0ng = m0ng & (m0ng >> 8)
 
 	m1ng := ^((c ^ mask1ng0) & mask1ng1)
 	m1ng = m1ng & (m1ng >> 1)
 	m1ng = m1ng & (m1ng >> 2)
 	m1ng = m1ng & (m1ng >> 4)
+	m1ng = m1ng & (m1ng >> 8)
 
 	mng := m0ng | m1ng
 
