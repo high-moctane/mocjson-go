@@ -225,6 +225,66 @@ func BenchmarkChunk_ASCIIMask(b *testing.B) {
 	}
 }
 
+func TestChunk_UTF8Mask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		c    Chunk
+		want uint8
+	}{
+		{
+			name: "ascii",
+			c:    NewChunk([]byte("01234567")),
+			want: 0b11111111,
+		},
+		{
+			name: "utf-8 2 bytes",
+			c:    NewChunk([]byte{0xC2, 0xA2, 0xC2, 0xA3, 0xC2, 0xA4, 0xC2, 0xA5}),
+			want: 0b11111111,
+		},
+		{
+			name: "utf-8 3 bytes",
+			c:    NewChunk([]byte{0xE2, 0x82, 0xAC, 0xE2, 0x82, 0xAD, 0xE2, 0x82}),
+			want: 0b11111100,
+		},
+		{
+			name: "utf-8 4 bytes",
+			c:    NewChunk([]byte{0xF0, 0x9F, 0x8E, 0xBC, 0xF0, 0x9F, 0x8E, 0xBD}),
+			want: 0b11111111,
+		},
+		{
+			name: "empty",
+			c:    NewChunk([]byte{0, 0, 0, 0, 0, 0, 0, 0}),
+			want: 0b11111111,
+		},
+		{
+			name: "mixed",
+			c:    NewChunk([]byte{0xC2, 0xA2, 'a', 0xE2, 0x82, 0xAD, 'b', 0xF0}),
+			want: 0b11111110,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.c.UTF8Mask(); got != tt.want {
+				t.Errorf("UTF8Mask() = %b, want %b", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkChunk_UTF8Mask(b *testing.B) {
+	c := NewChunk([]byte{0xC2, 0xA2, 'a', 0xE2, 0x82, 0xAD, 'b', 0xF0})
+
+	b.ResetTimer()
+	for range b.N {
+		_ = c.UTF8Mask()
+	}
+}
+
 func TestChunk_UTF8TwoBytesMask(t *testing.T) {
 	t.Parallel()
 

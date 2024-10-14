@@ -351,6 +351,10 @@ func (c Chunk) ASCIIMask() uint8 {
 	return ^uint8(c)
 }
 
+func (c Chunk) UTF8Mask() uint8 {
+	return c.ASCIIMask() | c.UTF8TwoBytesMask() | c.UTF8ThreeBytesMask() | c.UTF8FourBytesMask()
+}
+
 func (c Chunk) UTF8TwoBytesMask() uint8 {
 	const (
 		mask00   = 0xC0C0C0C0C0C0C0C0
