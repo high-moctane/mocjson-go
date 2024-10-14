@@ -351,6 +351,54 @@ func (c Chunk) ASCIIMask() uint8 {
 	return ^uint8(c)
 }
 
+func (c Chunk) UTF8TwoBytesMask() uint8 {
+	const (
+		mask00   = 0xC0C0C0C0C0C0C0C0
+		mask01   = 0xE0E0E0E0E0E0E0E0
+		mask0ng0 = 0xC0C0C0C0C0C0C0C0
+		mask0ng1 = 0xFEFEFEFEFEFEFEFE
+		mask10   = 0x8080808080808080
+		mask11   = 0xC0C0C0C0C0C0C0C0
+	)
+
+	m0 := ^((c ^ mask00) & mask01)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+
+	m1 := ^((c ^ mask10) & mask11)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+
+	m0ng := ^((c ^ mask0ng0) & mask0ng1)
+	m0ng = m0ng & (m0ng >> 1)
+	m0ng = m0ng & (m0ng >> 2)
+	m0ng = m0ng & (m0ng >> 4)
+
+	res0 := (m0 & ^m0ng) & 0x0101010101010101
+	res0 = res0>>49 |
+		res0>>42 |
+		res0>>35 |
+		res0>>28 |
+		res0>>21 |
+		res0>>14 |
+		res0>>7 |
+		res0
+
+	res1 := m1 & 0x0101010101010101
+	res1 = res1>>49 |
+		res1>>42 |
+		res1>>35 |
+		res1>>28 |
+		res1>>21 |
+		res1>>14 |
+		res1>>7 |
+		res1
+
+	return uint8((res0 & (res1 << 1)) | ((res0 >> 1) & res1))
+}
+
 func (c Chunk) FirstByte() byte {
 	return byte(c >> 56)
 }
