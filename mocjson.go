@@ -711,6 +711,260 @@ func (c Chunk) UTF8FourBytesMask() uint8 {
 		(r0>>3)&(r1>>2)&(r1>>1)&r1
 }
 
+func (c Chunk) ReverseSolidusMask() uint8 {
+	// 0x5c: '\'
+	const mask = 0x5c5c5c5c5c5c5c5c
+	m := ^(c ^ mask)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) QuotationMarkMask() uint8 {
+	// 0x22: '"'
+	const mask = 0x2222222222222222
+	m := ^(c ^ mask)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedQuotationMarkMask() uint8 {
+	// 0x5c: '\'
+	// 0x22: '"'
+	const (
+		mask0 = 0x5c225c225c225c22
+		mask1 = 0x225c225c225c225c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedReverseSolidusMask() uint8 {
+	// 0x5c: '\'
+	const mask = 0x5c5c5c5c5c5c5c5c
+	m := ^(c ^ mask)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedSolidusMask() uint8 {
+	// 0x5c: '\'
+	// 0x2f: '/'
+	const (
+		mask0 = 0x5c2f5c2f5c2f5c2f
+		mask1 = 0x2f5c2f5c2f5c2f5c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedBackspaceMask() uint8 {
+	// 0x5c: '\'
+	// 0x62: 'b'
+	const (
+		mask0 = 0x5c625c625c625c62
+		mask1 = 0x625c625c625c625c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedFormFeedMask() uint8 {
+	// 0x5c: '\'
+	// 0x66: 'f'
+	const (
+		mask0 = 0x5c665c665c665c66
+		mask1 = 0x665c665c665c665c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedLineFeedMask() uint8 {
+	const (
+		mask0 = 0x5c6e5c6e5c6e5c6e
+		mask1 = 0x6e5c6e5c6e5c6e5c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedCarriageReturnMask() uint8 {
+	const (
+		mask0 = 0x5c725c725c725c72
+		mask1 = 0x725c725c725c725c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedHorizontalTabMask() uint8 {
+	// 0x5c: '\'
+	// 0x74: 't'
+	const (
+		mask0 = 0x5c747c5c747c5c74
+		mask1 = 0x747c5c747c5c747c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+	return uint8(m)
+}
+
+func (c Chunk) EscapedUTF16Mask() uint8 {
+	// 0x5c: '\'
+	// 0x75: 'u'
+	const (
+		mask0 = 0x5c757c5c757c5c75
+		mask1 = 0x757c5c757c5c757c
+	)
+
+	m := ^(c ^ mask0) | ^(c ^ mask1)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m = m & (m >> 8)
+	m &= 0x0101010101010101
+	m = m>>49 |
+		m>>42 |
+		m>>35 |
+		m>>28 |
+		m>>21 |
+		m>>14 |
+		m>>7 |
+		m
+
+	return uint8(m)
+}
+
 func (c Chunk) FirstByte() byte {
 	return byte(c >> 56)
 }
