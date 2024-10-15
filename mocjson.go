@@ -969,6 +969,10 @@ func (c Chunk) FirstByte() byte {
 	return byte(c >> 56)
 }
 
+func (c Chunk) ByteAt(n int) byte {
+	return byte(bits.RotateLeft64(uint64(c), (n+1)<<3))
+}
+
 type ChunkScanner struct {
 	r io.Reader
 	c Chunk
