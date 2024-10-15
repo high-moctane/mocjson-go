@@ -1338,6 +1338,22 @@ func TestDecoder_ExpectString(t *testing.T) {
 			}
 		})
 
+		t.Run(tt.name+"_(ExpectString2)", func(t *testing.T) {
+			t.Parallel()
+
+			sc := NewChunkScanner(bytes.NewReader(tt.input))
+			sc.ShiftN(8)
+
+			got, err := ExpectString2[string](&sc, nil)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalString() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
+			}
+		})
+
 		for _, s := range suffixes {
 			t.Run(tt.name+"_"+s.name, func(t *testing.T) {
 				t.Parallel()
@@ -1351,6 +1367,29 @@ func TestDecoder_ExpectString(t *testing.T) {
 				r := NewPeekReader(&buf)
 
 				got, err := ExpectString[string](&dec, &r)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalString() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
+				}
+			})
+
+			t.Run(tt.name+"_"+s.name+"_(ExpectString2)", func(t *testing.T) {
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				got, err := ExpectString2[string](&sc, nil)
 				if (err != nil) != (tt.wantErr || s.wantErr) {
 					t.Errorf("UnmarshalString() error = %v, wantErr %v", err, s.wantErr)
 					return
@@ -1387,6 +1426,31 @@ func TestDecoder_ExpectString(t *testing.T) {
 					t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
 				}
 			})
+
+			t.Run(tt.name+"_whitespaces_"+s.name+"_(ExpectString2)", func(t *testing.T) {
+				t.Skip()
+				t.Parallel()
+
+				var buf bytes.Buffer
+				buf.Write(tt.input)
+				buf.Write([]byte(" \r\n\t"))
+				buf.Write(s.suffix)
+
+				sc := NewChunkScanner(&buf)
+				sc.ShiftN(8)
+
+				got, err := ExpectString2[string](&sc, nil)
+				if (err != nil) != (tt.wantErr || s.wantErr) {
+					t.Errorf("UnmarshalString() error = %v, wantErr %v", err, s.wantErr)
+					return
+				}
+				if err != nil {
+					return
+				}
+				if got != tt.want {
+					t.Errorf("UnmarshalString() = %q, want %q", got, tt.want)
+				}
+			})
 		}
 	}
 }
@@ -1402,7 +1466,22 @@ func BenchmarkDecoder_ExpectString(b *testing.B) {
 		rr.reset()
 		_, _ = ExpectString[string](&dec, &rr)
 	}
+}
 
+func BenchmarkExpectString2(b *testing.B) {
+	r := bytes.NewReader([]byte(`"high-moctane"`))
+	sc := NewChunkScanner(r)
+	sc.ShiftN(8)
+
+	buf := make([]byte, 0, 1024)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		r.Seek(0, 0)
+
+		sc.ShiftN(8)
+		_, _ = ExpectString2[string](&sc, buf)
+	}
 }
 
 func TestDecoder_ExpectInt(t *testing.T) {

@@ -753,25 +753,41 @@ func (c Chunk) EscapedQuotationMarkMask() uint8 {
 	// 0x5c: '\'
 	// 0x22: '"'
 	const (
-		mask0 = 0x5c225c225c225c22
-		mask1 = 0x225c225c225c225c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x2222222222222222
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
-	return uint8(m)
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) EscapedReverseSolidusMask() uint8 {
@@ -790,179 +806,295 @@ func (c Chunk) EscapedReverseSolidusMask() uint8 {
 		m>>14 |
 		m>>7 |
 		m
-	return uint8(m)
+	r := uint8(m)
+	return r&(r<<1) | (r>>1)&r
 }
 
 func (c Chunk) EscapedSolidusMask() uint8 {
 	// 0x5c: '\'
 	// 0x2f: '/'
 	const (
-		mask0 = 0x5c2f5c2f5c2f5c2f
-		mask1 = 0x2f5c2f5c2f5c2f5c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x2f2f2f2f2f2f2f2f
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
-	return uint8(m)
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) EscapedBackspaceMask() uint8 {
 	// 0x5c: '\'
 	// 0x62: 'b'
 	const (
-		mask0 = 0x5c625c625c625c62
-		mask1 = 0x625c625c625c625c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x6262626262626262
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
-	return uint8(m)
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) EscapedFormFeedMask() uint8 {
 	// 0x5c: '\'
 	// 0x66: 'f'
 	const (
-		mask0 = 0x5c665c665c665c66
-		mask1 = 0x665c665c665c665c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x6666666666666666
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
-	return uint8(m)
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) EscapedLineFeedMask() uint8 {
+	// 0x5c: '\'
+	// 0x6e: 'n'
 	const (
-		mask0 = 0x5c6e5c6e5c6e5c6e
-		mask1 = 0x6e5c6e5c6e5c6e5c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x6e6e6e6e6e6e6e6e
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
-	return uint8(m)
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) EscapedCarriageReturnMask() uint8 {
+	// 0x5c: '\'
+	// 0x72: 'r'
 	const (
-		mask0 = 0x5c725c725c725c72
-		mask1 = 0x725c725c725c725c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x7272727272727272
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
-	return uint8(m)
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) EscapedHorizontalTabMask() uint8 {
 	// 0x5c: '\'
 	// 0x74: 't'
 	const (
-		mask0 = 0x5c747c5c747c5c74
-		mask1 = 0x747c5c747c5c747c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x7474747474747474
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
-	return uint8(m)
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
+
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) EscapedUTF16Mask() uint8 {
 	// 0x5c: '\'
 	// 0x75: 'u'
 	const (
-		mask0 = 0x5c757c5c757c5c75
-		mask1 = 0x757c5c757c5c757c
+		mask0 = 0x5c5c5c5c5c5c5c5c
+		mask1 = 0x7575757575757575
 	)
 
-	m := ^(c ^ mask0) | ^(c ^ mask1)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m = m & (m >> 8)
-	m &= 0x0101010101010101
-	m = m>>49 |
-		m>>42 |
-		m>>35 |
-		m>>28 |
-		m>>21 |
-		m>>14 |
-		m>>7 |
-		m
+	m0 := ^(c ^ mask0)
+	m0 = m0 & (m0 >> 1)
+	m0 = m0 & (m0 >> 2)
+	m0 = m0 & (m0 >> 4)
+	m0 &= 0x0101010101010101
+	m0 = m0>>49 |
+		m0>>42 |
+		m0>>35 |
+		m0>>28 |
+		m0>>21 |
+		m0>>14 |
+		m0>>7 |
+		m0
+	r0 := uint8(m0)
 
-	return uint8(m)
+	m1 := ^(c ^ mask1)
+	m1 = m1 & (m1 >> 1)
+	m1 = m1 & (m1 >> 2)
+	m1 = m1 & (m1 >> 4)
+	m1 &= 0x0101010101010101
+	m1 = m1>>49 |
+		m1>>42 |
+		m1>>35 |
+		m1>>28 |
+		m1>>21 |
+		m1>>14 |
+		m1>>7 |
+		m1
+	r1 := uint8(m1)
+
+	return r0&(r1<<1) | (r0>>1)&r1
 }
 
 func (c Chunk) FirstByte() byte {
@@ -1348,6 +1480,321 @@ func ExpectString[T ~string](d *Decoder, r *PeekReader) (T, error) {
 	}
 
 	return T(d.buf[:idx]), nil
+}
+
+func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
+	if sc.Chunk().FirstByte() != '"' {
+		return "", fmt.Errorf("invalid string value")
+	}
+	if _, err := sc.ShiftN(1); err != nil {
+		if err == io.EOF {
+			if sc.Chunk().FirstByte() == EOF {
+				return "", fmt.Errorf("unexpected EOF")
+			}
+		} else {
+			return "", fmt.Errorf("read error: %v", err)
+		}
+	}
+
+	for {
+		eQuoteMask := sc.Chunk().EscapedQuotationMarkMask()
+		b := []byte{
+			byte(int8(eQuoteMask&0x80)>>7) & byte(int8(eQuoteMask&0x40)<<1>>7) & QuotationMark,
+			byte(int8(eQuoteMask&0x20)<<2>>7) & byte(int8(eQuoteMask&0x10)<<3>>7) & QuotationMark,
+			byte(int8(eQuoteMask&0x08)<<4>>7) & byte(int8(eQuoteMask&0x04)<<5>>7) & QuotationMark,
+			byte(int8(eQuoteMask&0x02)<<6>>7) & byte(int8(eQuoteMask&0x01)<<7>>7) & QuotationMark,
+		}
+		n := bits.LeadingZeros8(^eQuoteMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eReverseSolidusMask := sc.Chunk().EscapedReverseSolidusMask()
+		b = []byte{
+			byte(int8(eReverseSolidusMask&0x80)>>7) & byte(int8(eReverseSolidusMask&0x40)<<1>>7) & ReverseSolidus,
+			byte(int8(eReverseSolidusMask&0x20)<<2>>7) & byte(int8(eReverseSolidusMask&0x10)<<3>>7) & ReverseSolidus,
+			byte(int8(eReverseSolidusMask&0x08)<<4>>7) & byte(int8(eReverseSolidusMask&0x04)<<5>>7) & ReverseSolidus,
+			byte(int8(eReverseSolidusMask&0x02)<<6>>7) & byte(int8(eReverseSolidusMask&0x01)<<7>>7) & ReverseSolidus,
+		}
+		n = bits.LeadingZeros8(^eReverseSolidusMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eSolidusMask := sc.Chunk().EscapedSolidusMask()
+		b = []byte{
+			byte(int8(eSolidusMask&0x80)>>7) & byte(int8(eSolidusMask&0x40)<<1>>7) & Solidus,
+			byte(int8(eSolidusMask&0x20)<<2>>7) & byte(int8(eSolidusMask&0x10)<<3>>7) & Solidus,
+			byte(int8(eSolidusMask&0x08)<<4>>7) & byte(int8(eSolidusMask&0x04)<<5>>7) & Solidus,
+			byte(int8(eSolidusMask&0x02)<<6>>7) & byte(int8(eSolidusMask&0x01)<<7>>7) & Solidus,
+		}
+		n = bits.LeadingZeros8(^eSolidusMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eBackspaceMask := sc.Chunk().EscapedBackspaceMask()
+		b = []byte{
+			byte(int8(eBackspaceMask&0x80)>>7) & byte(int8(eBackspaceMask&0x40)<<1>>7) & Backspace,
+			byte(int8(eBackspaceMask&0x20)<<2>>7) & byte(int8(eBackspaceMask&0x10)<<3>>7) & Backspace,
+			byte(int8(eBackspaceMask&0x08)<<4>>7) & byte(int8(eBackspaceMask&0x04)<<5>>7) & Backspace,
+			byte(int8(eBackspaceMask&0x02)<<6>>7) & byte(int8(eBackspaceMask&0x01)<<7>>7) & Backspace,
+		}
+		n = bits.LeadingZeros8(^eBackspaceMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eFormFeedMask := sc.Chunk().EscapedFormFeedMask()
+		b = []byte{
+			byte(int8(eFormFeedMask&0x80)>>7) & byte(int8(eFormFeedMask&0x40)<<1>>7) & FormFeed,
+			byte(int8(eFormFeedMask&0x20)<<2>>7) & byte(int8(eFormFeedMask&0x10)<<3>>7) & FormFeed,
+			byte(int8(eFormFeedMask&0x08)<<4>>7) & byte(int8(eFormFeedMask&0x04)<<5>>7) & FormFeed,
+			byte(int8(eFormFeedMask&0x02)<<6>>7) & byte(int8(eFormFeedMask&0x01)<<7>>7) & FormFeed,
+		}
+		n = bits.LeadingZeros8(^eFormFeedMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eLineFeedMask := sc.Chunk().EscapedLineFeedMask()
+		b = []byte{
+			byte(int8(eLineFeedMask&0x80)>>7) & byte(int8(eLineFeedMask&0x40)<<1>>7) & LineFeed,
+			byte(int8(eLineFeedMask&0x20)<<2>>7) & byte(int8(eLineFeedMask&0x10)<<3>>7) & LineFeed,
+			byte(int8(eLineFeedMask&0x08)<<4>>7) & byte(int8(eLineFeedMask&0x04)<<5>>7) & LineFeed,
+			byte(int8(eLineFeedMask&0x02)<<6>>7) & byte(int8(eLineFeedMask&0x01)<<7>>7) & LineFeed,
+		}
+		n = bits.LeadingZeros8(^eLineFeedMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eCarriageReturnMask := sc.Chunk().EscapedCarriageReturnMask()
+		b = []byte{
+			byte(int8(eCarriageReturnMask&0x80)>>7) & byte(int8(eCarriageReturnMask&0x40)<<1>>7) & CarriageReturn,
+			byte(int8(eCarriageReturnMask&0x20)<<2>>7) & byte(int8(eCarriageReturnMask&0x10)<<3>>7) & CarriageReturn,
+			byte(int8(eCarriageReturnMask&0x08)<<4>>7) & byte(int8(eCarriageReturnMask&0x04)<<5>>7) & CarriageReturn,
+			byte(int8(eCarriageReturnMask&0x02)<<6>>7) & byte(int8(eCarriageReturnMask&0x01)<<7>>7) & CarriageReturn,
+		}
+		n = bits.LeadingZeros8(^eCarriageReturnMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eHorizontalTabMask := sc.Chunk().EscapedHorizontalTabMask()
+		b = []byte{
+			byte(int8(eHorizontalTabMask&0x80)>>7) & byte(int8(eHorizontalTabMask&0x40)<<1>>7) & HorizontalTab,
+			byte(int8(eHorizontalTabMask&0x20)<<2>>7) & byte(int8(eHorizontalTabMask&0x10)<<3>>7) & HorizontalTab,
+			byte(int8(eHorizontalTabMask&0x08)<<4>>7) & byte(int8(eHorizontalTabMask&0x04)<<5>>7) & HorizontalTab,
+			byte(int8(eHorizontalTabMask&0x02)<<6>>7) & byte(int8(eHorizontalTabMask&0x01)<<7>>7) & HorizontalTab,
+		}
+		n = bits.LeadingZeros8(^eHorizontalTabMask)
+		buf = append(buf, b[:n>>1]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+
+		eUTF16Mask := sc.Chunk().EscapedUTF16Mask()
+		switch eUTF16Mask {
+		case 0b11000000:
+			hexMask := sc.Chunk().HexMask()
+			if (hexMask >> 2) != 0b00001111 {
+				return "", fmt.Errorf("invalid utf16 escape sequence")
+			}
+			ru := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+			if !utf8.ValidRune(ru) {
+				return "", fmt.Errorf("invalid utf16 escape sequence")
+			}
+			buf = utf8.AppendRune(buf, ru)
+			if _, err := sc.ShiftN(6); err != nil {
+				if err == io.EOF {
+					if sc.Chunk().FirstByte() == EOF {
+						goto CheckSuffix
+					}
+				} else {
+					return "", fmt.Errorf("read error: %v", err)
+				}
+			}
+
+		case 0b11000011:
+			hexMask := sc.Chunk().HexMask()
+			if (hexMask >> 2) != 0b00001111 {
+				return "", fmt.Errorf("invalid utf16 escape sequence")
+			}
+			ru1 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+			if _, err := sc.ShiftN(6); err != nil {
+				if err == io.EOF {
+					if sc.Chunk().FirstByte() == EOF {
+						return "", fmt.Errorf("unexpected EOF")
+					}
+				} else {
+					return "", fmt.Errorf("read error: %v", err)
+				}
+			}
+			if !utf16.IsSurrogate(ru1) && utf8.ValidRune(ru1) {
+				buf = utf8.AppendRune(buf, ru1)
+				break
+			}
+
+			eUTF16Mask := sc.Chunk().EscapedUTF16Mask()
+			if (eUTF16Mask >> 6) != 0b00000011 {
+				return "", fmt.Errorf("invalid utf16 escape sequence")
+			}
+			hexMask = sc.Chunk().HexMask()
+			if (hexMask >> 2) != 0b00001111 {
+				return "", fmt.Errorf("invalid utf16 escape sequence")
+			}
+			ru2 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
+				hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+			ru := utf16.DecodeRune(ru1, ru2)
+			if ru == utf8.RuneError {
+				return "", fmt.Errorf("invalid utf16 escape sequence")
+			}
+			buf = utf8.AppendRune(buf, ru)
+			if _, err := sc.ShiftN(6); err != nil {
+				if err == io.EOF {
+					if sc.Chunk().FirstByte() == EOF {
+						goto CheckSuffix
+					}
+				} else {
+					return "", fmt.Errorf("read error: %v", err)
+				}
+			}
+		}
+
+		// BUG(high-moctane): control characters are not handled correctly
+		utf8Mask := sc.Chunk().UTF8Mask()
+		if (utf8Mask >> 7) == 0b00000000 {
+			return "", fmt.Errorf("invalid utf8 sequence")
+		}
+
+		quoteMask := sc.Chunk().QuotationMarkMask()
+		eQuoteMask = sc.Chunk().EscapedQuotationMarkMask()
+		rawQuoteMask := quoteMask & ^eQuoteMask
+		reverseSolidusMask := sc.Chunk().ReverseSolidusMask()
+
+		if (rawQuoteMask >> 7) == 0b00000001 {
+			goto CheckSuffix
+		}
+
+		okMask := utf8Mask & ^rawQuoteMask & ^reverseSolidusMask
+
+		b = []byte{
+			byte(int8(okMask&0x80)>>7) & sc.Chunk().ByteAt(0),
+			byte(int8(okMask&0x40)<<1>>7) & sc.Chunk().ByteAt(1),
+			byte(int8(okMask&0x20)<<2>>7) & sc.Chunk().ByteAt(2),
+			byte(int8(okMask&0x10)<<3>>7) & sc.Chunk().ByteAt(3),
+			byte(int8(okMask&0x08)<<4>>7) & sc.Chunk().ByteAt(4),
+			byte(int8(okMask&0x04)<<5>>7) & sc.Chunk().ByteAt(5),
+			byte(int8(okMask&0x02)<<6>>7) & sc.Chunk().ByteAt(6),
+			byte(int8(okMask&0x01)<<7>>7) & sc.Chunk().ByteAt(7),
+		}
+		n = bits.LeadingZeros8(^okMask)
+		buf = append(buf, b[:n]...)
+		if _, err := sc.ShiftN(n); err != nil {
+			if err == io.EOF {
+				if sc.Chunk().FirstByte() == EOF {
+					goto CheckSuffix
+				}
+			} else {
+				return "", fmt.Errorf("read error: %v", err)
+			}
+		}
+	}
+
+CheckSuffix:
+	if sc.Chunk().FirstByte() != '"' {
+		return "", fmt.Errorf("string value not terminated")
+	}
+	if _, err := sc.ShiftN(1); err != nil {
+		if err != io.EOF {
+			return "", fmt.Errorf("read error: %v", err)
+		}
+	}
+
+	for {
+		c := sc.Chunk().WhitespaceCount()
+		if c == 0 {
+			break
+		}
+
+		_, err := sc.ShiftN(c)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", fmt.Errorf("read error: %v", err)
+		}
+	}
+
+	if !matchByteMask(endOfStringValueByteMask, sc.Chunk().ByteAt(0)) {
+		return "", fmt.Errorf("invalid string value")
+	}
+
+	return string(buf), nil
 }
 
 func loadStringValueIntoBuf(d *Decoder, r *PeekReader) (int, error) {
