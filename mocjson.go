@@ -1902,6 +1902,7 @@ ReadLoop:
 				}
 
 			case 'u':
+			ReadUTF16:
 				eUTF16Mask := c.EscapedUTF16Mask()
 				switch eUTF16Mask {
 				case 0b11000000:
@@ -1943,7 +1944,7 @@ ReadLoop:
 
 					if !utf16.IsSurrogate(ru1) && utf8.ValidRune(ru1) {
 						buf = utf8.AppendRune(buf, ru1)
-						break
+						goto ReadUTF16
 					}
 
 					eUTF16Mask := c.EscapedUTF16Mask()
