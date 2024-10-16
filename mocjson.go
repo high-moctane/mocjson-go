@@ -1751,16 +1751,9 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 				return "", fmt.Errorf("invalid utf8 sequence")
 			}
 
-			quoteMask := sc.Chunk().QuotationMarkMask()
-			eQuoteMask := sc.Chunk().EscapedQuotationMarkMask()
-			rawQuoteMask := quoteMask & ^eQuoteMask
 			reverseSolidusMask := sc.Chunk().ReverseSolidusMask()
-
-			if (rawQuoteMask >> 7) == 0b00000001 {
-				goto CheckSuffix
-			}
-
-			okMask := utf8Mask & ^rawQuoteMask & ^reverseSolidusMask
+			quoteMask := sc.Chunk().QuotationMarkMask()
+			okMask := utf8Mask & ^reverseSolidusMask & ^quoteMask
 
 			b := []byte{
 				byte(int8(okMask&0x80)>>7) & sc.Chunk().ByteAt(0),
