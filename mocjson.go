@@ -536,7 +536,7 @@ func (c Chunk) UTF8Mask() uint8 {
 		(r4&(r40<<1)&(r40<<2)&(r40<<3) | (r4>>1)&r40&(r40<<1)&(r40<<2) | (r4>>2)&(r40>>1)&r40&(r40<<1) | (r4>>3)&(r40>>2)&(r40>>1)&r40)
 }
 
-func (c Chunk) UTF8Mask2() uint8 {
+func (c Chunk) UTF8ChunkMask() Chunk {
 	const (
 		mask0ok1  = 0x8080808080808080
 		mask0ok2  = 0xC0C0C0C0C0C0C0C0
@@ -636,16 +636,11 @@ func (c Chunk) UTF8Mask2() uint8 {
 
 	r := ok & ^ng
 	r &= 0x0101010101010101
-	r = r>>49 |
-		r>>42 |
-		r>>35 |
-		r>>28 |
-		r>>21 |
-		r>>14 |
-		r>>7 |
-		r
+	r |= r << 1
+	r |= r << 2
+	r |= r << 4
 
-	return uint8(r)
+	return r
 }
 
 func (c Chunk) UTF8TwoBytesMask() uint8 {
@@ -842,6 +837,20 @@ func (c Chunk) ReverseSolidusMask() uint8 {
 	return uint8(m)
 }
 
+func (c Chunk) ReverseSolidusChunkMask() Chunk {
+	// 0x5c: '\'
+	const mask = 0x5c5c5c5c5c5c5c5c
+	m := ^(c ^ mask)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m &= 0x0101010101010101
+	m |= m << 1
+	m |= m << 2
+	m |= m << 4
+	return m
+}
+
 func (c Chunk) QuotationMarkMask() uint8 {
 	// 0x22: '"'
 	const mask = 0x2222222222222222
@@ -859,6 +868,20 @@ func (c Chunk) QuotationMarkMask() uint8 {
 		m>>7 |
 		m
 	return uint8(m)
+}
+
+func (c Chunk) QuotationMarkChunkMask() Chunk {
+	// 0x22: '"'
+	const mask = 0x2222222222222222
+	m := ^(c ^ mask)
+	m = m & (m >> 1)
+	m = m & (m >> 2)
+	m = m & (m >> 4)
+	m &= 0x0101010101010101
+	m |= m << 1
+	m |= m << 2
+	m |= m << 4
+	return m
 }
 
 func (c Chunk) EscapedQuotationMarkMask() uint8 {
@@ -1858,26 +1881,28 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 
 		default:
 			// BUG(high-moctane): control characters are not handled correctly
-			utf8Mask := sc.Chunk().UTF8Mask2()
-			if (utf8Mask >> 7) == 0b00000000 {
+			utf8Mask := sc.Chunk().UTF8ChunkMask()
+			if (utf8Mask >> (7 * 8)) == 0 {
 				return "", fmt.Errorf("invalid utf8 sequence")
 			}
 
-			reverseSolidusMask := sc.Chunk().ReverseSolidusMask()
-			quoteMask := sc.Chunk().QuotationMarkMask()
+			reverseSolidusMask := sc.Chunk().ReverseSolidusChunkMask()
+			quoteMask := sc.Chunk().QuotationMarkChunkMask()
 			okMask := utf8Mask & ^reverseSolidusMask & ^quoteMask
 
+			v := okMask & sc.Chunk()
+
 			b := []byte{
-				byte(int8(okMask&0x80)>>7) & sc.Chunk().ByteAt(0),
-				byte(int8(okMask&0x40)<<1>>7) & sc.Chunk().ByteAt(1),
-				byte(int8(okMask&0x20)<<2>>7) & sc.Chunk().ByteAt(2),
-				byte(int8(okMask&0x10)<<3>>7) & sc.Chunk().ByteAt(3),
-				byte(int8(okMask&0x08)<<4>>7) & sc.Chunk().ByteAt(4),
-				byte(int8(okMask&0x04)<<5>>7) & sc.Chunk().ByteAt(5),
-				byte(int8(okMask&0x02)<<6>>7) & sc.Chunk().ByteAt(6),
-				byte(int8(okMask&0x01)<<7>>7) & sc.Chunk().ByteAt(7),
+				v.ByteAt(0),
+				v.ByteAt(1),
+				v.ByteAt(2),
+				v.ByteAt(3),
+				v.ByteAt(4),
+				v.ByteAt(5),
+				v.ByteAt(6),
+				v.ByteAt(7),
 			}
-			n := bits.LeadingZeros8(^okMask)
+			n := bits.LeadingZeros64(^uint64(okMask)) >> 3
 			buf = append(buf, b[:n]...)
 			if _, err := sc.ShiftN(n); err != nil {
 				if err == io.EOF {
