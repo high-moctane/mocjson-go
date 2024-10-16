@@ -536,6 +536,118 @@ func (c Chunk) UTF8Mask() uint8 {
 		(r4&(r40<<1)&(r40<<2)&(r40<<3) | (r4>>1)&r40&(r40<<1)&(r40<<2) | (r4>>2)&(r40>>1)&r40&(r40<<1) | (r4>>3)&(r40>>2)&(r40>>1)&r40)
 }
 
+func (c Chunk) UTF8Mask2() uint8 {
+	const (
+		mask0ok1  = 0x8080808080808080
+		mask0ok2  = 0xC0C0C0C0C0C0C0C0
+		mask1ok   = 0x8080808080808080
+		mask2ok1  = 0xC0C0C0C0C0C0C0C0
+		mask2ok2  = 0xE0E0E0E0E0E0E0E0
+		mask2ng1  = 0xC0C0C0C0C0C0C0C0
+		mask2ng2  = 0xFEFEFEFEFEFEFEFE
+		mask3ok1  = 0xE0E0E0E0E0E0E0E0
+		mask3ok2  = 0xF0F0F0F0F0F0F0F0
+		mask3ng11 = 0xE080E080E080E080
+		mask3ng12 = 0xFFFEFFFEFFFEFFFE
+		mask3ng21 = 0x80E080E080E080E0
+		mask3ng22 = 0xFEFFFEFFFEFFFEFF
+		mask4ok1  = 0xF0F0F0F0F0F0F0F0
+		mask4ok2  = 0xF8F8F8F8F8F8F8F8
+		mask4ng11 = 0xF080F080F080F080
+		mask4ng12 = 0xFFF0FFF0FFF0FFF0
+		mask4ng21 = 0x80F080F080F080F0
+		mask4ng22 = 0xF0FFF0FFF0FFF0FF
+	)
+
+	m0ok := ^((c ^ mask0ok1) & mask0ok2)
+	m0ok &= (m0ok >> 1)
+	m0ok &= (m0ok >> 2)
+	m0ok &= (m0ok >> 4)
+
+	m1ok := ^(c & mask1ok) >> 7
+
+	m2ok := ^((c ^ mask2ok1) & mask2ok2)
+	m2ok &= (m2ok >> 1)
+	m2ok &= (m2ok >> 2)
+	m2ok &= (m2ok >> 4)
+
+	m2ng := ^((c ^ mask2ng1) & mask2ng2)
+	m2ng &= (m2ng >> 1)
+	m2ng &= (m2ng >> 2)
+	m2ng &= (m2ng >> 4)
+
+	m3ok := ^((c ^ mask3ok1) & mask3ok2)
+	m3ok &= (m3ok >> 1)
+	m3ok &= (m3ok >> 2)
+	m3ok &= (m3ok >> 4)
+
+	m3ng1 := ^((c ^ mask3ng11) & mask3ng12)
+	m3ng1 &= (m3ng1 >> 1)
+	m3ng1 &= (m3ng1 >> 2)
+	m3ng1 &= (m3ng1 >> 4)
+	m3ng1 &= (m3ng1 >> 8)
+
+	m3ng2 := ^((c ^ mask3ng21) & mask3ng22)
+	m3ng2 &= (m3ng2 >> 1)
+	m3ng2 &= (m3ng2 >> 2)
+	m3ng2 &= (m3ng2 >> 4)
+	m3ng2 &= (m3ng2 >> 8)
+
+	m4ok := ^((c ^ mask4ok1) & mask4ok2)
+	m4ok &= (m4ok >> 1)
+	m4ok &= (m4ok >> 2)
+	m4ok &= (m4ok >> 4)
+
+	m4ng1 := ^((c ^ mask4ng11) & mask4ng12)
+	m4ng1 &= (m4ng1 >> 1)
+	m4ng1 &= (m4ng1 >> 2)
+	m4ng1 &= (m4ng1 >> 4)
+	m4ng1 &= (m4ng1 >> 8)
+
+	m4ng2 := ^((c ^ mask4ng21) & mask4ng22)
+	m4ng2 &= (m4ng2 >> 1)
+	m4ng2 &= (m4ng2 >> 2)
+	m4ng2 &= (m4ng2 >> 4)
+	m4ng2 &= (m4ng2 >> 8)
+
+	m0ok1l := m0ok << 8
+	m0ok2l := (m0ok1l & m0ok) << 8
+	m0ok3l := (m0ok2l & m0ok) << 8
+
+	m2ok1r := m2ok >> 8
+
+	m3ok1r := m3ok >> 8
+	m3ok2r := (m3ok1r & m0ok) >> 8
+
+	m4ok1r := m4ok >> 8
+	m4ok2r := (m4ok1r & m0ok) >> 8
+	m4ok3r := (m4ok2r & m0ok) >> 8
+
+	r1ok := m1ok
+	r2ok := m2ok&m0ok1l | m2ok1r&m0ok
+	r3ok := m3ok&m0ok2l | m3ok1r&m0ok&m0ok1l | m3ok2r&m0ok
+	r4ok := m4ok&m0ok3l | m4ok1r&m0ok&m0ok2l | m4ok2r&m0ok&m0ok1l | m4ok3r&m0ok
+	ok := r1ok | r2ok | r3ok | r4ok
+
+	r2ng := m2ng
+	r3ng := m3ng1 | m3ng2
+	r4ng := m4ng1 | m4ng2
+	ng := r2ng | r3ng | r4ng
+
+	r := ok & ^ng
+	r &= 0x0101010101010101
+	r = r>>49 |
+		r>>42 |
+		r>>35 |
+		r>>28 |
+		r>>21 |
+		r>>14 |
+		r>>7 |
+		r
+
+	return uint8(r)
+}
+
 func (c Chunk) UTF8TwoBytesMask() uint8 {
 	const (
 		mask00   = 0xC0C0C0C0C0C0C0C0
@@ -1746,7 +1858,7 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 
 		default:
 			// BUG(high-moctane): control characters are not handled correctly
-			utf8Mask := sc.Chunk().UTF8Mask()
+			utf8Mask := sc.Chunk().UTF8Mask2()
 			if (utf8Mask >> 7) == 0b00000000 {
 				return "", fmt.Errorf("invalid utf8 sequence")
 			}
