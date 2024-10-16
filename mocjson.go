@@ -1839,6 +1839,7 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 		}
 	}
 
+ReadLoop:
 	for {
 		switch sc.Chunk().FirstByte() {
 		case EOF:
@@ -1895,12 +1896,9 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 				buf = append(buf, b[:n>>1]...)
 				if _, err := sc.ShiftN(n); err != nil {
 					if err == io.EOF {
-						if sc.Chunk().FirstByte() == EOF {
-							goto CheckSuffix
-						}
-					} else {
-						return "", fmt.Errorf("read error: %v", err)
+						continue ReadLoop
 					}
+					return "", fmt.Errorf("read error: %v", err)
 				}
 
 			case 'u':
@@ -1921,12 +1919,9 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 					buf = utf8.AppendRune(buf, ru)
 					if _, err := sc.ShiftN(6); err != nil {
 						if err == io.EOF {
-							if sc.Chunk().FirstByte() == EOF {
-								goto CheckSuffix
-							}
-						} else {
-							return "", fmt.Errorf("read error: %v", err)
+							continue ReadLoop
 						}
+						return "", fmt.Errorf("read error: %v", err)
 					}
 
 				case 0b11000011:
@@ -1940,12 +1935,9 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 						hexDigitToValue[rune](sc.Chunk().ByteAt(5))
 					if _, err := sc.ShiftN(6); err != nil {
 						if err == io.EOF {
-							if sc.Chunk().FirstByte() == EOF {
-								return "", fmt.Errorf("unexpected EOF")
-							}
-						} else {
-							return "", fmt.Errorf("read error: %v", err)
+							continue ReadLoop
 						}
+						return "", fmt.Errorf("read error: %v", err)
 					}
 					if !utf16.IsSurrogate(ru1) && utf8.ValidRune(ru1) {
 						buf = utf8.AppendRune(buf, ru1)
@@ -1971,12 +1963,9 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 					buf = utf8.AppendRune(buf, ru)
 					if _, err := sc.ShiftN(6); err != nil {
 						if err == io.EOF {
-							if sc.Chunk().FirstByte() == EOF {
-								goto CheckSuffix
-							}
-						} else {
-							return "", fmt.Errorf("read error: %v", err)
+							continue ReadLoop
 						}
+						return "", fmt.Errorf("read error: %v", err)
 					}
 				}
 			}
@@ -2008,12 +1997,9 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 			buf = append(buf, b[:n]...)
 			if _, err := sc.ShiftN(n); err != nil {
 				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
+					continue ReadLoop
 				}
+				return "", fmt.Errorf("read error: %v", err)
 			}
 		}
 	}
