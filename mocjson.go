@@ -1237,7 +1237,7 @@ func (c Chunk) FirstByte() byte {
 }
 
 func (c Chunk) ByteAt(n int) byte {
-	return byte(bits.RotateLeft64(uint64(c), (n+1)<<3))
+	return byte(c >> uint(56-(n<<3)))
 }
 
 type ChunkScanner struct {
