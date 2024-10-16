@@ -1841,7 +1841,7 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 
 ReadLoop:
 	for {
-		switch sc.Chunk().FirstByte() {
+		switch c := sc.Chunk(); c.FirstByte() {
 		case EOF:
 			return "", fmt.Errorf("unexpected EOF")
 
@@ -1849,16 +1849,16 @@ ReadLoop:
 			goto CheckSuffix
 
 		case ReverseSolidus:
-			switch sc.Chunk().ByteAt(1) {
+			switch c.ByteAt(1) {
 			case '"', '\\', '/', 'b', 'f', 'n', 'r', 't':
-				eQuoteMask := sc.Chunk().EscapedQuotationMarkChunkMask()
-				eReverseSolidusMask := sc.Chunk().EscapedReverseSolidusChunkMask()
-				eSolidusMask := sc.Chunk().EscapedSolidusChunkMask()
-				eBackspaceMask := sc.Chunk().EscapedBackspaceChunkMask()
-				eFormFeedMask := sc.Chunk().EscapedFormFeedChunkMask()
-				eLineFeedMask := sc.Chunk().EscapedLineFeedChunkMask()
-				eCarriageReturnMask := sc.Chunk().EscapedCarriageReturnChunkMask()
-				eHorizontalTabMask := sc.Chunk().EscapedHorizontalTabChunkMask()
+				eQuoteMask := c.EscapedQuotationMarkChunkMask()
+				eReverseSolidusMask := c.EscapedReverseSolidusChunkMask()
+				eSolidusMask := c.EscapedSolidusChunkMask()
+				eBackspaceMask := c.EscapedBackspaceChunkMask()
+				eFormFeedMask := c.EscapedFormFeedChunkMask()
+				eLineFeedMask := c.EscapedLineFeedChunkMask()
+				eCarriageReturnMask := c.EscapedCarriageReturnChunkMask()
+				eHorizontalTabMask := c.EscapedHorizontalTabChunkMask()
 				eQuoteValue := eQuoteMask & 0x2222222222222222
 				eReverseSolidusValue := eReverseSolidusMask & 0x5c5c5c5c5c5c5c5c
 				eSolidusValue := eSolidusMask & 0x2f2f2f2f2f2f2f2f
@@ -1902,17 +1902,17 @@ ReadLoop:
 				}
 
 			case 'u':
-				eUTF16Mask := sc.Chunk().EscapedUTF16Mask()
+				eUTF16Mask := c.EscapedUTF16Mask()
 				switch eUTF16Mask {
 				case 0b11000000:
-					hexMask := sc.Chunk().HexMask()
+					hexMask := c.HexMask()
 					if (hexMask >> 2) != 0b00001111 {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
-					ru := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+					ru := hexDigitToValue[rune](c.ByteAt(2))<<12 |
+						hexDigitToValue[rune](c.ByteAt(3))<<8 |
+						hexDigitToValue[rune](c.ByteAt(4))<<4 |
+						hexDigitToValue[rune](c.ByteAt(5))
 					if !utf8.ValidRune(ru) {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
@@ -1925,37 +1925,39 @@ ReadLoop:
 					}
 
 				case 0b11000011:
-					hexMask := sc.Chunk().HexMask()
+					hexMask := c.HexMask()
 					if (hexMask >> 2) != 0b00001111 {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
-					ru1 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+					ru1 := hexDigitToValue[rune](c.ByteAt(2))<<12 |
+						hexDigitToValue[rune](c.ByteAt(3))<<8 |
+						hexDigitToValue[rune](c.ByteAt(4))<<4 |
+						hexDigitToValue[rune](c.ByteAt(5))
 					if _, err := sc.ShiftN(6); err != nil {
 						if err == io.EOF {
 							continue ReadLoop
 						}
 						return "", fmt.Errorf("read error: %v", err)
 					}
+					c = sc.Chunk()
+
 					if !utf16.IsSurrogate(ru1) && utf8.ValidRune(ru1) {
 						buf = utf8.AppendRune(buf, ru1)
 						break
 					}
 
-					eUTF16Mask := sc.Chunk().EscapedUTF16Mask()
+					eUTF16Mask := c.EscapedUTF16Mask()
 					if (eUTF16Mask >> 6) != 0b00000011 {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
-					hexMask = sc.Chunk().HexMask()
+					hexMask = c.HexMask()
 					if (hexMask >> 2) != 0b00001111 {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
-					ru2 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
-						hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+					ru2 := hexDigitToValue[rune](c.ByteAt(2))<<12 |
+						hexDigitToValue[rune](c.ByteAt(3))<<8 |
+						hexDigitToValue[rune](c.ByteAt(4))<<4 |
+						hexDigitToValue[rune](c.ByteAt(5))
 					ru := utf16.DecodeRune(ru1, ru2)
 					if ru == utf8.RuneError {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
@@ -1972,16 +1974,16 @@ ReadLoop:
 
 		default:
 			// BUG(high-moctane): control characters are not handled correctly
-			utf8Mask := sc.Chunk().UTF8ChunkMask()
+			utf8Mask := c.UTF8ChunkMask()
 			if (utf8Mask >> (7 * 8)) == 0 {
 				return "", fmt.Errorf("invalid utf8 sequence")
 			}
 
-			reverseSolidusMask := sc.Chunk().ReverseSolidusChunkMask()
-			quoteMask := sc.Chunk().QuotationMarkChunkMask()
+			reverseSolidusMask := c.ReverseSolidusChunkMask()
+			quoteMask := c.QuotationMarkChunkMask()
 			okMask := utf8Mask & ^reverseSolidusMask & ^quoteMask
 
-			v := okMask & sc.Chunk()
+			v := okMask & c
 
 			b := []byte{
 				v.ByteAt(0),
@@ -2015,12 +2017,12 @@ CheckSuffix:
 	}
 
 	for {
-		c := sc.Chunk().WhitespaceCount()
-		if c == 0 {
+		cnt := sc.Chunk().WhitespaceCount()
+		if cnt == 0 {
 			break
 		}
 
-		_, err := sc.ShiftN(c)
+		_, err := sc.ShiftN(cnt)
 		if err != nil {
 			if err == io.EOF {
 				break
