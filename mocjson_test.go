@@ -1456,18 +1456,18 @@ func TestDecoder_ExpectString(t *testing.T) {
 	}
 }
 
-const benchString = `"
+const benchString = `
 high-moctane
 \"high\"\"moctane\"
 \"\\\/\b\f\n\r\t\"
-"\u0068\u0069\u0067\u0068\u002D\u006D\u006F\u0063\u0074\u0061\u006E\u0065"
-"\ud83d\udc41"
-"\u0068\u0069\ud83d\udc41\ud83d\udc41\u0068\ud83d\udc41"
+\u0068\u0069\u0067\u0068\u002D\u006D\u006F\u0063\u0074\u0061\u006E\u0065
+\ud83d\udc41
+\u0068\u0069\ud83d\udc41\ud83d\udc41\u0068\ud83d\udc41
 👁️👁️👁️👁️👁️
 灰木炭
-"`
+`
 
-var longBenchString = strings.Repeat(benchString, 1000)
+var longBenchString = `"` + strings.Repeat(benchString, 100) + `"`
 
 func BenchmarkDecoder_ExpectString(b *testing.B) {
 	dec := NewDecoder()
@@ -1487,7 +1487,7 @@ func BenchmarkExpectString2(b *testing.B) {
 	sc := NewChunkScanner(r)
 	sc.ShiftN(8)
 
-	buf := make([]byte, 0, 1024)
+	buf := make([]byte, 0, 2<<14)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

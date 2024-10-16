@@ -1301,7 +1301,7 @@ func readRuneBytes(r *PeekReader, buf []byte) (int, error) {
 
 type Decoder struct {
 	buf     []byte
-	bufinit [2 << 10]byte
+	bufinit [2 << 14]byte
 }
 
 func NewDecoder() Decoder {
