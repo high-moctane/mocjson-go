@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -1455,9 +1456,22 @@ func TestDecoder_ExpectString(t *testing.T) {
 	}
 }
 
+const benchString = `"
+high-moctane
+\"high\"\"moctane\"
+\"\\\/\b\f\n\r\t\"
+"\u0068\u0069\u0067\u0068\u002D\u006D\u006F\u0063\u0074\u0061\u006E\u0065"
+"\ud83d\udc41"
+"\u0068\u0069\ud83d\udc41\ud83d\udc41\u0068\ud83d\udc41"
+👁️👁️👁️👁️👁️
+灰木炭
+"`
+
+var longBenchString = strings.Repeat(benchString, 1000)
+
 func BenchmarkDecoder_ExpectString(b *testing.B) {
 	dec := NewDecoder()
-	r := bytes.NewReader([]byte(`"high-moctane"`))
+	r := bytes.NewReader([]byte(longBenchString))
 	rr := NewPeekReader(r)
 
 	b.ResetTimer()
@@ -1469,7 +1483,7 @@ func BenchmarkDecoder_ExpectString(b *testing.B) {
 }
 
 func BenchmarkExpectString2(b *testing.B) {
-	r := bytes.NewReader([]byte(`"high-moctane"`))
+	r := bytes.NewReader([]byte(longBenchString))
 	sc := NewChunkScanner(r)
 	sc.ShiftN(8)
 
