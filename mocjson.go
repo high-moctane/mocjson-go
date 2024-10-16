@@ -1505,174 +1505,18 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 			goto CheckSuffix
 
 		case ReverseSolidus:
-			eQuoteMask := sc.Chunk().EscapedQuotationMarkMask()
-			b := []byte{
-				byte(int8(eQuoteMask&0x80)>>7) & byte(int8(eQuoteMask&0x40)<<1>>7) & QuotationMark,
-				byte(int8(eQuoteMask&0x20)<<2>>7) & byte(int8(eQuoteMask&0x10)<<3>>7) & QuotationMark,
-				byte(int8(eQuoteMask&0x08)<<4>>7) & byte(int8(eQuoteMask&0x04)<<5>>7) & QuotationMark,
-				byte(int8(eQuoteMask&0x02)<<6>>7) & byte(int8(eQuoteMask&0x01)<<7>>7) & QuotationMark,
-			}
-			n := bits.LeadingZeros8(^eQuoteMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
+			switch sc.Chunk().ByteAt(1) {
+			case '"':
+				eQuoteMask := sc.Chunk().EscapedQuotationMarkMask()
+				b := []byte{
+					byte(int8(eQuoteMask&0x80)>>7) & byte(int8(eQuoteMask&0x40)<<1>>7) & QuotationMark,
+					byte(int8(eQuoteMask&0x20)<<2>>7) & byte(int8(eQuoteMask&0x10)<<3>>7) & QuotationMark,
+					byte(int8(eQuoteMask&0x08)<<4>>7) & byte(int8(eQuoteMask&0x04)<<5>>7) & QuotationMark,
+					byte(int8(eQuoteMask&0x02)<<6>>7) & byte(int8(eQuoteMask&0x01)<<7>>7) & QuotationMark,
 				}
-			}
-
-			eReverseSolidusMask := sc.Chunk().EscapedReverseSolidusMask()
-			b = []byte{
-				byte(int8(eReverseSolidusMask&0x80)>>7) & byte(int8(eReverseSolidusMask&0x40)<<1>>7) & ReverseSolidus,
-				byte(int8(eReverseSolidusMask&0x20)<<2>>7) & byte(int8(eReverseSolidusMask&0x10)<<3>>7) & ReverseSolidus,
-				byte(int8(eReverseSolidusMask&0x08)<<4>>7) & byte(int8(eReverseSolidusMask&0x04)<<5>>7) & ReverseSolidus,
-				byte(int8(eReverseSolidusMask&0x02)<<6>>7) & byte(int8(eReverseSolidusMask&0x01)<<7>>7) & ReverseSolidus,
-			}
-			n = bits.LeadingZeros8(^eReverseSolidusMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-			}
-
-			eSolidusMask := sc.Chunk().EscapedSolidusMask()
-			b = []byte{
-				byte(int8(eSolidusMask&0x80)>>7) & byte(int8(eSolidusMask&0x40)<<1>>7) & Solidus,
-				byte(int8(eSolidusMask&0x20)<<2>>7) & byte(int8(eSolidusMask&0x10)<<3>>7) & Solidus,
-				byte(int8(eSolidusMask&0x08)<<4>>7) & byte(int8(eSolidusMask&0x04)<<5>>7) & Solidus,
-				byte(int8(eSolidusMask&0x02)<<6>>7) & byte(int8(eSolidusMask&0x01)<<7>>7) & Solidus,
-			}
-			n = bits.LeadingZeros8(^eSolidusMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-			}
-
-			eBackspaceMask := sc.Chunk().EscapedBackspaceMask()
-			b = []byte{
-				byte(int8(eBackspaceMask&0x80)>>7) & byte(int8(eBackspaceMask&0x40)<<1>>7) & Backspace,
-				byte(int8(eBackspaceMask&0x20)<<2>>7) & byte(int8(eBackspaceMask&0x10)<<3>>7) & Backspace,
-				byte(int8(eBackspaceMask&0x08)<<4>>7) & byte(int8(eBackspaceMask&0x04)<<5>>7) & Backspace,
-				byte(int8(eBackspaceMask&0x02)<<6>>7) & byte(int8(eBackspaceMask&0x01)<<7>>7) & Backspace,
-			}
-			n = bits.LeadingZeros8(^eBackspaceMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-			}
-
-			eFormFeedMask := sc.Chunk().EscapedFormFeedMask()
-			b = []byte{
-				byte(int8(eFormFeedMask&0x80)>>7) & byte(int8(eFormFeedMask&0x40)<<1>>7) & FormFeed,
-				byte(int8(eFormFeedMask&0x20)<<2>>7) & byte(int8(eFormFeedMask&0x10)<<3>>7) & FormFeed,
-				byte(int8(eFormFeedMask&0x08)<<4>>7) & byte(int8(eFormFeedMask&0x04)<<5>>7) & FormFeed,
-				byte(int8(eFormFeedMask&0x02)<<6>>7) & byte(int8(eFormFeedMask&0x01)<<7>>7) & FormFeed,
-			}
-			n = bits.LeadingZeros8(^eFormFeedMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-			}
-
-			eLineFeedMask := sc.Chunk().EscapedLineFeedMask()
-			b = []byte{
-				byte(int8(eLineFeedMask&0x80)>>7) & byte(int8(eLineFeedMask&0x40)<<1>>7) & LineFeed,
-				byte(int8(eLineFeedMask&0x20)<<2>>7) & byte(int8(eLineFeedMask&0x10)<<3>>7) & LineFeed,
-				byte(int8(eLineFeedMask&0x08)<<4>>7) & byte(int8(eLineFeedMask&0x04)<<5>>7) & LineFeed,
-				byte(int8(eLineFeedMask&0x02)<<6>>7) & byte(int8(eLineFeedMask&0x01)<<7>>7) & LineFeed,
-			}
-			n = bits.LeadingZeros8(^eLineFeedMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-			}
-
-			eCarriageReturnMask := sc.Chunk().EscapedCarriageReturnMask()
-			b = []byte{
-				byte(int8(eCarriageReturnMask&0x80)>>7) & byte(int8(eCarriageReturnMask&0x40)<<1>>7) & CarriageReturn,
-				byte(int8(eCarriageReturnMask&0x20)<<2>>7) & byte(int8(eCarriageReturnMask&0x10)<<3>>7) & CarriageReturn,
-				byte(int8(eCarriageReturnMask&0x08)<<4>>7) & byte(int8(eCarriageReturnMask&0x04)<<5>>7) & CarriageReturn,
-				byte(int8(eCarriageReturnMask&0x02)<<6>>7) & byte(int8(eCarriageReturnMask&0x01)<<7>>7) & CarriageReturn,
-			}
-			n = bits.LeadingZeros8(^eCarriageReturnMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-			}
-
-			eHorizontalTabMask := sc.Chunk().EscapedHorizontalTabMask()
-			b = []byte{
-				byte(int8(eHorizontalTabMask&0x80)>>7) & byte(int8(eHorizontalTabMask&0x40)<<1>>7) & HorizontalTab,
-				byte(int8(eHorizontalTabMask&0x20)<<2>>7) & byte(int8(eHorizontalTabMask&0x10)<<3>>7) & HorizontalTab,
-				byte(int8(eHorizontalTabMask&0x08)<<4>>7) & byte(int8(eHorizontalTabMask&0x04)<<5>>7) & HorizontalTab,
-				byte(int8(eHorizontalTabMask&0x02)<<6>>7) & byte(int8(eHorizontalTabMask&0x01)<<7>>7) & HorizontalTab,
-			}
-			n = bits.LeadingZeros8(^eHorizontalTabMask)
-			buf = append(buf, b[:n>>1]...)
-			if _, err := sc.ShiftN(n); err != nil {
-				if err == io.EOF {
-					if sc.Chunk().FirstByte() == EOF {
-						goto CheckSuffix
-					}
-				} else {
-					return "", fmt.Errorf("read error: %v", err)
-				}
-			}
-
-			eUTF16Mask := sc.Chunk().EscapedUTF16Mask()
-			switch eUTF16Mask {
-			case 0b11000000:
-				hexMask := sc.Chunk().HexMask()
-				if (hexMask >> 2) != 0b00001111 {
-					return "", fmt.Errorf("invalid utf16 escape sequence")
-				}
-				ru := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(5))
-				if !utf8.ValidRune(ru) {
-					return "", fmt.Errorf("invalid utf16 escape sequence")
-				}
-				buf = utf8.AppendRune(buf, ru)
-				if _, err := sc.ShiftN(6); err != nil {
+				n := bits.LeadingZeros8(^eQuoteMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
 					if err == io.EOF {
 						if sc.Chunk().FirstByte() == EOF {
 							goto CheckSuffix
@@ -1682,53 +1526,220 @@ func ExpectString2[T ~string](sc *ChunkScanner, buf []byte) (string, error) {
 					}
 				}
 
-			case 0b11000011:
-				hexMask := sc.Chunk().HexMask()
-				if (hexMask >> 2) != 0b00001111 {
-					return "", fmt.Errorf("invalid utf16 escape sequence")
+			case '\\':
+				eReverseSolidusMask := sc.Chunk().EscapedReverseSolidusMask()
+				b := []byte{
+					byte(int8(eReverseSolidusMask&0x80)>>7) & byte(int8(eReverseSolidusMask&0x40)<<1>>7) & ReverseSolidus,
+					byte(int8(eReverseSolidusMask&0x20)<<2>>7) & byte(int8(eReverseSolidusMask&0x10)<<3>>7) & ReverseSolidus,
+					byte(int8(eReverseSolidusMask&0x08)<<4>>7) & byte(int8(eReverseSolidusMask&0x04)<<5>>7) & ReverseSolidus,
+					byte(int8(eReverseSolidusMask&0x02)<<6>>7) & byte(int8(eReverseSolidusMask&0x01)<<7>>7) & ReverseSolidus,
 				}
-				ru1 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(5))
-				if _, err := sc.ShiftN(6); err != nil {
+				n := bits.LeadingZeros8(^eReverseSolidusMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
 					if err == io.EOF {
 						if sc.Chunk().FirstByte() == EOF {
-							return "", fmt.Errorf("unexpected EOF")
+							goto CheckSuffix
 						}
 					} else {
 						return "", fmt.Errorf("read error: %v", err)
 					}
 				}
-				if !utf16.IsSurrogate(ru1) && utf8.ValidRune(ru1) {
-					buf = utf8.AppendRune(buf, ru1)
-					break
+
+			case '/':
+				eSolidusMask := sc.Chunk().EscapedSolidusMask()
+				b := []byte{
+					byte(int8(eSolidusMask&0x80)>>7) & byte(int8(eSolidusMask&0x40)<<1>>7) & Solidus,
+					byte(int8(eSolidusMask&0x20)<<2>>7) & byte(int8(eSolidusMask&0x10)<<3>>7) & Solidus,
+					byte(int8(eSolidusMask&0x08)<<4>>7) & byte(int8(eSolidusMask&0x04)<<5>>7) & Solidus,
+					byte(int8(eSolidusMask&0x02)<<6>>7) & byte(int8(eSolidusMask&0x01)<<7>>7) & Solidus,
+				}
+				n := bits.LeadingZeros8(^eSolidusMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
+					if err == io.EOF {
+						if sc.Chunk().FirstByte() == EOF {
+							goto CheckSuffix
+						}
+					} else {
+						return "", fmt.Errorf("read error: %v", err)
+					}
 				}
 
+			case 'b':
+				eBackspaceMask := sc.Chunk().EscapedBackspaceMask()
+				b := []byte{
+					byte(int8(eBackspaceMask&0x80)>>7) & byte(int8(eBackspaceMask&0x40)<<1>>7) & Backspace,
+					byte(int8(eBackspaceMask&0x20)<<2>>7) & byte(int8(eBackspaceMask&0x10)<<3>>7) & Backspace,
+					byte(int8(eBackspaceMask&0x08)<<4>>7) & byte(int8(eBackspaceMask&0x04)<<5>>7) & Backspace,
+					byte(int8(eBackspaceMask&0x02)<<6>>7) & byte(int8(eBackspaceMask&0x01)<<7>>7) & Backspace,
+				}
+				n := bits.LeadingZeros8(^eBackspaceMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
+					if err == io.EOF {
+						if sc.Chunk().FirstByte() == EOF {
+							goto CheckSuffix
+						}
+					} else {
+						return "", fmt.Errorf("read error: %v", err)
+					}
+				}
+
+			case 'f':
+				eFormFeedMask := sc.Chunk().EscapedFormFeedMask()
+				b := []byte{
+					byte(int8(eFormFeedMask&0x80)>>7) & byte(int8(eFormFeedMask&0x40)<<1>>7) & FormFeed,
+					byte(int8(eFormFeedMask&0x20)<<2>>7) & byte(int8(eFormFeedMask&0x10)<<3>>7) & FormFeed,
+					byte(int8(eFormFeedMask&0x08)<<4>>7) & byte(int8(eFormFeedMask&0x04)<<5>>7) & FormFeed,
+					byte(int8(eFormFeedMask&0x02)<<6>>7) & byte(int8(eFormFeedMask&0x01)<<7>>7) & FormFeed,
+				}
+				n := bits.LeadingZeros8(^eFormFeedMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
+					if err == io.EOF {
+						if sc.Chunk().FirstByte() == EOF {
+							goto CheckSuffix
+						}
+					} else {
+						return "", fmt.Errorf("read error: %v", err)
+					}
+				}
+
+			case 'n':
+				eLineFeedMask := sc.Chunk().EscapedLineFeedMask()
+				b := []byte{
+					byte(int8(eLineFeedMask&0x80)>>7) & byte(int8(eLineFeedMask&0x40)<<1>>7) & LineFeed,
+					byte(int8(eLineFeedMask&0x20)<<2>>7) & byte(int8(eLineFeedMask&0x10)<<3>>7) & LineFeed,
+					byte(int8(eLineFeedMask&0x08)<<4>>7) & byte(int8(eLineFeedMask&0x04)<<5>>7) & LineFeed,
+					byte(int8(eLineFeedMask&0x02)<<6>>7) & byte(int8(eLineFeedMask&0x01)<<7>>7) & LineFeed,
+				}
+				n := bits.LeadingZeros8(^eLineFeedMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
+					if err == io.EOF {
+						if sc.Chunk().FirstByte() == EOF {
+							goto CheckSuffix
+						}
+					} else {
+						return "", fmt.Errorf("read error: %v", err)
+					}
+				}
+
+			case 'r':
+				eCarriageReturnMask := sc.Chunk().EscapedCarriageReturnMask()
+				b := []byte{
+					byte(int8(eCarriageReturnMask&0x80)>>7) & byte(int8(eCarriageReturnMask&0x40)<<1>>7) & CarriageReturn,
+					byte(int8(eCarriageReturnMask&0x20)<<2>>7) & byte(int8(eCarriageReturnMask&0x10)<<3>>7) & CarriageReturn,
+					byte(int8(eCarriageReturnMask&0x08)<<4>>7) & byte(int8(eCarriageReturnMask&0x04)<<5>>7) & CarriageReturn,
+					byte(int8(eCarriageReturnMask&0x02)<<6>>7) & byte(int8(eCarriageReturnMask&0x01)<<7>>7) & CarriageReturn,
+				}
+				n := bits.LeadingZeros8(^eCarriageReturnMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
+					if err == io.EOF {
+						if sc.Chunk().FirstByte() == EOF {
+							goto CheckSuffix
+						}
+					} else {
+						return "", fmt.Errorf("read error: %v", err)
+					}
+				}
+
+			case 't':
+				eHorizontalTabMask := sc.Chunk().EscapedHorizontalTabMask()
+				b := []byte{
+					byte(int8(eHorizontalTabMask&0x80)>>7) & byte(int8(eHorizontalTabMask&0x40)<<1>>7) & HorizontalTab,
+					byte(int8(eHorizontalTabMask&0x20)<<2>>7) & byte(int8(eHorizontalTabMask&0x10)<<3>>7) & HorizontalTab,
+					byte(int8(eHorizontalTabMask&0x08)<<4>>7) & byte(int8(eHorizontalTabMask&0x04)<<5>>7) & HorizontalTab,
+					byte(int8(eHorizontalTabMask&0x02)<<6>>7) & byte(int8(eHorizontalTabMask&0x01)<<7>>7) & HorizontalTab,
+				}
+				n := bits.LeadingZeros8(^eHorizontalTabMask)
+				buf = append(buf, b[:n>>1]...)
+				if _, err := sc.ShiftN(n); err != nil {
+					if err == io.EOF {
+						if sc.Chunk().FirstByte() == EOF {
+							goto CheckSuffix
+						}
+					} else {
+						return "", fmt.Errorf("read error: %v", err)
+					}
+				}
+
+			case 'u':
 				eUTF16Mask := sc.Chunk().EscapedUTF16Mask()
-				if (eUTF16Mask >> 6) != 0b00000011 {
-					return "", fmt.Errorf("invalid utf16 escape sequence")
-				}
-				hexMask = sc.Chunk().HexMask()
-				if (hexMask >> 2) != 0b00001111 {
-					return "", fmt.Errorf("invalid utf16 escape sequence")
-				}
-				ru2 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
-					hexDigitToValue[rune](sc.Chunk().ByteAt(5))
-				ru := utf16.DecodeRune(ru1, ru2)
-				if ru == utf8.RuneError {
-					return "", fmt.Errorf("invalid utf16 escape sequence")
-				}
-				buf = utf8.AppendRune(buf, ru)
-				if _, err := sc.ShiftN(6); err != nil {
-					if err == io.EOF {
-						if sc.Chunk().FirstByte() == EOF {
-							goto CheckSuffix
+				switch eUTF16Mask {
+				case 0b11000000:
+					hexMask := sc.Chunk().HexMask()
+					if (hexMask >> 2) != 0b00001111 {
+						return "", fmt.Errorf("invalid utf16 escape sequence")
+					}
+					ru := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+					if !utf8.ValidRune(ru) {
+						return "", fmt.Errorf("invalid utf16 escape sequence")
+					}
+					buf = utf8.AppendRune(buf, ru)
+					if _, err := sc.ShiftN(6); err != nil {
+						if err == io.EOF {
+							if sc.Chunk().FirstByte() == EOF {
+								goto CheckSuffix
+							}
+						} else {
+							return "", fmt.Errorf("read error: %v", err)
 						}
-					} else {
-						return "", fmt.Errorf("read error: %v", err)
+					}
+
+				case 0b11000011:
+					hexMask := sc.Chunk().HexMask()
+					if (hexMask >> 2) != 0b00001111 {
+						return "", fmt.Errorf("invalid utf16 escape sequence")
+					}
+					ru1 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+					if _, err := sc.ShiftN(6); err != nil {
+						if err == io.EOF {
+							if sc.Chunk().FirstByte() == EOF {
+								return "", fmt.Errorf("unexpected EOF")
+							}
+						} else {
+							return "", fmt.Errorf("read error: %v", err)
+						}
+					}
+					if !utf16.IsSurrogate(ru1) && utf8.ValidRune(ru1) {
+						buf = utf8.AppendRune(buf, ru1)
+						break
+					}
+
+					eUTF16Mask := sc.Chunk().EscapedUTF16Mask()
+					if (eUTF16Mask >> 6) != 0b00000011 {
+						return "", fmt.Errorf("invalid utf16 escape sequence")
+					}
+					hexMask = sc.Chunk().HexMask()
+					if (hexMask >> 2) != 0b00001111 {
+						return "", fmt.Errorf("invalid utf16 escape sequence")
+					}
+					ru2 := hexDigitToValue[rune](sc.Chunk().ByteAt(2))<<12 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(3))<<8 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(4))<<4 |
+						hexDigitToValue[rune](sc.Chunk().ByteAt(5))
+					ru := utf16.DecodeRune(ru1, ru2)
+					if ru == utf8.RuneError {
+						return "", fmt.Errorf("invalid utf16 escape sequence")
+					}
+					buf = utf8.AppendRune(buf, ru)
+					if _, err := sc.ShiftN(6); err != nil {
+						if err == io.EOF {
+							if sc.Chunk().FirstByte() == EOF {
+								goto CheckSuffix
+							}
+						} else {
+							return "", fmt.Errorf("read error: %v", err)
+						}
 					}
 				}
 			}
