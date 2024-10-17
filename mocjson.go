@@ -1472,6 +1472,44 @@ func (r *ChunkScanner) ShiftN(n int) (int, error) {
 	return nn, err
 }
 
+type Chunk2 [2]Chunk
+
+func NewChunk2(b []byte) Chunk2 {
+	_ = b[15]
+	return Chunk2{
+		Chunk(binary.BigEndian.Uint64(b[:8])),
+		Chunk(binary.BigEndian.Uint64(b[8:])),
+	}
+}
+
+func (c Chunk2) And(other Chunk2) Chunk2 {
+	return Chunk2{c[0] & other[0], c[1] & other[1]}
+}
+
+func (c Chunk2) Or(other Chunk2) Chunk2 {
+	return Chunk2{c[0] | other[0], c[1] | other[1]}
+}
+
+func (c Chunk2) Xor(other Chunk2) Chunk2 {
+	return Chunk2{c[0] ^ other[0], c[1] ^ other[1]}
+}
+
+func (c Chunk2) Not() Chunk2 {
+	return Chunk2{^c[0], ^c[1]}
+}
+
+func (c Chunk2) AndNot(other Chunk2) Chunk2 {
+	return Chunk2{c[0] &^ other[0], c[1] &^ other[1]}
+}
+
+func (c Chunk2) ShiftL(n int) Chunk2 {
+	return Chunk2{c[0]<<n | c[1]>>(64-n), c[1] << n}
+}
+
+func (c Chunk2) ShiftR(n int) Chunk2 {
+	return Chunk2{c[0] >> n, c[1]>>n | c[0]<<(64-n)}
+}
+
 type PeekReader struct {
 	r   io.Reader
 	buf [1]byte
