@@ -1510,6 +1510,30 @@ func (c Chunk2) ShiftR(n int) Chunk2 {
 	return Chunk2{c[0] >> n, c[1]>>n | c[0]<<(64-n)}
 }
 
+type Chunk2Scanner struct {
+	r io.Reader
+	c Chunk2
+	b [16]byte
+}
+
+func NewChunk2Scanner(r io.Reader) Chunk2Scanner {
+	return Chunk2Scanner{r: r}
+}
+
+func (r *Chunk2Scanner) Chunk2() Chunk2 {
+	return r.c
+}
+
+func (r *Chunk2Scanner) ShiftN(n int) (int, error) {
+	nn, err := r.r.Read(r.b[:n])
+
+	c := NewChunk2(r.b[:])
+	c = c.And(Chunk2{OnesChunk, OnesChunk}.ShiftR(nn - (nn << 3))).Not()
+	r.c = r.c.ShiftL(n << 3).Or(c.ShiftR(64 - (n << 3)))
+
+	return nn, err
+}
+
 type PeekReader struct {
 	r   io.Reader
 	buf [1]byte
