@@ -173,7 +173,7 @@ func (c Chunk) WhitespaceCount() int {
 	return bits.LeadingZeros64(uint64(a)) >> 3
 }
 
-func (c Chunk) DigitMask() uint8 {
+func (c Chunk) DigitChunkMask() Chunk {
 	// 0-9 ascii
 	// 0: 0b00110000
 	// 1: 0b00110001
@@ -204,19 +204,13 @@ func (c Chunk) DigitMask() uint8 {
 	is8to9 = is8to9 & (is8to9 >> 4)
 
 	// added
-	is1to7 |= is8to9
-	is1to7 = is1to7 & 0x0101010101010101
+	ret := is1to7 | is8to9
+	ret &= 0x0101010101010101
+	ret |= ret << 1
+	ret |= ret << 2
+	ret |= ret << 4
 
-	is1to7 = is1to7>>49 |
-		is1to7>>42 |
-		is1to7>>35 |
-		is1to7>>28 |
-		is1to7>>21 |
-		is1to7>>14 |
-		is1to7>>7 |
-		is1to7
-
-	return uint8(is1to7)
+	return ret
 }
 
 func (c Chunk) HexMask() uint8 {
@@ -2520,19 +2514,19 @@ func ExpectUint32_2[T ~uint32](sc *ChunkScanner) (T, error) {
 	var ret T
 
 	c := sc.Chunk()
-	mask := c.DigitMask()
+	mask := c.DigitChunkMask()
 
 	if mask == 0 {
 		return 0, fmt.Errorf("invalid uint32 value")
 	}
 
 	// leading zero is not allowed
-	if (mask&0xC0) == 0xC0 && c>>56 == '0' {
+	if (mask&0xFFFF000000000000) == 0xFFFF000000000000 && c>>56 == '0' {
 		return 0, fmt.Errorf("leading zero is not allowed")
 	}
 
 	n := 0
-	for ; mask&0x80 != 0; mask <<= 1 {
+	for ; mask&0xFF00000000000000 != 0; mask <<= 8 {
 		c = Chunk(bits.RotateLeft64(uint64(c), 8))
 		ret = ret*10 + T(c&0x0F)
 		n++
@@ -2546,19 +2540,19 @@ func ExpectUint32_2[T ~uint32](sc *ChunkScanner) (T, error) {
 
 	if n == 8 {
 		c = sc.Chunk()
-		mask := c.DigitMask()
+		mask := c.DigitChunkMask()
 
-		if mask^0xE0 == 0 {
+		if mask^0xFFFFFF0000000000 == 0 {
 			return 0, fmt.Errorf("uint32 overflow")
 		}
-		if mask&0x80 == 0 {
+		if mask&0xFF00000000000000 == 0 {
 			goto CheckSuffix
 		}
 
 		c = Chunk(bits.RotateLeft64(uint64(c), 8))
 		ret = ret*10 + T(c&0x0F)
 
-		if mask&0x40 == 0 {
+		if mask&0x00FF000000000000 == 0 {
 			if _, err := sc.ShiftN(1); err != nil {
 				if err == io.EOF {
 					goto CheckSuffix
