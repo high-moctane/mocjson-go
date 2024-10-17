@@ -187,21 +187,21 @@ func (c Chunk) DigitChunkMask() Chunk {
 	// 9: 0b00111001
 
 	const (
-		mask0 = 0x3030303030303030
-		mask1 = 0xF8F8F8F8F8F8F8F8
-		mask2 = 0x3838383838383838
-		mask3 = 0xFEFEFEFEFEFEFEFE
+		mask0 Chunk = 0x3030303030303030
+		mask1 Chunk = 0xF8F8F8F8F8F8F8F8
+		mask2 Chunk = 0x3838383838383838
+		mask3 Chunk = 0xFEFEFEFEFEFEFEFE
 	)
 
-	is1to7 := ^((c ^ mask0) & mask1)
-	is1to7 = is1to7 & (is1to7 >> 1)
-	is1to7 = is1to7 & (is1to7 >> 2)
-	is1to7 = is1to7 & (is1to7 >> 4)
+	is1to7 := c ^ ^mask0 | ^mask1
+	is1to7 &= is1to7 >> 1
+	is1to7 &= is1to7 >> 2
+	is1to7 &= is1to7 >> 4
 
-	is8to9 := ^((c ^ mask2) & mask3)
-	is8to9 = is8to9 & (is8to9 >> 1)
-	is8to9 = is8to9 & (is8to9 >> 2)
-	is8to9 = is8to9 & (is8to9 >> 4)
+	is8to9 := c ^ ^mask2 | ^mask3
+	is8to9 &= is8to9 >> 1
+	is8to9 &= is8to9 >> 2
+	is8to9 &= is8to9 >> 4
 
 	// added
 	ret := is1to7 | is8to9
