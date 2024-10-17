@@ -213,7 +213,7 @@ func (c Chunk) DigitChunkMask() Chunk {
 	return ret
 }
 
-func (c Chunk) HexMask() uint8 {
+func (c Chunk) HexChunkMask() Chunk {
 	// 0-9 A-f a-f ascii
 	// 0: 0b00110000
 	// 1: 0b00110001
@@ -277,16 +277,11 @@ func (c Chunk) HexMask() uint8 {
 
 	res := is1to7 | is8to9 | isBacktickToG ^ isBacktick ^ isG
 	res &= 0x0101010101010101
-	res = res>>49 |
-		res>>42 |
-		res>>35 |
-		res>>28 |
-		res>>21 |
-		res>>14 |
-		res>>7 |
-		res
+	res |= res << 1
+	res |= res << 2
+	res |= res << 4
 
-	return uint8(res)
+	return res
 }
 
 func (c Chunk) aToFMask() uint8 {
@@ -1962,8 +1957,8 @@ ReadLoop:
 				eUTF16Mask := c.EscapedUTF16Mask()
 				switch eUTF16Mask {
 				case 0b11000000:
-					hexMask := c.HexMask()
-					if (hexMask >> 2) != 0b00001111 {
+					hexMask := c.HexChunkMask()
+					if (hexMask >> 16) != 0xFFFFFFFF {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
 					ru := hexDigitToValue[rune](c.ByteAt(2))<<12 |
@@ -1982,8 +1977,8 @@ ReadLoop:
 					}
 
 				case 0b11000011:
-					hexMask := c.HexMask()
-					if (hexMask >> 2) != 0b00001111 {
+					hexMask := c.HexChunkMask()
+					if (hexMask >> 16) != 0xFFFFFFFF {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
 					ru1 := hexDigitToValue[rune](c.ByteAt(2))<<12 |
@@ -2007,8 +2002,8 @@ ReadLoop:
 					if (eUTF16Mask >> 6) != 0b00000011 {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
-					hexMask = c.HexMask()
-					if (hexMask >> 2) != 0b00001111 {
+					hexMask = c.HexChunkMask()
+					if (hexMask >> 16) != 0xFFFFFFFF {
 						return "", fmt.Errorf("invalid utf16 escape sequence")
 					}
 					ru2 := hexDigitToValue[rune](c.ByteAt(2))<<12 |
