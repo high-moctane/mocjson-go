@@ -239,43 +239,43 @@ func (c Chunk) HexMask() uint8 {
 	// f: 0b01100110
 
 	const (
-		mask0 = 0x3030303030303030
-		mask1 = 0xF8F8F8F8F8F8F8F8
-		mask2 = 0x3838383838383838
-		mask3 = 0xFEFEFEFEFEFEFEFE
-		mask4 = 0x4040404040404040
-		mask5 = 0xF8F8F8F8F8F8F8F8
-		mask6 = 0x4747474747474747
+		mask0 Chunk = 0x3030303030303030
+		mask1 Chunk = 0xF8F8F8F8F8F8F8F8
+		mask2 Chunk = 0x3838383838383838
+		mask3 Chunk = 0xFEFEFEFEFEFEFEFE
+		mask4 Chunk = 0x4040404040404040
+		mask5 Chunk = 0xF8F8F8F8F8F8F8F8
+		mask6 Chunk = 0x4747474747474747
 	)
 
-	is1to7 := ^((c ^ mask0) & mask1)
-	is1to7 = is1to7 & (is1to7 >> 1)
-	is1to7 = is1to7 & (is1to7 >> 2)
-	is1to7 = is1to7 & (is1to7 >> 4)
+	is1to7 := c ^ ^mask0 | ^mask1
+	is1to7 &= is1to7 >> 1
+	is1to7 &= is1to7 >> 2
+	is1to7 &= is1to7 >> 4
 
-	is8to9 := ^((c ^ mask2) & mask3)
-	is8to9 = is8to9 & (is8to9 >> 1)
-	is8to9 = is8to9 & (is8to9 >> 2)
-	is8to9 = is8to9 & (is8to9 >> 4)
+	is8to9 := c ^ ^mask2 | ^mask3
+	is8to9 &= is8to9 >> 1
+	is8to9 &= is8to9 >> 2
+	is8to9 &= is8to9 >> 4
 
 	upper := c & 0xDFDFDFDFDFDFDFDF
 
-	isBacktickToG := ^((upper ^ mask4) & mask5)
-	isBacktickToG = isBacktickToG & (isBacktickToG >> 1)
-	isBacktickToG = isBacktickToG & (isBacktickToG >> 2)
-	isBacktickToG = isBacktickToG & (isBacktickToG >> 4)
+	isBacktickToG := upper ^ ^mask4 | ^mask5
+	isBacktickToG &= isBacktickToG >> 1
+	isBacktickToG &= isBacktickToG >> 2
+	isBacktickToG &= isBacktickToG >> 4
 
-	isBacktick := ^(upper ^ mask4)
-	isBacktick = isBacktick & (isBacktick >> 1)
-	isBacktick = isBacktick & (isBacktick >> 2)
-	isBacktick = isBacktick & (isBacktick >> 4)
+	isBacktick := upper ^ ^mask4
+	isBacktick &= isBacktick >> 1
+	isBacktick &= isBacktick >> 2
+	isBacktick &= isBacktick >> 4
 
-	isG := ^(upper ^ mask6)
-	isG = isG & (isG >> 1)
-	isG = isG & (isG >> 2)
-	isG = isG & (isG >> 4)
+	isG := upper ^ ^mask6
+	isG &= isG >> 1
+	isG &= isG >> 2
+	isG &= isG >> 4
 
-	res := (is1to7 | is8to9) | (isBacktickToG ^ isBacktick ^ isG)
+	res := is1to7 | is8to9 | isBacktickToG ^ isBacktick ^ isG
 	res &= 0x0101010101010101
 	res = res>>49 |
 		res>>42 |
