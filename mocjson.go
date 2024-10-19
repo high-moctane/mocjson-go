@@ -733,15 +733,13 @@ func (c Chunk) ReverseSolidusMask() uint8 {
 
 func (c Chunk) ReverseSolidusChunkMask() Chunk {
 	// 0x5c: '\'
-	const mask = 0x5c5c5c5c5c5c5c5c
-	m := ^(c ^ mask)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m &= 0x0101010101010101
-	m |= m << 1
-	m |= m << 2
-	m |= m << 4
+	const mask Chunk = 0x5c5c5c5c5c5c5c5c
+
+	m := c ^ ^mask
+	m &= 0x8080808080808080 & (m&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
+	m >>= 7
+	m *= 0x00000000000000FF
+
 	return m
 }
 
@@ -766,15 +764,13 @@ func (c Chunk) QuotationMarkMask() uint8 {
 
 func (c Chunk) QuotationMarkChunkMask() Chunk {
 	// 0x22: '"'
-	const mask = 0x2222222222222222
-	m := ^(c ^ mask)
-	m = m & (m >> 1)
-	m = m & (m >> 2)
-	m = m & (m >> 4)
-	m &= 0x0101010101010101
-	m |= m << 1
-	m |= m << 2
-	m |= m << 4
+	const mask Chunk = 0x2222222222222222
+
+	m := c ^ ^mask
+	m &= 0x8080808080808080 & (m&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
+	m >>= 7
+	m *= 0x00000000000000FF
+
 	return m
 }
 
