@@ -243,37 +243,25 @@ func (c Chunk) HexChunkMask() Chunk {
 	)
 
 	is1to7 := c ^ ^mask0 | ^mask1
-	is1to7 &= is1to7 >> 1
-	is1to7 &= is1to7 >> 2
-	is1to7 &= is1to7 >> 4
+	is1to7 &= 0x8080808080808080 & (is1to7&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
 
 	is8to9 := c ^ ^mask2 | ^mask3
-	is8to9 &= is8to9 >> 1
-	is8to9 &= is8to9 >> 2
-	is8to9 &= is8to9 >> 4
+	is8to9 &= 0x8080808080808080 & (is8to9&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
 
 	upper := c & 0xDFDFDFDFDFDFDFDF
 
 	isBacktickToG := upper ^ ^mask4 | ^mask5
-	isBacktickToG &= isBacktickToG >> 1
-	isBacktickToG &= isBacktickToG >> 2
-	isBacktickToG &= isBacktickToG >> 4
+	isBacktickToG &= 0x8080808080808080 & (isBacktickToG&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
 
 	isBacktick := upper ^ ^mask4
-	isBacktick &= isBacktick >> 1
-	isBacktick &= isBacktick >> 2
-	isBacktick &= isBacktick >> 4
+	isBacktick &= 0x8080808080808080 & (isBacktick&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
 
 	isG := upper ^ ^mask6
-	isG &= isG >> 1
-	isG &= isG >> 2
-	isG &= isG >> 4
+	isG &= 0x8080808080808080 & (isG&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
 
 	res := is1to7 | is8to9 | isBacktickToG ^ isBacktick ^ isG
-	res &= 0x0101010101010101
-	res |= res << 1
-	res |= res << 2
-	res |= res << 4
+	res >>= 7
+	res *= 0x00000000000000FF
 
 	return res
 }
