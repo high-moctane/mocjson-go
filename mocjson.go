@@ -266,62 +266,6 @@ func (c Chunk) HexChunkMask() Chunk {
 	return res
 }
 
-func (c Chunk) aToFMask() uint8 {
-	const (
-		mask0 = 0x4040404040404040
-		mask1 = 0xF8F8F8F8F8F8F8F8
-		maskG = 0x4747474747474747
-	)
-
-	// to upper case
-	c &= 0xDFDFDFDFDFDFDFDF
-
-	isBacktickToG := ^((c ^ mask0) & mask1)
-	isBacktickToG = isBacktickToG & (isBacktickToG >> 1)
-	isBacktickToG = isBacktickToG & (isBacktickToG >> 2)
-	isBacktickToG = isBacktickToG & (isBacktickToG >> 4)
-
-	isBacktick := ^(c ^ mask0)
-	isBacktick = isBacktick & (isBacktick >> 1)
-	isBacktick = isBacktick & (isBacktick >> 2)
-	isBacktick = isBacktick & (isBacktick >> 4)
-
-	isG := ^(c ^ maskG)
-	isG = isG & (isG >> 1)
-	isG = isG & (isG >> 2)
-	isG = isG & (isG >> 4)
-
-	isAtoF := isBacktickToG ^ isBacktick ^ isG
-
-	isAtoF = isAtoF & 0x0101010101010101
-
-	isAtoF = isAtoF>>49 |
-		isAtoF>>42 |
-		isAtoF>>35 |
-		isAtoF>>28 |
-		isAtoF>>21 |
-		isAtoF>>14 |
-		isAtoF>>7 |
-		isAtoF
-
-	return uint8(isAtoF)
-}
-
-func (c Chunk) ASCIIMask() uint8 {
-	c &= 0x8080808080808080
-	c >>= 7
-	c = c>>49 |
-		c>>42 |
-		c>>35 |
-		c>>28 |
-		c>>21 |
-		c>>14 |
-		c>>7 |
-		c
-
-	return ^uint8(c)
-}
-
 func (c Chunk) UTF8Mask() uint8 {
 	const (
 		mask01    = 0x8080808080808080
