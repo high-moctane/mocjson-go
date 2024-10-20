@@ -202,7 +202,6 @@ func TestChunk_UTF8ChunkMask(t *testing.T) {
 		{
 			name: "utf-8 2 bytes (shifted 1)",
 			c:    NewChunk([]byte{0xA2, 0xC2, 0xA3, 0xC2, 0xA4, 0xC2, 0xA5, 0xC2}),
-			// want: 0b01111110,
 			want: 0x00FFFFFFFFFFFF00,
 		},
 		{
@@ -218,8 +217,7 @@ func TestChunk_UTF8ChunkMask(t *testing.T) {
 		{
 			name: "invalid utf-8 2 bytes; too small",
 			c:    NewChunk([]byte{0xC0, 0x80, 0xC1, 0x80, 0xC0, 0xBF, 0xC1, 0xBF}),
-			// BUG: want: 0x0000000000000000,
-			want: 0x00FF00FF00FF00FF,
+			want: 0x0000000000000000,
 		},
 		{
 			name: "utf-8 3 bytes",

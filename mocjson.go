@@ -522,7 +522,7 @@ func (c Chunk) UTF8ChunkMask() Chunk {
 	r4ok := m4ok&m0ok3l | m4ok1r&m0ok&m0ok2l | m4ok2r&m0ok&m0ok1l | m4ok3r&m0ok
 	ok := r1ok | r2ok | r3ok | r4ok
 
-	r2ng := m2ng
+	r2ng := m2ng | m2ng>>8
 	r3ng := m3ng1 | m3ng2
 	r3ng |= r3ng>>8 | r3ng>>16
 	r4ng := m4ng1 | m4ng2
