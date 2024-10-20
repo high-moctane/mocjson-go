@@ -280,6 +280,15 @@ func TestChunk_UTF8ChunkMask(t *testing.T) {
 	}
 }
 
+func BenchmarkChunk_UTF8ChunkMask(b *testing.B) {
+	c := NewChunk([]byte{0xC2, 0xA2, 'a', 0xE2, 0x82, 0xAD, 'b', 0xF0})
+
+	b.ResetTimer()
+	for range b.N {
+		_ = c.UTF8ChunkMask()
+	}
+}
+
 func TestChunk_UTF8TwoBytesMask(t *testing.T) {
 	t.Parallel()
 
