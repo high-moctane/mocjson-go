@@ -474,6 +474,8 @@ func (c Chunk) UTF8ChunkMask() Chunk {
 		mask4ng22 Chunk = 0xF0FFF0FFF0FFF0FF
 	)
 
+	// TODO(high-moctane): surrogate pair
+
 	m0ok := c ^ ^mask0ok1 | ^mask0ok2
 	m0ok &= 0x8080808080808080 & (m0ok&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
 
