@@ -9,6 +9,12 @@ fmt:
 	goimports -local 'github.com/high-moctane/mocjson-go' -w .
 
 
+.PHONY: lint
+lint:
+	go vet ./...
+	test -z "$$(goimports -local 'github.com/high-moctane/mocjson-go' -l .)"
+
+
 .PHONY: test
 test:
 	go test -shuffle=on ./...
