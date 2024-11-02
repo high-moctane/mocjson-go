@@ -3,7 +3,8 @@ package chunks
 import "io"
 
 const (
-	chunkLen = 8
+	chunkSize = 8
+	chunkLen  = 8
 )
 
 type Scanner struct {
