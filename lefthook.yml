@@ -1,0 +1,8 @@
+pre-commit:
+  commands:
+    fmt:
+      glob: "*.go"
+      run: make fmt
+    lint:
+      glob: "*.go"
+      run: make lint
