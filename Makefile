@@ -27,3 +27,8 @@ analyze:
 .PHONY: asm
 asm:
 	go build -gcflags="-S" ./... 2> mocjson.asm
+
+
+.PHONY: clean
+clean:
+	$(RM) mocjson.analysis mocjson.asm
