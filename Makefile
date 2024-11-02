@@ -6,17 +6,13 @@ build:
 
 .PHONY: fmt
 fmt:
-	go fmt ./...
+	goimports -local 'github.com/high-moctane/mocjson-go' -w .
 
 
 .PHONY: test
 test:
 	go test -shuffle=on ./...
 
-
-.PHONY: fuzz
-fuzz:
-	go test -fuzz ./...
 
 .PHONY: bench
 bench:
@@ -25,4 +21,9 @@ bench:
 
 .PHONY: analyze
 analyze:
-	go build -gcflags="-m" ./...
+	go build -gcflags="-m" ./... 2> mocjson.analysis
+
+
+.PHONY: asm
+asm:
+	go build -gcflags="-S" ./... 2> mocjson.asm

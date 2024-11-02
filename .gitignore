@@ -23,3 +23,7 @@ go.work.sum
 
 # env file
 .env
+
+# mocjson output
+mocjson.analysis
+mocjson.asm
