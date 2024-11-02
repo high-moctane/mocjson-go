@@ -17,7 +17,7 @@ lint:
 
 .PHONY: test
 test:
-	go test -shuffle=on ./...
+	go test -shuffle=on -cover -coverprofile=coverage.out ./...
 
 
 .PHONY: bench
@@ -37,4 +37,4 @@ asm:
 
 .PHONY: clean
 clean:
-	$(RM) mocjson.analysis mocjson.asm
+	$(RM) coverage.out mocjson.analysis mocjson.asm
