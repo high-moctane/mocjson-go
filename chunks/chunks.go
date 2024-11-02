@@ -6,11 +6,11 @@ const (
 	chunkLen = 8
 )
 
-type Reader struct {
+type Scanner struct {
 	r      io.Reader
 	chunks [chunkLen]uint64
 }
 
-func NewReader(r io.Reader) *Reader {
-	return &Reader{r: r}
+func NewScanner(r io.Reader) *Scanner {
+	return &Scanner{r: r}
 }
