@@ -68,6 +68,7 @@ func (s *Scanner) idxPos() (int, int) {
 
 func (s *Scanner) readBuf() {
 	if s.buferr != nil {
+		s.buf = [bufLen]byte{}
 		return
 	}
 
