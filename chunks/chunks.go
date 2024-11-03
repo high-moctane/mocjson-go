@@ -54,8 +54,7 @@ type Scanner struct {
 
 func NewScanner(r io.Reader) *Scanner {
 	ret := &Scanner{r: r}
-	ret.readBuf()
-	ret.loadChunk(ret.bufend)
+	ret.loadChunk(len(ret.buf))
 	return ret
 }
 
@@ -84,7 +83,7 @@ func (s *Scanner) readBuf() {
 }
 
 func (s *Scanner) loadChunk(n int) {
-	if n < 0 || n > bufLen {
+	if n < 0 || n > len(s.buf) {
 		panic(fmt.Errorf("invalid load length: %d", n))
 	}
 
@@ -99,8 +98,8 @@ func (s *Scanner) loadChunk(n int) {
 		}
 
 		idx, pos := s.idxPos()
-		c := uint64(s.buf[cur]) << (7 - pos)
-		mask := uint64(0xFF) << (7 - pos)
+		c := uint64(s.buf[cur]) << ((7 - pos) * 8)
+		mask := uint64(0xFF) << ((7 - pos) * 8)
 		s.chunks[idx] = (s.chunks[idx] &^ mask) | c
 	}
 }

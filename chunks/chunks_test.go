@@ -3,6 +3,7 @@ package chunks
 import (
 	"bytes"
 	"io"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -203,6 +204,173 @@ func TestScanner_readBuf_OnError(t *testing.T) {
 			}()
 
 			s.readBuf()
+		}()
+	})
+}
+
+func TestScanner_loadChunk(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		s    *Scanner
+		n    int
+		want *Scanner
+	}{
+		{
+			name: "n: 0",
+			s: &Scanner{
+				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
+			},
+			n:    0,
+			want: &Scanner{},
+		},
+		{
+			name: "n: 1",
+			s: &Scanner{
+				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
+			},
+			n: 1,
+			want: &Scanner{
+				buf: [bufLen]byte{
+					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+					'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+					'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+					'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f',
+					'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+					'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+					'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd',
+					'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+				},
+				bufend: 64,
+				rawcur: 1,
+				chunks: [chunkLen]uint64{0x6100000000000000},
+			},
+		},
+		{
+			name: "n: 5",
+			s: &Scanner{
+				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
+			},
+			n: 5,
+			want: &Scanner{
+				buf: [bufLen]byte{
+					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+					'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+					'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+					'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f',
+					'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+					'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+					'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd',
+					'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+				},
+				bufend: 64,
+				rawcur: 5,
+				chunks: [chunkLen]uint64{0x6162636465000000},
+			},
+		},
+		{
+			name: "n: 64",
+			s: &Scanner{
+				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
+			},
+			n: 64,
+			want: &Scanner{
+				buf: [bufLen]byte{
+					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+					'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+					'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+					'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f',
+					'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+					'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+					'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd',
+					'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+				},
+				bufend: 64,
+				rawcur: 64,
+				chunks: [chunkLen]uint64{
+					0x6162636465666768, 0x696a6b6c6d6e6f70,
+					0x7172737475767778, 0x797a616263646566,
+					0x6768696a6b6c6d6e, 0x6f70717273747576,
+					0x7778797a61626364, 0x65666768696a6b6c,
+				},
+			},
+		},
+		{
+			name: "early bufend",
+			s: &Scanner{
+				buf:    [bufLen]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'},
+				bufend: 7,
+				rawcur: 3,
+			},
+			n: 10,
+			want: &Scanner{
+				buf:    [bufLen]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'},
+				bufend: 7,
+				rawcur: 7,
+				chunks: [chunkLen]uint64{0x0000006465666700},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.s.loadChunk(tt.n)
+
+			if tt.want.buferr != tt.s.buferr {
+				t.Errorf("buferr: got %v, want %v", tt.s.buferr, tt.want.buferr)
+			}
+			tt.want.r = nil
+			tt.s.r = nil
+			tt.s.buferr = nil
+			tt.want.buferr = nil
+			if !reflect.DeepEqual(tt.s, tt.want) {
+				t.Errorf("got %+v, want %+v", tt.s, tt.want)
+			}
+		})
+	}
+}
+
+func TestScanner_loadChunk_OnError(t *testing.T) {
+	t.Parallel()
+
+	t.Run("too small load length", func(t *testing.T) {
+		t.Parallel()
+
+		s := &Scanner{
+			r: strings.NewReader("abc"),
+		}
+
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Logf("recovered: %v", r)
+				} else {
+					t.Error("expected panic")
+				}
+			}()
+
+			s.loadChunk(-1)
+		}()
+	})
+
+	t.Run("too large load length", func(t *testing.T) {
+		t.Parallel()
+
+		s := &Scanner{
+			r: strings.NewReader("abc"),
+		}
+
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Logf("recovered: %v", r)
+				} else {
+					t.Error("expected panic")
+				}
+			}()
+
+			s.loadChunk(bufLen + 1)
 		}()
 	})
 }
