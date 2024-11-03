@@ -76,6 +76,11 @@ func (s *Scanner) readBuf() {
 	if s.bufend < 0 || s.bufend > len(s.buf) {
 		panic(fmt.Errorf("invalid read: %d", s.bufend))
 	}
+
+	// Zero out the rest of the buffer.
+	for i := s.bufend; i < len(s.buf); i++ {
+		s.buf[i] = 0
+	}
 }
 
 func (s *Scanner) loadChunk(n int) {
