@@ -374,3 +374,26 @@ func TestScanner_loadChunk_OnError(t *testing.T) {
 		}()
 	})
 }
+
+func BenchmarkScanner_loadChunk(b *testing.B) {
+	s := &Scanner{
+		buf: [bufLen]byte{
+			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+			'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+			'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+			'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f',
+			'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+			'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+			'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd',
+			'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+		},
+		bufend: 64,
+		rawcur: 1,
+	}
+
+	b.ResetTimer()
+	for range b.N {
+		s.rawcur = 1
+		s.loadChunk(63)
+	}
+}
