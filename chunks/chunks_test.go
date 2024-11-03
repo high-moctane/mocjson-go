@@ -296,21 +296,6 @@ func TestScanner_loadChunk(t *testing.T) {
 				},
 			},
 		},
-		{
-			name: "early bufend",
-			s: &Scanner{
-				buf:    [bufLen]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'},
-				bufend: 7,
-				rawcur: 3,
-			},
-			n: 10,
-			want: &Scanner{
-				buf:    [bufLen]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'},
-				bufend: 7,
-				rawcur: 7,
-				chunks: [chunkLen]uint64{0x0000006465666700},
-			},
-		},
 	}
 
 	for _, tt := range tests {

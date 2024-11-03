@@ -94,9 +94,6 @@ func (s *Scanner) loadChunk(n int) {
 		if cur == 0 {
 			s.readBuf()
 		}
-		if cur >= s.bufend {
-			return
-		}
 
 		idx, pos := s.idxPos()
 		c := uint64(s.buf[cur]) << ((7 - pos) * 8)
