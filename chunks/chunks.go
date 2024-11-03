@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	chunkSize = 8
-	chunkLen  = 8
+	chunkSize = 8 // equal to the size of uint64
+	chunkLen  = 8 // len(Scanner.chunks)
 	bufLen    = chunkSize * chunkLen
 )
 
