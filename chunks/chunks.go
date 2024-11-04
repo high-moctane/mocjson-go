@@ -95,7 +95,7 @@ func (s *Scanner) loadChunk(n int) {
 			s.readBuf()
 		}
 
-		idx, pos := s.idxPos()
+		idx, pos := curToIdxPos(cur)
 		c := uint64(s.buf[cur]) << ((7 - pos) * 8)
 		mask := uint64(0xFF) << ((7 - pos) * 8)
 		s.chunks[idx] = (s.chunks[idx] &^ mask) | c
