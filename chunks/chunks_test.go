@@ -28,6 +28,7 @@ func TestScanner_readBuf(t *testing.T) {
 		{
 			name:       "less than bufLen",
 			r:          bytes.NewReader([]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'}),
+			wantBuferr: io.EOF,
 			wantBufend: 7,
 			wantBuf:    [bufLen]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'},
 		},
@@ -116,7 +117,7 @@ func TestScanner_readBuf_OnError(t *testing.T) {
 		}
 
 		s.readBuf()
-		if want := error(nil); s.buferr != want {
+		if want := io.EOF; s.buferr != want {
 			t.Errorf("buferr: got %v, want %v", s.buferr, want)
 		}
 		if want := 3; s.bufend != want {
@@ -136,24 +137,7 @@ func TestScanner_readBuf_OnError(t *testing.T) {
 		if want := io.EOF; s.buferr != want {
 			t.Errorf("buferr: got %v, want %v", s.buferr, want)
 		}
-		if want := 0; s.bufend != want {
-			t.Errorf("bufend: got %v, want %v", s.bufend, want)
-		}
-		if want := 0; s.rawcur != want {
-			t.Errorf("rawcur: got %v, want %v", s.rawcur, want)
-		}
-		if want := [bufLen]byte{}; s.buf != want {
-			t.Errorf("buf: got %v, want %v", s.buf, want)
-		}
-		if want := [chunkLen]uint64{}; s.chunks != want {
-			t.Errorf("chunks: got %v, want %v", s.chunks, want)
-		}
-
-		s.readBuf()
-		if want := io.EOF; s.buferr != want {
-			t.Errorf("buferr: got %v, want %v", s.buferr, want)
-		}
-		if want := 0; s.bufend != want {
+		if want := 3; s.bufend != want {
 			t.Errorf("bufend: got %v, want %v", s.bufend, want)
 		}
 		if want := 0; s.rawcur != want {

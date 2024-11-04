@@ -43,6 +43,18 @@ func idxPosToCur(idx, pos int) int {
 	return idxToCur(idx) + pos
 }
 
+func readFull(r io.Reader, p []byte) (n int, err error) {
+	for n < len(p) && err == nil {
+		var nn int
+		nn, err = r.Read(p[n:])
+		n += nn
+	}
+	if n >= len(p) {
+		err = nil
+	}
+	return
+}
+
 type Scanner struct {
 	r      io.Reader
 	buferr error
@@ -72,7 +84,7 @@ func (s *Scanner) readBuf() {
 		return
 	}
 
-	s.bufend, s.buferr = s.r.Read(s.buf[:])
+	s.bufend, s.buferr = readFull(s.r, s.buf[:])
 	if s.bufend < 0 || s.bufend > len(s.buf) {
 		panic(fmt.Errorf("invalid read: %d", s.bufend))
 	}
