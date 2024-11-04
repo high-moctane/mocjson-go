@@ -411,3 +411,21 @@ func TestScanner_Read_ReadAll(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkScanner_Read(b *testing.B) {
+	var initR strings.Reader
+	var initS Scanner
+
+	s := NewScanner(strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"))
+	initR = *s.r.(*strings.Reader)
+	initS = *s
+
+	b.ResetTimer()
+	for range b.N {
+		r := initR
+		s := initS
+		s.r = &r
+
+		_, _ = io.ReadAll(&s)
+	}
+}
