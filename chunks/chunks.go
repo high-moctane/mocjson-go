@@ -113,3 +113,21 @@ func (s *Scanner) loadChunk(n int) {
 		s.chunks[idx] = (s.chunks[idx] &^ mask) | c
 	}
 }
+
+func (s *Scanner) Read(p []byte) (int, error) {
+	maxRead := min(len(p), len(s.buf))
+
+	for i := range maxRead {
+		cur := calcCur(s.rawcur + i)
+		if s.buferr != nil && cur >= s.bufend {
+			s.loadChunk(i)
+			return i, s.buferr
+		}
+
+		idx, pos := curToIdxPos(cur)
+		p[i] = byte(s.chunks[idx] >> ((7 - pos) * 8))
+	}
+
+	s.loadChunk(maxRead)
+	return maxRead, nil
+}

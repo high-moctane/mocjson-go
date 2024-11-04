@@ -366,3 +366,48 @@ func BenchmarkScanner_loadChunk(b *testing.B) {
 		s.loadChunk(63)
 	}
 }
+
+func TestScanner_Read_ReadAll(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+	}{
+		{
+			name: "empty",
+			b:    []byte{},
+		},
+		{
+			name: "less than chunkSize",
+			b:    []byte("abc"),
+		},
+		{
+			name: "less than bufLen",
+			b:    []byte("abcdefghijklmnopqrstuvwxyz"),
+		},
+		{
+			name: "equal to bufLen",
+			b:    []byte("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
+		},
+		{
+			name: "greater than bufLen",
+			b:    []byte("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := NewScanner(bytes.NewReader(tt.b))
+			got, err := io.ReadAll(s)
+			if err != nil {
+				t.Errorf("ReadAll: %v", err)
+				return
+			}
+			if !bytes.Equal(got, tt.b) {
+				t.Errorf("ReadAll: got %v, want %v", got, tt.b)
+				t.Logf("scanner: %+v", s)
+			}
+		})
+	}
+}
