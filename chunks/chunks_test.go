@@ -430,6 +430,90 @@ func BenchmarkReader_Read(b *testing.B) {
 	}
 }
 
+func TestReader_SkipWhitespace(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		buf    []byte
+		want   []byte
+		wantN  int
+		offset int
+	}{
+		{
+			name:  "empty",
+			buf:   []byte{},
+			want:  []byte{},
+			wantN: 0,
+		},
+		{
+			name:  "no whitespaces",
+			buf:   []byte("abc"),
+			want:  []byte("abc"),
+			wantN: 0,
+		},
+		{
+			name:  "whitespaces: 4",
+			buf:   []byte(" \t\r\nabc"),
+			want:  []byte("abc"),
+			wantN: 4,
+		},
+		{
+			name:  "whitespaces: 70",
+			buf:   []byte(strings.Repeat(" ", 70) + "abc"),
+			want:  []byte("abc"),
+			wantN: 70,
+		},
+		{
+			name:   "whitespaces: 4, offset: 3",
+			buf:    []byte("abc \t\r\nabc"),
+			want:   []byte("abc"),
+			wantN:  4,
+			offset: 3,
+		},
+		{
+			name:   "whitespaces: 4, offset: 61",
+			buf:    []byte(strings.Repeat("a", 61) + " \t\r\nabc"),
+			want:   []byte("abc"),
+			wantN:  4,
+			offset: 61,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := NewReader(bytes.NewReader(tt.buf))
+
+			if tt.offset > 0 {
+				b := make([]byte, tt.offset)
+				n, err := r.Read(b)
+				t.Logf("Read: %v, %v", n, err)
+			}
+
+			n, err := r.SkipWhitespace()
+			if err != nil {
+				t.Errorf("SkipWhitespace: %v", err)
+				// return
+			}
+			if n != tt.wantN {
+				t.Errorf("SkipWhitespace: got %v, want %v", n, tt.wantN)
+			}
+
+			got, err := io.ReadAll(r)
+			if err != nil {
+				t.Errorf("ReadAll: %v", err)
+				return
+			}
+			if !bytes.Equal(got, tt.want) {
+				t.Errorf("ReadAll: got %v, want %v", got, tt.want)
+				t.Logf("reader: %+v", r)
+			}
+		})
+	}
+}
+
 func TestReader_calcWSMask(t *testing.T) {
 	t.Parallel()
 

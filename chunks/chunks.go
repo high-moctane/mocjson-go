@@ -146,6 +146,22 @@ func (r *Reader) Read(p []byte) (int, error) {
 	return maxRead, nil
 }
 
+func (r *Reader) SkipWhitespace() (n int, err error) {
+	var b [bufLen]byte
+	var nn int
+
+	l := bufLen
+	for l == bufLen {
+		r.calcWSMask()
+		l = r.wsLen()
+
+		nn, err = r.Read(b[:l])
+		n += nn
+	}
+
+	return
+}
+
 func (r *Reader) calcWSMask() {
 	const (
 		wsMask  uint64 = 0x2020202020202020
