@@ -538,3 +538,19 @@ func TestReader_calcWSMask(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkReader_calcWSMask(b *testing.B) {
+	r := Reader{
+		chunks: [chunkLen]uint64{
+			0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
+			0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
+			0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
+			0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
+		},
+	}
+
+	b.ResetTimer()
+	for range b.N {
+		r.calcWSMask()
+	}
+}
