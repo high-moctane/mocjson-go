@@ -55,6 +55,18 @@ func readFull(r io.Reader, p []byte) (n int, err error) {
 	return
 }
 
+func allMask64by8(mask uint64) uint64 {
+	mask &= mask >> 1
+	mask &= mask >> 2
+	mask &= mask >> 4
+	return mask
+}
+
+func moveMask64by8(mask uint64) uint64 {
+	mask &= 0x0101010101010101
+	return mask | mask>>7 | mask>>14 | mask>>21 | mask>>28 | mask>>35 | mask>>42 | mask>>49
+}
+
 type Reader struct {
 	r      io.Reader
 	buferr error
@@ -62,6 +74,7 @@ type Reader struct {
 	rawcur int
 	buf    [bufLen]byte
 	chunks [chunkLen]uint64
+	wsMask uint64
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -130,4 +143,27 @@ func (r *Reader) Read(p []byte) (int, error) {
 
 	r.loadChunk(maxRead)
 	return maxRead, nil
+}
+
+func (r *Reader) calcWSMask() {
+	const (
+		wsMask  uint64 = 0x2020202020202020
+		tabMask uint64 = 0x0909090909090909
+		crMask  uint64 = 0x0D0D0D0D0D0D0D0D
+		lfMask  uint64 = 0x0A0A0A0A0A0A0A0A
+	)
+
+	var res uint64
+
+	for i := range r.chunks {
+		ws := allMask64by8(r.chunks[i] ^ ^wsMask)
+		tab := allMask64by8(r.chunks[i] ^ ^tabMask)
+		cr := allMask64by8(r.chunks[i] ^ ^crMask)
+		lf := allMask64by8(r.chunks[i] ^ ^lfMask)
+		m := ws | tab | cr | lf
+		m = moveMask64by8(m)
+		res |= (m & 0xFF) << (i * 8)
+	}
+
+	r.wsMask = res
 }

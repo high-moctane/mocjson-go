@@ -429,3 +429,112 @@ func BenchmarkReader_Read(b *testing.B) {
 		_, _ = io.ReadAll(&rr)
 	}
 }
+
+func TestReader_calcWSMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		r    Reader
+		want uint64
+	}{
+		{
+			name: "whitespaces",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x2020202020202020, 0x2020202020202020,
+					0x2020202020202020, 0x2020202020202020,
+					0x2020202020202020, 0x2020202020202020,
+					0x2020202020202020, 0x2020202020202020,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "tabs",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x0909090909090909, 0x0909090909090909,
+					0x0909090909090909, 0x0909090909090909,
+					0x0909090909090909, 0x0909090909090909,
+					0x0909090909090909, 0x0909090909090909,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "CRs",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
+					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
+					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
+					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "LFs",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
+					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
+					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
+					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "mixed whitespaces",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x2020202020202020, 0x0909090909090909,
+					0x0D0D0D0D0D0D0D0D, 0x0A0A0A0A0A0A0A0A,
+					0x20090D0A20090D0A, 0x202009090D0D0A0A,
+					0x2020200909090D0D, 0x0D0A0A0A20202020,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "nulls",
+			r:    Reader{},
+			want: 0x0000000000000000,
+		},
+		{
+			name: "alphabets",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x6162636465666768, 0x696a6b6c6d6e6f70,
+					0x7172737475767778, 0x797a616263646566,
+					0x68696a6b6c6d6e6f, 0x7071727374757677,
+					0x78797a6162636465, 0x666768696a6b6c6d,
+				},
+			},
+			want: 0x0000000000000000,
+		},
+		{
+			name: "mixed",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
+					0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
+					0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
+					0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
+				},
+			},
+			want: 0b00101110_01011011_00101110_01011011_00101110_01011011_00101110_01011011,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.r.calcWSMask()
+			if tt.r.wsMask != tt.want {
+				t.Errorf("wsmask: got %064b, want %064b", tt.r.wsMask, tt.want)
+			}
+		})
+	}
+}
