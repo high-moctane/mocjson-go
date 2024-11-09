@@ -707,6 +707,57 @@ func TestReader_wsLen(t *testing.T) {
 	}
 }
 
+func TestReader_nonQuoteLen(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		r    Reader
+		want int
+	}{
+		{
+			name: "empty",
+			r: Reader{
+				quoteMask: 0x0000000000000000,
+			},
+			want: 64,
+		},
+		{
+			name: "all",
+			r: Reader{
+				quoteMask: 0xFFFFFFFFFFFFFFFF,
+			},
+			want: 0,
+		},
+		{
+			name: "len = 17",
+			r: Reader{
+				quoteMask: 0x0000700000000000,
+			},
+			want: 17,
+		},
+		{
+			name: "len = 17, cur = 13",
+			r: Reader{
+				rawcur:    13 + 64,
+				quoteMask: 0x0000000200000000,
+			},
+			want: 17,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.r.nonQuoteLen()
+			if got != tt.want {
+				t.Errorf("nonQuoteLen: got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestReader_calcQuoteMask(t *testing.T) {
 	t.Parallel()
 

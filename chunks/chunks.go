@@ -192,6 +192,12 @@ func (r *Reader) wsLen() int {
 	return bits.LeadingZeros64(^rotated)
 }
 
+func (r *Reader) nonQuoteLen() int {
+	cur := r.cur()
+	rotated := bits.RotateLeft64(r.quoteMask, cur)
+	return bits.LeadingZeros64(rotated)
+}
+
 func (r *Reader) calcQuoteMask() {
 	const (
 		quoteMask uint64 = 0x2222222222222222
