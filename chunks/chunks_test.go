@@ -803,3 +803,19 @@ func TestReader_calcQuoteMask(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkReader_calcQuoteMask(b *testing.B) {
+	r := Reader{
+		chunks: [chunkLen]uint64{
+			0x222132232, 0x222222222,
+			0x222222222, 0x222222222,
+			0x222222222, 0x222222222,
+			0x222222222, 0x222222222,
+		},
+	}
+
+	b.ResetTimer()
+	for range b.N {
+		r.calcQuoteMask()
+	}
+}
