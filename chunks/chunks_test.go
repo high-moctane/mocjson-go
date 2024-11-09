@@ -554,3 +554,62 @@ func BenchmarkReader_calcWSMask(b *testing.B) {
 		r.calcWSMask()
 	}
 }
+
+func TestReader_wsLen(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		r    Reader
+		want int
+	}{
+		{
+			name: "empty",
+			r: Reader{
+				wsMask: 0x0000000000000000,
+			},
+			want: 0,
+		},
+		{
+			name: "all",
+			r: Reader{
+				wsMask: 0xFFFFFFFFFFFFFFFF,
+			},
+			want: 64,
+		},
+		{
+			name: "len = 17",
+			r: Reader{
+				wsMask: 0xFFFFB0000F000F00,
+			},
+			want: 17,
+		},
+		{
+			name: "len = 17, cur = 13",
+			r: Reader{
+				rawcur: 13 + 64,
+				wsMask: 0x0FFFFFFD0000F000,
+			},
+			want: 17,
+		},
+		{
+			name: "len = 17, cur = 58",
+			r: Reader{
+				rawcur: 58 + 64,
+				wsMask: 0xFFE00F00F000003F,
+			},
+			want: 17,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.r.wsLen()
+			if got != tt.want {
+				t.Errorf("wsLen: got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

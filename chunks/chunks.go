@@ -3,6 +3,7 @@ package chunks
 import (
 	"fmt"
 	"io"
+	"math/bits"
 )
 
 const (
@@ -166,4 +167,10 @@ func (r *Reader) calcWSMask() {
 	}
 
 	r.wsMask = res
+}
+
+func (r *Reader) wsLen() int {
+	cur := r.cur()
+	rotated := bits.RotateLeft64(r.wsMask, cur)
+	return bits.LeadingZeros64(^rotated)
 }
