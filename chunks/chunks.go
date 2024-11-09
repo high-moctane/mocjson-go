@@ -162,7 +162,7 @@ func (r *Reader) calcWSMask() {
 		lf := allMask64by8(r.chunks[i] ^ ^lfMask)
 		m := ws | tab | cr | lf
 		m = moveMask64by8(m)
-		res |= (m & 0xFF) << (i * 8)
+		res |= (m & 0xFF) << ((7 - i) * 8)
 	}
 
 	r.wsMask = res
