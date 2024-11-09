@@ -7,7 +7,7 @@ import (
 
 const (
 	chunkSize = 8 // equal to the size of uint64
-	chunkLen  = 8 // len(Scanner.chunks)
+	chunkLen  = 8 // len(Reader.chunks)
 	bufLen    = chunkSize * chunkLen
 )
 
@@ -55,7 +55,7 @@ func readFull(r io.Reader, p []byte) (n int, err error) {
 	return
 }
 
-type Scanner struct {
+type Reader struct {
 	r      io.Reader
 	buferr error
 	bufend int
@@ -64,70 +64,70 @@ type Scanner struct {
 	chunks [chunkLen]uint64
 }
 
-func NewScanner(r io.Reader) *Scanner {
-	ret := &Scanner{r: r}
+func NewReader(r io.Reader) *Reader {
+	ret := &Reader{r: r}
 	ret.loadChunk(len(ret.buf))
 	return ret
 }
 
-func (s *Scanner) cur() int {
-	return calcCur(s.rawcur)
+func (r *Reader) cur() int {
+	return calcCur(r.rawcur)
 }
 
-func (s *Scanner) idxPos() (int, int) {
-	return curToIdxPos(s.cur())
+func (r *Reader) idxPos() (int, int) {
+	return curToIdxPos(r.cur())
 }
 
-func (s *Scanner) readBuf() {
-	if s.buferr != nil {
-		s.buf = [bufLen]byte{}
+func (r *Reader) readBuf() {
+	if r.buferr != nil {
+		r.buf = [bufLen]byte{}
 		return
 	}
 
-	s.bufend, s.buferr = readFull(s.r, s.buf[:])
-	if s.bufend < 0 || s.bufend > len(s.buf) {
-		panic(fmt.Errorf("invalid read: %d", s.bufend))
+	r.bufend, r.buferr = readFull(r.r, r.buf[:])
+	if r.bufend < 0 || r.bufend > len(r.buf) {
+		panic(fmt.Errorf("invalid read: %d", r.bufend))
 	}
 
 	// Zero out the rest of the buffer.
-	for i := s.bufend; i < len(s.buf); i++ {
-		s.buf[i] = 0
+	for i := r.bufend; i < len(r.buf); i++ {
+		r.buf[i] = 0
 	}
 }
 
-func (s *Scanner) loadChunk(n int) {
-	if n < 0 || n > len(s.buf) {
+func (r *Reader) loadChunk(n int) {
+	if n < 0 || n > len(r.buf) {
 		panic(fmt.Errorf("invalid load length: %d", n))
 	}
 
-	endRawCur := s.rawcur + n
-	for ; s.rawcur < endRawCur; s.rawcur++ {
-		cur := s.cur()
+	endRawCur := r.rawcur + n
+	for ; r.rawcur < endRawCur; r.rawcur++ {
+		cur := r.cur()
 		if cur == 0 {
-			s.readBuf()
+			r.readBuf()
 		}
 
 		idx, pos := curToIdxPos(cur)
-		c := uint64(s.buf[cur]) << ((7 - pos) * 8)
+		c := uint64(r.buf[cur]) << ((7 - pos) * 8)
 		mask := uint64(0xFF) << ((7 - pos) * 8)
-		s.chunks[idx] = (s.chunks[idx] &^ mask) | c
+		r.chunks[idx] = (r.chunks[idx] &^ mask) | c
 	}
 }
 
-func (s *Scanner) Read(p []byte) (int, error) {
-	maxRead := min(len(p), len(s.buf))
+func (r *Reader) Read(p []byte) (int, error) {
+	maxRead := min(len(p), len(r.buf))
 
 	for i := range maxRead {
-		cur := calcCur(s.rawcur + i)
-		if s.buferr != nil && cur >= s.bufend {
-			s.loadChunk(i)
-			return i, s.buferr
+		cur := calcCur(r.rawcur + i)
+		if r.buferr != nil && cur >= r.bufend {
+			r.loadChunk(i)
+			return i, r.buferr
 		}
 
 		idx, pos := curToIdxPos(cur)
-		p[i] = byte(s.chunks[idx] >> ((7 - pos) * 8))
+		p[i] = byte(r.chunks[idx] >> ((7 - pos) * 8))
 	}
 
-	s.loadChunk(maxRead)
+	r.loadChunk(maxRead)
 	return maxRead, nil
 }

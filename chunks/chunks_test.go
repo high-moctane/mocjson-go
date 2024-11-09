@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestScanner_readBuf(t *testing.T) {
+func TestReader_readBuf(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -66,25 +66,25 @@ func TestScanner_readBuf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &Scanner{
+			r := &Reader{
 				r: tt.r,
 			}
-			s.readBuf()
+			r.readBuf()
 
-			if s.buferr != tt.wantBuferr {
-				t.Errorf("buferr: got %v, want %v", s.buferr, tt.wantBuferr)
+			if r.buferr != tt.wantBuferr {
+				t.Errorf("buferr: got %v, want %v", r.buferr, tt.wantBuferr)
 			}
-			if s.bufend != tt.wantBufend {
-				t.Errorf("bufend: got %v, want %v", s.bufend, tt.wantBufend)
+			if r.bufend != tt.wantBufend {
+				t.Errorf("bufend: got %v, want %v", r.bufend, tt.wantBufend)
 			}
-			if s.rawcur != tt.wantRawcur {
-				t.Errorf("rawcur: got %v, want %v", s.rawcur, tt.wantRawcur)
+			if r.rawcur != tt.wantRawcur {
+				t.Errorf("rawcur: got %v, want %v", r.rawcur, tt.wantRawcur)
 			}
-			if s.buf != tt.wantBuf {
-				t.Errorf("buf: got %v, want %v", s.buf, tt.wantBuf)
+			if r.buf != tt.wantBuf {
+				t.Errorf("buf: got %v, want %v", r.buf, tt.wantBuf)
 			}
-			if s.chunks != tt.wantChunks {
-				t.Errorf("chunks: got %v, want %v", s.chunks, tt.wantChunks)
+			if r.chunks != tt.wantChunks {
+				t.Errorf("chunks: got %v, want %v", r.chunks, tt.wantChunks)
 			}
 		})
 	}
@@ -106,55 +106,55 @@ func (r *mockReader) Read(p []byte) (n int, err error) {
 	return r.returnN, r.returnErr
 }
 
-func TestScanner_readBuf_OnError(t *testing.T) {
+func TestReader_readBuf_OnError(t *testing.T) {
 	t.Parallel()
 
 	t.Run("read after io.EOF", func(t *testing.T) {
 		t.Parallel()
 
-		s := &Scanner{
+		r := &Reader{
 			r: strings.NewReader("abc"),
 		}
 
-		s.readBuf()
-		if want := io.EOF; s.buferr != want {
-			t.Errorf("buferr: got %v, want %v", s.buferr, want)
+		r.readBuf()
+		if want := io.EOF; r.buferr != want {
+			t.Errorf("buferr: got %v, want %v", r.buferr, want)
 		}
-		if want := 3; s.bufend != want {
-			t.Errorf("bufend: got %v, want %v", s.bufend, want)
+		if want := 3; r.bufend != want {
+			t.Errorf("bufend: got %v, want %v", r.bufend, want)
 		}
-		if want := 0; s.rawcur != want {
-			t.Errorf("rawcur: got %v, want %v", s.rawcur, want)
+		if want := 0; r.rawcur != want {
+			t.Errorf("rawcur: got %v, want %v", r.rawcur, want)
 		}
-		if want := [bufLen]byte{'a', 'b', 'c'}; s.buf != want {
-			t.Errorf("buf: got %v, want %v", s.buf, want)
+		if want := [bufLen]byte{'a', 'b', 'c'}; r.buf != want {
+			t.Errorf("buf: got %v, want %v", r.buf, want)
 		}
-		if want := [chunkLen]uint64{}; s.chunks != want {
-			t.Errorf("chunks: got %v, want %v", s.chunks, want)
+		if want := [chunkLen]uint64{}; r.chunks != want {
+			t.Errorf("chunks: got %v, want %v", r.chunks, want)
 		}
 
-		s.readBuf()
-		if want := io.EOF; s.buferr != want {
-			t.Errorf("buferr: got %v, want %v", s.buferr, want)
+		r.readBuf()
+		if want := io.EOF; r.buferr != want {
+			t.Errorf("buferr: got %v, want %v", r.buferr, want)
 		}
-		if want := 3; s.bufend != want {
-			t.Errorf("bufend: got %v, want %v", s.bufend, want)
+		if want := 3; r.bufend != want {
+			t.Errorf("bufend: got %v, want %v", r.bufend, want)
 		}
-		if want := 0; s.rawcur != want {
-			t.Errorf("rawcur: got %v, want %v", s.rawcur, want)
+		if want := 0; r.rawcur != want {
+			t.Errorf("rawcur: got %v, want %v", r.rawcur, want)
 		}
-		if want := [bufLen]byte{}; s.buf != want {
-			t.Errorf("buf: got %v, want %v", s.buf, want)
+		if want := [bufLen]byte{}; r.buf != want {
+			t.Errorf("buf: got %v, want %v", r.buf, want)
 		}
-		if want := [chunkLen]uint64{}; s.chunks != want {
-			t.Errorf("chunks: got %v, want %v", s.chunks, want)
+		if want := [chunkLen]uint64{}; r.chunks != want {
+			t.Errorf("chunks: got %v, want %v", r.chunks, want)
 		}
 	})
 
 	t.Run("broken reader (too small)", func(t *testing.T) {
 		t.Parallel()
 
-		s := &Scanner{
+		r := &Reader{
 			r: newMockReader(-1, nil),
 		}
 
@@ -167,14 +167,14 @@ func TestScanner_readBuf_OnError(t *testing.T) {
 				}
 			}()
 
-			s.readBuf()
+			r.readBuf()
 		}()
 	})
 
 	t.Run("broken reader (too large)", func(t *testing.T) {
 		t.Parallel()
 
-		s := &Scanner{
+		r := &Reader{
 			r: newMockReader(bufLen+1, nil),
 		}
 
@@ -187,35 +187,35 @@ func TestScanner_readBuf_OnError(t *testing.T) {
 				}
 			}()
 
-			s.readBuf()
+			r.readBuf()
 		}()
 	})
 }
 
-func TestScanner_loadChunk(t *testing.T) {
+func TestReader_loadChunk(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name string
-		s    *Scanner
+		s    *Reader
 		n    int
-		want *Scanner
+		want *Reader
 	}{
 		{
 			name: "n: 0",
-			s: &Scanner{
+			s: &Reader{
 				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
 			},
 			n:    0,
-			want: &Scanner{},
+			want: &Reader{},
 		},
 		{
 			name: "n: 1",
-			s: &Scanner{
+			s: &Reader{
 				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
 			},
 			n: 1,
-			want: &Scanner{
+			want: &Reader{
 				buf: [bufLen]byte{
 					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
 					'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
@@ -233,11 +233,11 @@ func TestScanner_loadChunk(t *testing.T) {
 		},
 		{
 			name: "n: 5",
-			s: &Scanner{
+			s: &Reader{
 				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
 			},
 			n: 5,
-			want: &Scanner{
+			want: &Reader{
 				buf: [bufLen]byte{
 					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
 					'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
@@ -255,11 +255,11 @@ func TestScanner_loadChunk(t *testing.T) {
 		},
 		{
 			name: "n: 64",
-			s: &Scanner{
+			s: &Reader{
 				r: strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
 			},
 			n: 64,
-			want: &Scanner{
+			want: &Reader{
 				buf: [bufLen]byte{
 					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
 					'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
@@ -300,13 +300,13 @@ func TestScanner_loadChunk(t *testing.T) {
 	}
 }
 
-func TestScanner_loadChunk_OnError(t *testing.T) {
+func TestReader_loadChunk_OnError(t *testing.T) {
 	t.Parallel()
 
 	t.Run("too small load length", func(t *testing.T) {
 		t.Parallel()
 
-		s := &Scanner{
+		r := &Reader{
 			r: strings.NewReader("abc"),
 		}
 
@@ -319,14 +319,14 @@ func TestScanner_loadChunk_OnError(t *testing.T) {
 				}
 			}()
 
-			s.loadChunk(-1)
+			r.loadChunk(-1)
 		}()
 	})
 
 	t.Run("too large load length", func(t *testing.T) {
 		t.Parallel()
 
-		s := &Scanner{
+		r := &Reader{
 			r: strings.NewReader("abc"),
 		}
 
@@ -339,13 +339,13 @@ func TestScanner_loadChunk_OnError(t *testing.T) {
 				}
 			}()
 
-			s.loadChunk(bufLen + 1)
+			r.loadChunk(bufLen + 1)
 		}()
 	})
 }
 
-func BenchmarkScanner_loadChunk(b *testing.B) {
-	s := &Scanner{
+func BenchmarkReader_loadChunk(b *testing.B) {
+	r := &Reader{
 		buf: [bufLen]byte{
 			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
 			'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
@@ -362,12 +362,12 @@ func BenchmarkScanner_loadChunk(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		s.rawcur = 1
-		s.loadChunk(63)
+		r.rawcur = 1
+		r.loadChunk(63)
 	}
 }
 
-func TestScanner_Read_ReadAll(t *testing.T) {
+func TestReader_Read_ReadAll(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -398,34 +398,34 @@ func TestScanner_Read_ReadAll(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewScanner(bytes.NewReader(tt.b))
-			got, err := io.ReadAll(s)
+			r := NewReader(bytes.NewReader(tt.b))
+			got, err := io.ReadAll(r)
 			if err != nil {
 				t.Errorf("ReadAll: %v", err)
 				return
 			}
 			if !bytes.Equal(got, tt.b) {
 				t.Errorf("ReadAll: got %v, want %v", got, tt.b)
-				t.Logf("scanner: %+v", s)
+				t.Logf("scanner: %+v", r)
 			}
 		})
 	}
 }
 
-func BenchmarkScanner_Read(b *testing.B) {
+func BenchmarkReader_Read(b *testing.B) {
 	var initR strings.Reader
-	var initS Scanner
+	var initS Reader
 
-	s := NewScanner(strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"))
-	initR = *s.r.(*strings.Reader)
-	initS = *s
+	r := NewReader(strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"))
+	initR = *r.r.(*strings.Reader)
+	initS = *r
 
 	b.ResetTimer()
 	for range b.N {
 		r := initR
-		s := initS
-		s.r = &r
+		rr := initS
+		rr.r = &r
 
-		_, _ = io.ReadAll(&s)
+		_, _ = io.ReadAll(&rr)
 	}
 }
