@@ -706,3 +706,49 @@ func TestReader_wsLen(t *testing.T) {
 		})
 	}
 }
+
+func TestReader_calcQuoteMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		r    Reader
+		want uint64
+	}{
+		{
+			name: "quotes",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x2222222222222222, 0x2222222222222222,
+					0x2222222222222222, 0x2222222222222222,
+					0x2222222222222222, 0x2222222222222222,
+					0x2222222222222222, 0x2222222222222222,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "mixed quotes",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x2221322322222222, 0x2222222222222222,
+					0x2222222222222222, 0x2222222222222222,
+					0x2222222222222222, 0x2222222222222222,
+					0x2222222222222222, 0x2222222222222222,
+				},
+			},
+			want: 0b10001111_11111111_11111111_11111111_11111111_11111111_11111111_11111111,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tt.r.calcQuoteMask()
+			if tt.r.quoteMask != tt.want {
+				t.Errorf("quotationMask: got %064b, want %064b", tt.r.quoteMask, tt.want)
+			}
+		})
+	}
+}
