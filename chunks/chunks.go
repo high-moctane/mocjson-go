@@ -121,8 +121,8 @@ func (r *Reader) loadChunk(n int) {
 		}
 
 		idx, pos := curToIdxPos(cur)
-		c := uint64(r.buf[cur]) << (pos * 8)
-		mask := uint64(0xFF) << (pos * 8)
+		c := uint64(r.buf[cur]) << ((7 - pos) * 8)
+		mask := uint64(0xFF) << ((7 - pos) * 8)
 		r.chunks[idx] = (r.chunks[idx] &^ mask) | c
 	}
 }
@@ -138,7 +138,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 		}
 
 		idx, pos := curToIdxPos(cur)
-		p[i] = byte(r.chunks[idx] >> (pos * 8))
+		p[i] = byte(r.chunks[idx] >> ((7 - pos) * 8))
 	}
 
 	r.loadChunk(maxRead)

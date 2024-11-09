@@ -228,7 +228,7 @@ func TestReader_loadChunk(t *testing.T) {
 				},
 				bufend: 64,
 				rawcur: 1,
-				chunks: [chunkLen]uint64{0x61},
+				chunks: [chunkLen]uint64{0x6100000000000000},
 			},
 		},
 		{
@@ -250,7 +250,7 @@ func TestReader_loadChunk(t *testing.T) {
 				},
 				bufend: 64,
 				rawcur: 5,
-				chunks: [chunkLen]uint64{0x6564636261},
+				chunks: [chunkLen]uint64{0x6162636465000000},
 			},
 		},
 		{
@@ -273,10 +273,10 @@ func TestReader_loadChunk(t *testing.T) {
 				bufend: 64,
 				rawcur: 64,
 				chunks: [chunkLen]uint64{
-					0x6867666564636261, 0x706f6e6d6c6b6a69,
-					0x7877767574737271, 0x6665646362617a79,
-					0x6e6d6c6b6a696867, 0x767574737271706f,
-					0x646362617a797877, 0x6c6b6a6968676665,
+					0x6162636465666768, 0x696a6b6c6d6e6f70,
+					0x7172737475767778, 0x797a616263646566,
+					0x6768696a6b6c6d6e, 0x6f70717273747576,
+					0x7778797a61626364, 0x65666768696a6b6c,
 				},
 			},
 		},
