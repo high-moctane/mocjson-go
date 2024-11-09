@@ -192,6 +192,11 @@ func (r *Reader) wsLen() int {
 	return bits.LeadingZeros64(^rotated)
 }
 
+func (r *Reader) NextQuote() int {
+	r.calcQuoteMask()
+	return r.nonQuoteLen()
+}
+
 func (r *Reader) nonQuoteLen() int {
 	cur := r.cur()
 	rotated := bits.RotateLeft64(r.quoteMask, cur)
