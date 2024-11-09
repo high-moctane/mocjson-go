@@ -133,7 +133,7 @@ func (r *Reader) Read(p []byte) (int, error) {
 
 	for i := range maxRead {
 		cur := calcCur(r.rawcur + i)
-		if r.buferr != nil && cur >= r.bufend {
+		if r.buferr != nil && cur == r.bufend {
 			r.loadChunk(i)
 			return i, r.buferr
 		}
