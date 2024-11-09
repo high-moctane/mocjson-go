@@ -514,6 +514,15 @@ func TestReader_SkipWhitespace(t *testing.T) {
 	}
 }
 
+func BenchmarkReader_SkipWhitespace(b *testing.B) {
+	r := NewReader(strings.NewReader(strings.Repeat(" ", 70) + "abc"))
+
+	b.ResetTimer()
+	for range b.N {
+		r.SkipWhitespace()
+	}
+}
+
 func TestReader_calcWSMask(t *testing.T) {
 	t.Parallel()
 
