@@ -1,6 +1,7 @@
 package chunks
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
 	"math/bits"
@@ -11,6 +12,10 @@ const (
 	chunkLen  = 8 // len(Reader.chunks)
 	bufLen    = chunkSize * chunkLen
 )
+
+func newChunk(a, b, c, d, e, f, g, h byte) uint64 {
+	return binary.BigEndian.Uint64([]byte{a, b, c, d, e, f, g, h})
+}
 
 func calcCur(n int) int {
 	return n % bufLen
