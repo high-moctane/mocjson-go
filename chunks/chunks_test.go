@@ -456,6 +456,32 @@ func TestReader_Read_ReadAll(t *testing.T) {
 				t.Logf("scanner: %+v", r)
 			}
 		})
+
+		t.Run("iotest.HalfReader"+tt.name, func(t *testing.T) {
+			r := NewReader(iotest.HalfReader(bytes.NewReader(tt.b)))
+			got, err := io.ReadAll(r)
+			if err != nil {
+				t.Errorf("ReadAll: %v", err)
+				return
+			}
+			if !bytes.Equal(got, tt.b) {
+				t.Errorf("ReadAll: got %v, want %v", got, tt.b)
+				t.Logf("scanner: %+v", r)
+			}
+		})
+
+		t.Run("iotest.OneByteReader"+tt.name, func(t *testing.T) {
+			r := NewReader(iotest.OneByteReader(bytes.NewReader(tt.b)))
+			got, err := io.ReadAll(r)
+			if err != nil {
+				t.Errorf("ReadAll: %v", err)
+				return
+			}
+			if !bytes.Equal(got, tt.b) {
+				t.Errorf("ReadAll: got %v, want %v", got, tt.b)
+				t.Logf("scanner: %+v", r)
+			}
+		})
 	}
 }
 
