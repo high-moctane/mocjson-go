@@ -916,3 +916,61 @@ func TestReader_calcReverseSolidusMask(t *testing.T) {
 		})
 	}
 }
+
+func TestReader_calcDigitMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		r    Reader
+		want uint64
+	}{
+		{
+			name: "digits",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('8', '9', '0', '1', '2', '3', '4', '5'),
+					newChunk('6', '7', '8', '9', '0', '1', '2', '3'), newChunk('4', '5', '6', '7', '8', '9', '0', '1'),
+					newChunk('2', '3', '4', '5', '6', '7', '8', '9'), newChunk('0', '1', '2', '3', '4', '5', '6', '7'),
+					newChunk('8', '9', '0', '1', '2', '3', '4', '5'), newChunk('6', '7', '8', '9', '0', '1', '2', '3'),
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "hex digits",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('8', '9', 'A', 'B', 'C', 'D', 'E', 'F'),
+					newChunk('a', 'b', 'c', 'd', 'e', 'f', '0', '1'), newChunk('2', '3', '4', '5', '6', '7', '8', '9'),
+					newChunk('A', 'B', 'C', 'D', 'E', 'F', 'a', 'b'), newChunk('c', 'd', 'e', 'f', '0', '1', '2', '3'),
+					newChunk('4', '5', '6', '7', '8', '9', 'A', 'B'), newChunk('C', 'D', 'E', 'F', 'a', 'b', 'c', 'd'),
+				},
+			},
+			want: 0xFFC003FF000FFC00,
+		},
+		{
+			name: "mixed digits",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('/', ':', '/', ':', '/', ':', '/', ':'),
+					newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('/', ':', '/', ':', '/', ':', '/', ':'),
+					newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('/', ':', '/', ':', '/', ':', '/', ':'),
+					newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('/', ':', '/', ':', '/', ':', '/', ':'),
+				},
+			},
+			want: 0xF0F0F0F0F0F0F0F0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tt.r.calcDigitMask()
+			if tt.r.digitMask != tt.want {
+				t.Errorf("digitMask: got %064b, want %064b", tt.r.digitMask, tt.want)
+			}
+		})
+	}
+}
