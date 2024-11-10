@@ -69,14 +69,15 @@ func moveMask64by8(mask uint64) uint64 {
 }
 
 type Reader struct {
-	r         io.Reader
-	buferr    error
-	bufend    int
-	rawcur    int
-	buf       [bufLen]byte
-	chunks    [chunkLen]uint64
-	wsMask    uint64
-	quoteMask uint64
+	r                  io.Reader
+	buferr             error
+	bufend             int
+	rawcur             int
+	buf                [bufLen]byte
+	chunks             [chunkLen]uint64
+	wsMask             uint64
+	quoteMask          uint64
+	reverseSolidusMask uint64
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -217,4 +218,31 @@ func (r *Reader) calcQuoteMask() {
 	}
 
 	r.quoteMask = res
+}
+
+func (r *Reader) NextReverseSolidus() int {
+	r.calcReverseSolidusMask()
+	return r.nonReverseSolidusLen()
+}
+
+func (r *Reader) nonReverseSolidusLen() int {
+	cur := r.cur()
+	rotated := bits.RotateLeft64(r.reverseSolidusMask, cur)
+	return bits.LeadingZeros64(rotated)
+}
+
+func (r *Reader) calcReverseSolidusMask() {
+	const (
+		rsMask uint64 = 0x5C5C5C5C5C5C5C5C
+	)
+
+	var res uint64
+
+	for i := range r.chunks {
+		m := allMask64by8(r.chunks[i] ^ ^rsMask)
+		m = moveMask64by8(m)
+		res |= (m & 0xFF) << ((7 - i) * 8)
+	}
+
+	r.reverseSolidusMask = res
 }

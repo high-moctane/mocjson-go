@@ -819,3 +819,100 @@ func BenchmarkReader_calcQuoteMask(b *testing.B) {
 		r.calcQuoteMask()
 	}
 }
+
+func TestReader_nonReverseSolidusLen(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		r    Reader
+		want int
+	}{
+		{
+			name: "empty",
+			r: Reader{
+				reverseSolidusMask: 0x0000000000000000,
+			},
+			want: 64,
+		},
+		{
+			name: "all",
+			r: Reader{
+				reverseSolidusMask: 0xFFFFFFFFFFFFFFFF,
+			},
+			want: 0,
+		},
+		{
+			name: "len = 17",
+			r: Reader{
+				reverseSolidusMask: 0x0000700000000000,
+			},
+			want: 17,
+		},
+		{
+			name: "len = 17, cur = 13",
+			r: Reader{
+				rawcur:             13 + 64,
+				reverseSolidusMask: 0x0000000200000000,
+			},
+			want: 17,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.r.nonReverseSolidusLen()
+			if got != tt.want {
+				t.Errorf("nonReverseSolidusLen: got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReader_calcReverseSolidusMask(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		r    Reader
+		want uint64
+	}{
+		{
+			name: "reverse solidus",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+		{
+			name: "mixed reverse solidus",
+			r: Reader{
+				chunks: [chunkLen]uint64{
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+				},
+			},
+			want: 0xFFFFFFFFFFFFFFFF,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tt.r.calcReverseSolidusMask()
+			if tt.r.reverseSolidusMask != tt.want {
+				t.Errorf("reverseSolidusMask: got %064b, want %064b", tt.r.reverseSolidusMask, tt.want)
+			}
+		})
+	}
+}
