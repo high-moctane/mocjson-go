@@ -959,7 +959,7 @@ func TestReader_calcDigitMask(t *testing.T) {
 					newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('/', ':', '/', ':', '/', ':', '/', ':'),
 				},
 			},
-			want: 0xF0F0F0F0F0F0F0F0,
+			want: 0xFF00FF00FF00FF00,
 		},
 	}
 

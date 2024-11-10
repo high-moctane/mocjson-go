@@ -265,10 +265,12 @@ func (r *Reader) calcDigitMask() {
 
 	for i := range r.chunks {
 		is1to7 := r.chunks[i] ^ ^zetoToSevenMask1 | ^zetoToSevenMask2
+		is1to7 = allMask64by8(is1to7)
+		is1to7 = moveMask64by8(is1to7)
 		is8to9 := r.chunks[i] ^ ^eightToNineMask1 | ^eightToNineMask2
+		is8to9 = allMask64by8(is8to9)
+		is8to9 = moveMask64by8(is8to9)
 		m := is1to7 | is8to9
-		m = allMask64by8(m)
-		m = moveMask64by8(m)
 		res |= (m & 0xFF) << ((7 - i) * 8)
 	}
 
