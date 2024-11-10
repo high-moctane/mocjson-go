@@ -895,13 +895,13 @@ func TestReader_calcReverseSolidusMask(t *testing.T) {
 			name: "mixed reverse solidus",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
+					newChunk('\x5A', '\x5B', '\\', '\x5D', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
 					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
 					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
 					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
 				},
 			},
-			want: 0xFFFFFFFFFFFFFFFF,
+			want: 0x2FFFFFFFFFFFFFFF,
 		},
 	}
 
