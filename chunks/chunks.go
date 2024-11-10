@@ -62,15 +62,12 @@ func readFull(r io.Reader, p []byte) (n int, err error) {
 }
 
 func allMask64by8(mask uint64) uint64 {
-	mask &= mask >> 1
-	mask &= mask >> 2
-	mask &= mask >> 4
-	return mask
+	return mask & 0x8080808080808080 & (mask&0x7F7F7F7F7F7F7F7F + 0x0101010101010101)
 }
 
 func moveMask64by8(mask uint64) uint64 {
-	mask &= 0x0101010101010101
-	return mask | mask>>7 | mask>>14 | mask>>21 | mask>>28 | mask>>35 | mask>>42 | mask>>49
+	mask &= 0x8080808080808080
+	return mask>>7 | mask>>14 | mask>>21 | mask>>28 | mask>>35 | mask>>42 | mask>>49 | mask>>56
 }
 
 type Reader struct {
