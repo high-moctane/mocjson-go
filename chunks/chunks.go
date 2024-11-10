@@ -78,6 +78,7 @@ type Reader struct {
 	wsMask             uint64
 	quoteMask          uint64
 	reverseSolidusMask uint64
+	digitMask          uint64
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -245,4 +246,26 @@ func (r *Reader) calcReverseSolidusMask() {
 	}
 
 	r.reverseSolidusMask = res
+}
+
+func (r *Reader) calcDigitMask() {
+	const (
+		zetoToSevenMask1 uint64 = 0x3030303030303030
+		zetoToSevenMask2 uint64 = 0xF8F8F8F8F8F8F8F8
+		eightToNineMask1 uint64 = 0x3838383838383838
+		eightToNineMask2 uint64 = 0xFEFEFEFEFEFEFEFE
+	)
+
+	var res uint64
+
+	for i := range r.chunks {
+		is1to7 := r.chunks[i] ^ ^zetoToSevenMask1 | ^zetoToSevenMask2
+		is8to9 := r.chunks[i] ^ ^eightToNineMask1 | ^eightToNineMask2
+		m := is1to7 | is8to9
+		m = allMask64by8(m)
+		m = moveMask64by8(m)
+		res |= (m & 0xFF) << ((7 - i) * 8)
+	}
+
+	r.digitMask = res
 }
