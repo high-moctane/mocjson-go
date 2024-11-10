@@ -228,7 +228,7 @@ func TestReader_loadChunk(t *testing.T) {
 				},
 				bufend: 64,
 				rawcur: 1,
-				chunks: [chunkLen]uint64{0x6100000000000000},
+				chunks: [chunkLen]uint64{newChunk('a', 0, 0, 0, 0, 0, 0, 0)},
 			},
 		},
 		{
@@ -250,7 +250,7 @@ func TestReader_loadChunk(t *testing.T) {
 				},
 				bufend: 64,
 				rawcur: 5,
-				chunks: [chunkLen]uint64{0x6162636465000000},
+				chunks: [chunkLen]uint64{newChunk('a', 'b', 'c', 'd', 'e', 0, 0, 0)},
 			},
 		},
 		{
@@ -273,10 +273,10 @@ func TestReader_loadChunk(t *testing.T) {
 				bufend: 64,
 				rawcur: 64,
 				chunks: [chunkLen]uint64{
-					0x6162636465666768, 0x696a6b6c6d6e6f70,
-					0x7172737475767778, 0x797a616263646566,
-					0x6768696a6b6c6d6e, 0x6f70717273747576,
-					0x7778797a61626364, 0x65666768696a6b6c,
+					newChunk('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'), newChunk('i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'),
+					newChunk('q', 'r', 's', 't', 'u', 'v', 'w', 'x'), newChunk('y', 'z', 'a', 'b', 'c', 'd', 'e', 'f'),
+					newChunk('g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'), newChunk('o', 'p', 'q', 'r', 's', 't', 'u', 'v'),
+					newChunk('w', 'x', 'y', 'z', 'a', 'b', 'c', 'd'), newChunk('e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'),
 				},
 			},
 		},
@@ -535,10 +535,10 @@ func TestReader_calcWSMask(t *testing.T) {
 			name: "whitespaces",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x2020202020202020, 0x2020202020202020,
-					0x2020202020202020, 0x2020202020202020,
-					0x2020202020202020, 0x2020202020202020,
-					0x2020202020202020, 0x2020202020202020,
+					newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '), newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+					newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '), newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+					newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '), newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+					newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '), newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
@@ -547,10 +547,10 @@ func TestReader_calcWSMask(t *testing.T) {
 			name: "tabs",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x0909090909090909, 0x0909090909090909,
-					0x0909090909090909, 0x0909090909090909,
-					0x0909090909090909, 0x0909090909090909,
-					0x0909090909090909, 0x0909090909090909,
+					newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'), newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'),
+					newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'), newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'),
+					newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'), newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'),
+					newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'), newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
@@ -559,10 +559,10 @@ func TestReader_calcWSMask(t *testing.T) {
 			name: "CRs",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
-					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
-					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
-					0x0D0D0D0D0D0D0D0D, 0x0D0D0D0D0D0D0D0D,
+					newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'), newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'),
+					newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'), newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'),
+					newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'), newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'),
+					newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'), newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
@@ -571,10 +571,10 @@ func TestReader_calcWSMask(t *testing.T) {
 			name: "LFs",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
-					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
-					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
-					0x0A0A0A0A0A0A0A0A, 0x0A0A0A0A0A0A0A0A,
+					newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'), newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'),
+					newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'), newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'),
+					newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'), newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'),
+					newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'), newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
@@ -583,10 +583,10 @@ func TestReader_calcWSMask(t *testing.T) {
 			name: "mixed whitespaces",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x2020202020202020, 0x0909090909090909,
-					0x0D0D0D0D0D0D0D0D, 0x0A0A0A0A0A0A0A0A,
-					0x20090D0A20090D0A, 0x202009090D0D0A0A,
-					0x2020200909090D0D, 0x0D0A0A0A20202020,
+					newChunk(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '), newChunk('\t', '\t', '\t', '\t', '\t', '\t', '\t', '\t'),
+					newChunk('\r', '\r', '\r', '\r', '\r', '\r', '\r', '\r'), newChunk('\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'),
+					newChunk(' ', '\t', '\r', '\n', ' ', '\t', '\r', '\n'), newChunk(' ', ' ', '\t', '\t', '\r', '\r', '\n', '\n'),
+					newChunk(' ', ' ', ' ', '\t', '\t', '\t', '\t', '\r'), newChunk('\r', '\n', '\n', '\n', '\r', '\n', '\n', '\n'),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
@@ -600,10 +600,10 @@ func TestReader_calcWSMask(t *testing.T) {
 			name: "alphabets",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x6162636465666768, 0x696a6b6c6d6e6f70,
-					0x7172737475767778, 0x797a616263646566,
-					0x68696a6b6c6d6e6f, 0x7071727374757677,
-					0x78797a6162636465, 0x666768696a6b6c6d,
+					newChunk('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'), newChunk('i', 'j', 'k', 'l', 'm', 'n', 'o', 'p'),
+					newChunk('q', 'r', 's', 't', 'u', 'v', 'w', 'x'), newChunk('y', 'z', 'a', 'b', 'c', 'd', 'e', 'f'),
+					newChunk('g', 'h', 'i', 'j', 'k', 'l', 'm', 'n'), newChunk('o', 'p', 'q', 'r', 's', 't', 'u', 'v'),
+					newChunk('w', 'x', 'y', 'z', 'a', 'b', 'c', 'd'), newChunk('e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'),
 				},
 			},
 			want: 0x0000000000000000,
@@ -612,10 +612,10 @@ func TestReader_calcWSMask(t *testing.T) {
 			name: "mixed",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
-					0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
-					0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
-					0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
+					newChunk('\xFF', ' ', '\xFF', ' ', ' ', '\xFF', ' ', ' '), newChunk('\xFF', '\xFF', '\t', '\xFF', '\t', '\t', '\t', '\xFF'),
+					newChunk('\xFF', '\r', '\xFF', '\r', '\r', '\xFF', '\r', '\r'), newChunk('\xFF', '\xFF', '\n', '\xFF', '\n', '\n', '\n', '\xFF'),
+					newChunk('\xFF', ' ', '\xFF', ' ', ' ', '\xFF', ' ', ' '), newChunk('\xFF', '\xFF', '\t', '\xFF', '\t', '\t', '\t', '\xFF'),
+					newChunk('\xFF', '\r', '\xFF', '\r', '\r', '\xFF', '\r', '\r'), newChunk('\xFF', '\xFF', '\n', '\xFF', '\n', '\n', '\n', '\xFF'),
 				},
 			},
 			want: 0b01011011_00101110_01011011_00101110_01011011_00101110_01011011_00101110,
@@ -635,10 +635,10 @@ func TestReader_calcWSMask(t *testing.T) {
 func BenchmarkReader_calcWSMask(b *testing.B) {
 	r := Reader{
 		chunks: [chunkLen]uint64{
-			0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
-			0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
-			0xFF20FF2020FF2020, 0xFFFF09FF090909FF,
-			0xFF0DFF0D0DFF0D0D, 0xFFFF0AFF0A0A0AFF,
+			newChunk('\xFF', ' ', '\xFF', ' ', ' ', '\xFF', ' ', ' '), newChunk('\xFF', '\xFF', '\t', '\xFF', '\t', '\t', '\t', '\xFF'),
+			newChunk('\xFF', '\r', '\xFF', '\r', '\r', '\xFF', '\r', '\r'), newChunk('\xFF', '\xFF', '\n', '\xFF', '\n', '\n', '\n', '\xFF'),
+			newChunk('\xFF', ' ', '\xFF', ' ', ' ', '\xFF', ' ', ' '), newChunk('\xFF', '\xFF', '\t', '\xFF', '\t', '\t', '\t', '\xFF'),
+			newChunk('\xFF', '\r', '\xFF', '\r', '\r', '\xFF', '\r', '\r'), newChunk('\xFF', '\xFF', '\n', '\xFF', '\n', '\n', '\n', '\xFF'),
 		},
 	}
 
@@ -770,10 +770,10 @@ func TestReader_calcQuoteMask(t *testing.T) {
 			name: "quotes",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x2222222222222222, 0x2222222222222222,
-					0x2222222222222222, 0x2222222222222222,
-					0x2222222222222222, 0x2222222222222222,
-					0x2222222222222222, 0x2222222222222222,
+					newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+					newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+					newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+					newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
@@ -782,10 +782,10 @@ func TestReader_calcQuoteMask(t *testing.T) {
 			name: "mixed quotes",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x2221322322222222, 0x2222222222222222,
-					0x2222222222222222, 0x2222222222222222,
-					0x2222222222222222, 0x2222222222222222,
-					0x2222222222222222, 0x2222222222222222,
+					newChunk('"', 21, 32, 23, '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+					newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+					newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+					newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
 				},
 			},
 			want: 0b10001111_11111111_11111111_11111111_11111111_11111111_11111111_11111111,
@@ -807,10 +807,10 @@ func TestReader_calcQuoteMask(t *testing.T) {
 func BenchmarkReader_calcQuoteMask(b *testing.B) {
 	r := Reader{
 		chunks: [chunkLen]uint64{
-			0x222132232, 0x222222222,
-			0x222222222, 0x222222222,
-			0x222222222, 0x222222222,
-			0x222222222, 0x222222222,
+			newChunk('"', 21, 32, 23, '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+			newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+			newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
+			newChunk('"', '"', '"', '"', '"', '"', '"', '"'), newChunk('"', '"', '"', '"', '"', '"', '"', '"'),
 		},
 	}
 
@@ -883,10 +883,10 @@ func TestReader_calcReverseSolidusMask(t *testing.T) {
 			name: "reverse solidus",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
@@ -895,10 +895,10 @@ func TestReader_calcReverseSolidusMask(t *testing.T) {
 			name: "mixed reverse solidus",
 			r: Reader{
 				chunks: [chunkLen]uint64{
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
-					0x5C5C5C5C5C5C5C5C, 0x5C5C5C5C5C5C5C5C,
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
+					newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'), newChunk('\\', '\\', '\\', '\\', '\\', '\\', '\\', '\\'),
 				},
 			},
 			want: 0xFFFFFFFFFFFFFFFF,
