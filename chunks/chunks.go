@@ -184,7 +184,7 @@ func (r *Reader) calcWSMask() {
 		lf := allMask64by8(r.chunks[i] ^ ^lfMask)
 		m := ws | tab | cr | lf
 		m = moveMask64by8(m)
-		res |= (m & 0xFF) << ((7 - i) * 8)
+		res = (res << 8) | (m & 0xFF)
 	}
 
 	r.wsMask = res
@@ -217,7 +217,7 @@ func (r *Reader) calcQuoteMask() {
 	for i := range r.chunks {
 		m := allMask64by8(r.chunks[i] ^ ^quoteMask)
 		m = moveMask64by8(m)
-		res |= (m & 0xFF) << ((7 - i) * 8)
+		res = (res << 8) | (m & 0xFF)
 	}
 
 	r.quoteMask = res
@@ -244,7 +244,7 @@ func (r *Reader) calcReverseSolidusMask() {
 	for i := range r.chunks {
 		m := allMask64by8(r.chunks[i] ^ ^rsMask)
 		m = moveMask64by8(m)
-		res |= (m & 0xFF) << ((7 - i) * 8)
+		res = (res << 8) | (m & 0xFF)
 	}
 
 	r.reverseSolidusMask = res
@@ -278,7 +278,7 @@ func (r *Reader) calcDigitMask() {
 		is8to9 = allMask64by8(is8to9)
 		m := is1to7 | is8to9
 		m = moveMask64by8(m)
-		res |= (m & 0xFF) << ((7 - i) * 8)
+		res = (res << 8) | (m & 0xFF)
 	}
 
 	r.digitMask = res
