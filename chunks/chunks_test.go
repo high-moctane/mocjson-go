@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"testing/iotest"
 )
 
 func TestReader_readBuf(t *testing.T) {
@@ -13,7 +14,7 @@ func TestReader_readBuf(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		r          io.Reader
+		buf        []byte
 		wantBuferr error
 		wantBufend int
 		wantRawcur int
@@ -22,19 +23,19 @@ func TestReader_readBuf(t *testing.T) {
 	}{
 		{
 			name:       "empty",
-			r:          bytes.NewReader([]byte{}),
+			buf:        []byte{},
 			wantBuferr: io.EOF,
 		},
 		{
 			name:       "less than bufLen",
-			r:          bytes.NewReader([]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'}),
+			buf:        []byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'},
 			wantBuferr: io.EOF,
 			wantBufend: 7,
 			wantBuf:    [bufLen]byte{'a', 'b', 'c', 'd', 'e', 'f', 'g'},
 		},
 		{
 			name:       "equal to bufLen",
-			r:          strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
+			buf:        []byte("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
 			wantBufend: 64,
 			wantBuf: [bufLen]byte{
 				'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
@@ -49,7 +50,7 @@ func TestReader_readBuf(t *testing.T) {
 		},
 		{
 			name:       "greater than bufLen",
-			r:          strings.NewReader("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm"),
+			buf:        []byte("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm"),
 			wantBufend: 64,
 			wantBuf: [bufLen]byte{
 				'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
@@ -67,7 +68,53 @@ func TestReader_readBuf(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			r := &Reader{
-				r: tt.r,
+				r: bytes.NewReader(tt.buf),
+			}
+			r.readBuf()
+
+			if r.buferr != tt.wantBuferr {
+				t.Errorf("buferr: got %v, want %v", r.buferr, tt.wantBuferr)
+			}
+			if r.bufend != tt.wantBufend {
+				t.Errorf("bufend: got %v, want %v", r.bufend, tt.wantBufend)
+			}
+			if r.rawcur != tt.wantRawcur {
+				t.Errorf("rawcur: got %v, want %v", r.rawcur, tt.wantRawcur)
+			}
+			if r.buf != tt.wantBuf {
+				t.Errorf("buf: got %v, want %v", r.buf, tt.wantBuf)
+			}
+			if r.chunks != tt.wantChunks {
+				t.Errorf("chunks: got %v, want %v", r.chunks, tt.wantChunks)
+			}
+		})
+
+		t.Run("iotest.HalfReader"+tt.name, func(t *testing.T) {
+			r := &Reader{
+				r: iotest.HalfReader(bytes.NewReader(tt.buf)),
+			}
+			r.readBuf()
+
+			if r.buferr != tt.wantBuferr {
+				t.Errorf("buferr: got %v, want %v", r.buferr, tt.wantBuferr)
+			}
+			if r.bufend != tt.wantBufend {
+				t.Errorf("bufend: got %v, want %v", r.bufend, tt.wantBufend)
+			}
+			if r.rawcur != tt.wantRawcur {
+				t.Errorf("rawcur: got %v, want %v", r.rawcur, tt.wantRawcur)
+			}
+			if r.buf != tt.wantBuf {
+				t.Errorf("buf: got %v, want %v", r.buf, tt.wantBuf)
+			}
+			if r.chunks != tt.wantChunks {
+				t.Errorf("chunks: got %v, want %v", r.chunks, tt.wantChunks)
+			}
+		})
+
+		t.Run("iotest.OneByteReader"+tt.name, func(t *testing.T) {
+			r := &Reader{
+				r: iotest.OneByteReader(bytes.NewReader(tt.buf)),
 			}
 			r.readBuf()
 
