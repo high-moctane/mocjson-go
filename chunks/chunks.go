@@ -250,6 +250,11 @@ func (r *Reader) calcReverseSolidusMask() {
 	r.reverseSolidusMask = res
 }
 
+func (r *Reader) DigitLen() int {
+	r.calcDigitMask()
+	return r.digitLen()
+}
+
 func (r *Reader) digitLen() int {
 	cur := r.cur()
 	rotated := bits.RotateLeft64(r.digitMask, cur)
