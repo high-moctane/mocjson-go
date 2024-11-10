@@ -250,6 +250,12 @@ func (r *Reader) calcReverseSolidusMask() {
 	r.reverseSolidusMask = res
 }
 
+func (r *Reader) digitLen() int {
+	cur := r.cur()
+	rotated := bits.RotateLeft64(r.digitMask, cur)
+	return bits.LeadingZeros64(^rotated)
+}
+
 func (r *Reader) calcDigitMask() {
 	const (
 		zetoToSevenMask1 uint64 = 0x3030303030303030
