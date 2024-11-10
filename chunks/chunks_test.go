@@ -917,6 +917,22 @@ func TestReader_calcReverseSolidusMask(t *testing.T) {
 	}
 }
 
+func BenchmarkReader_DigitLen(b *testing.B) {
+	r := Reader{
+		chunks: [chunkLen]uint64{
+			newChunk('0', '1', '2', '3', '4', '5', '6', '7'), newChunk('8', '9', '0', '1', '2', '3', '4', '5'),
+			newChunk('6', '7', '8', '9', '0', '1', '2', '3'), newChunk('4', '5', '6', '7', '8', '9', '0', '1'),
+			newChunk('2', '3', '4', '5', '6', '7', '8', '9'), newChunk('0', '1', '2', '3', '4', '5', '6', '7'),
+			newChunk('8', '9', '0', '1', '2', '3', '4', '5'), newChunk('6', '7', '8', '9', '0', '1', '2', '3'),
+		},
+	}
+
+	b.ResetTimer()
+	for range b.N {
+		r.DigitLen()
+	}
+}
+
 func TestReader_calcDigitMask(t *testing.T) {
 	t.Parallel()
 
