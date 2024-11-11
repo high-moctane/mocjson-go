@@ -314,6 +314,12 @@ func (r *Reader) calcDigitMask() {
 	r.digitMask = res
 }
 
+func (r *Reader) zeroDigitLen() int {
+	cur := r.cur()
+	rotated := bits.RotateLeft64(r.zeroDigitMask, cur)
+	return bits.LeadingZeros64(^rotated)
+}
+
 func (r *Reader) calcZeroDigitMask() {
 	const (
 		zeroMask uint64 = 0x3030303030303030
