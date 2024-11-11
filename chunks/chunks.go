@@ -110,6 +110,7 @@ type Reader struct {
 	quoteMask          uint64
 	reverseSolidusMask uint64
 	digitMask          uint64
+	zeroDigitMask      uint64
 }
 
 func NewReader(r io.Reader) *Reader {
@@ -311,4 +312,20 @@ func (r *Reader) calcDigitMask() {
 	}
 
 	r.digitMask = res
+}
+
+func (r *Reader) calcZeroDigitMask() {
+	const (
+		zeroMask uint64 = 0x3030303030303030
+	)
+
+	var res uint64
+
+	for i := range r.chunks {
+		m := allMask64by8(r.chunks[i] ^ ^zeroMask)
+		m = moveMask64by8(m)
+		res = (res << 8) | (m & 0xFF)
+	}
+
+	r.zeroDigitMask = res
 }
