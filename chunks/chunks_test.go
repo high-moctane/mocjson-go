@@ -9,6 +9,63 @@ import (
 	"testing/iotest"
 )
 
+func TestDigitBytesToUint64(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		b      []byte
+		want   uint64
+		wantOK bool
+	}{
+		{
+			name:   "zero",
+			b:      []byte("0"),
+			want:   0,
+			wantOK: true,
+		},
+		{
+			name:   "one",
+			b:      []byte("1"),
+			want:   1,
+			wantOK: true,
+		},
+		{
+			name:   "max",
+			b:      []byte("18446744073709551615"),
+			want:   18446744073709551615,
+			wantOK: true,
+		},
+		{
+			name:   "overflow: max + 1",
+			b:      []byte("18446744073709551616"),
+			want:   0,
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := digitBytesToUint64(tt.b)
+			if ok != tt.wantOK {
+				t.Errorf("ok: got %v, want %v", ok, tt.wantOK)
+			}
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkDigitBytesToUint64(b *testing.B) {
+	buf := []byte("18446744073709551615")
+
+	b.ResetTimer()
+	for range b.N {
+		_, _ = digitBytesToUint64(buf)
+	}
+}
+
 func TestReader_readBuf(t *testing.T) {
 	t.Parallel()
 

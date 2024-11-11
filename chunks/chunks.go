@@ -70,6 +70,35 @@ func moveMask64by8(mask uint64) uint64 {
 	return mask>>7 | mask>>14 | mask>>21 | mask>>28 | mask>>35 | mask>>42 | mask>>49 | mask>>56
 }
 
+func digitBytesToUint64(b []byte) (uint64, bool) {
+	const maxDigitLen = 20
+
+	readLen := len(b)
+	if readLen > maxDigitLen {
+		panic(fmt.Errorf("invalid digit length: %d", readLen))
+	}
+
+	ret := uint64(b[0] - '0')
+	for i := 1; i < readLen-1; i++ {
+		ret = ret*10 + uint64(b[i]-'0')
+	}
+	if readLen == maxDigitLen {
+		var hi uint64
+		hi, ret = bits.Mul64(ret, 10)
+		if hi > 0 {
+			return 0, false
+		}
+
+		var carry uint64
+		ret, carry = bits.Add64(ret, uint64(b[readLen-1]-'0'), 0)
+		if carry > 0 {
+			return 0, false
+		}
+	}
+
+	return ret, true
+}
+
 type Reader struct {
 	r                  io.Reader
 	buferr             error
