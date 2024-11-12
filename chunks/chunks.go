@@ -221,8 +221,7 @@ func (r *Reader) calcWSMask() {
 }
 
 func (r *Reader) wsLen() int {
-	cur := r.cur()
-	rotated := bits.RotateLeft64(r.wsMask, cur)
+	rotated := bits.RotateLeft64(r.wsMask, r.rawcur)
 	return bits.LeadingZeros64(^rotated)
 }
 
@@ -232,8 +231,7 @@ func (r *Reader) NextQuote() int {
 }
 
 func (r *Reader) nonQuoteLen() int {
-	cur := r.cur()
-	rotated := bits.RotateLeft64(r.quoteMask, cur)
+	rotated := bits.RotateLeft64(r.quoteMask, r.rawcur)
 	return bits.LeadingZeros64(rotated)
 }
 
@@ -259,8 +257,7 @@ func (r *Reader) NextReverseSolidus() int {
 }
 
 func (r *Reader) nonReverseSolidusLen() int {
-	cur := r.cur()
-	rotated := bits.RotateLeft64(r.reverseSolidusMask, cur)
+	rotated := bits.RotateLeft64(r.reverseSolidusMask, r.rawcur)
 	return bits.LeadingZeros64(rotated)
 }
 
@@ -286,8 +283,7 @@ func (r *Reader) DigitLen() int {
 }
 
 func (r *Reader) digitLen() int {
-	cur := r.cur()
-	rotated := bits.RotateLeft64(r.digitMask, cur)
+	rotated := bits.RotateLeft64(r.digitMask, r.rawcur)
 	return bits.LeadingZeros64(^rotated)
 }
 
@@ -320,8 +316,7 @@ func (r *Reader) ZeroDigitLen() int {
 }
 
 func (r *Reader) zeroDigitLen() int {
-	cur := r.cur()
-	rotated := bits.RotateLeft64(r.zeroDigitMask, cur)
+	rotated := bits.RotateLeft64(r.zeroDigitMask, r.rawcur)
 	return bits.LeadingZeros64(^rotated)
 }
 
