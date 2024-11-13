@@ -116,6 +116,7 @@ type Reader struct {
 func NewReader(r io.Reader) *Reader {
 	ret := &Reader{r: r}
 	ret.loadChunk(bufLen)
+	ret.rawcur = 0
 	return ret
 }
 
@@ -133,13 +134,15 @@ func (r *Reader) readBuf() {
 		return
 	}
 
-	r.bufend, r.buferr = readFull(r.r, r.buf[:])
-	if r.bufend < 0 || r.bufend > bufLen {
-		panic(fmt.Errorf("invalid read: %d", r.bufend))
+	n, err := readFull(r.r, r.buf[:])
+	if n < 0 || n > bufLen {
+		panic(fmt.Errorf("invalid read: %d", n))
 	}
+	r.bufend += n
+	r.buferr = err
 
 	// Zero out the rest of the buffer.
-	for i := r.bufend; i < bufLen; i++ {
+	for i := n; i < bufLen; i++ {
 		r.buf[i] = 0
 	}
 }
@@ -167,12 +170,13 @@ func (r *Reader) Read(p []byte) (int, error) {
 	maxRead := min(len(p), bufLen)
 
 	for i := range maxRead {
-		cur := calcCur(r.rawcur + i)
-		if r.buferr != nil && cur == r.bufend {
+		rawcur := r.rawcur + i
+		if r.buferr != nil && rawcur >= r.bufend {
 			r.loadChunk(i)
 			return i, r.buferr
 		}
 
+		cur := calcCur(rawcur)
 		idx, pos := curToIdxPos(cur)
 		p[i] = byte(r.chunks[idx] >> ((7 - pos) * 8))
 	}

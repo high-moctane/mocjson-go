@@ -542,6 +542,58 @@ func TestReader_Read_ReadAll(t *testing.T) {
 	}
 }
 
+func TestReader_Read_OneByte(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+	}{
+		{
+			name: "empty",
+			b:    []byte{},
+		},
+		{
+			name: "less than chunkSize",
+			b:    []byte("abc"),
+		},
+		{
+			name: "less than bufLen",
+			b:    []byte("abcdefghijklmnopqrstuvwxyz"),
+		},
+		{
+			name: "equal to bufLen",
+			b:    []byte("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkl"),
+		},
+		{
+			name: "greater than bufLen",
+			b:    []byte("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklm"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := NewReader(bytes.NewReader(tt.b))
+
+			b := make([]byte, 1)
+
+			for i := 0; i < len(tt.b); i++ {
+				n, err := r.Read(b)
+				if n != 1 {
+					t.Errorf("[%d] Read: got %v, want 1", i, n)
+				}
+				if n != 1 && err != nil {
+					t.Errorf("[%d] Read: %v", i, err)
+					return
+				}
+				if b[0] != tt.b[i] {
+					t.Errorf("[%d] Read: got %v, want %v", i, b[0], tt.b[i])
+				}
+			}
+		})
+	}
+}
+
 func BenchmarkReader_Read(b *testing.B) {
 	var initR strings.Reader
 	var initS Reader
