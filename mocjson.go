@@ -167,6 +167,8 @@ func (lx *Lexer) skipWhiteSpaces() {
 }
 
 func (lx *Lexer) ExpectBeginArray() bool {
+	lx.skipWhiteSpaces()
+
 	if !lx.sc.Load() {
 		return false
 	}
@@ -180,6 +182,8 @@ func (lx *Lexer) ExpectBeginArray() bool {
 }
 
 func (lx *Lexer) ExpectEndArray() bool {
+	lx.skipWhiteSpaces()
+
 	if !lx.sc.Load() {
 		return false
 	}
@@ -193,6 +197,8 @@ func (lx *Lexer) ExpectEndArray() bool {
 }
 
 func (lx *Lexer) ExpectBeginObject() bool {
+	lx.skipWhiteSpaces()
+
 	if !lx.sc.Load() {
 		return false
 	}
@@ -206,6 +212,8 @@ func (lx *Lexer) ExpectBeginObject() bool {
 }
 
 func (lx *Lexer) ExpectEndObject() bool {
+	lx.skipWhiteSpaces()
+
 	if !lx.sc.Load() {
 		return false
 	}
@@ -219,6 +227,8 @@ func (lx *Lexer) ExpectEndObject() bool {
 }
 
 func (lx *Lexer) ExpectNameSeparator() bool {
+	lx.skipWhiteSpaces()
+
 	if !lx.sc.Load() {
 		return false
 	}
@@ -232,6 +242,8 @@ func (lx *Lexer) ExpectNameSeparator() bool {
 }
 
 func (lx *Lexer) ExpectValueSeparator() bool {
+	lx.skipWhiteSpaces()
+
 	if !lx.sc.Load() {
 		return false
 	}
