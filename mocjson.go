@@ -55,18 +55,14 @@ func (sc *Scanner) ReadUint64(n int) uint64 {
 	return ret
 }
 
-func (sc *Scanner) DigitLen() (int, error) {
-	if sc.err != nil {
-		return 0, sc.err
-	}
-
+func (sc *Scanner) DigitLen() int {
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789"), b) {
-			return i, nil
+			return i
 		}
 	}
 
-	return len(sc.buf), nil
+	return len(sc.buf)
 }
 
 func (sc *Scanner) ReadHex() rune {
