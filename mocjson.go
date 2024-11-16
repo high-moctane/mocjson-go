@@ -142,3 +142,11 @@ func (sc *Scanner) MultiByteUTF8Len() int {
 
 	return len(sc.buf) - len(b)
 }
+
+type Lexer struct {
+	sc Scanner
+}
+
+func NewLexer(r io.Reader) Lexer {
+	return Lexer{sc: NewScanner(r)}
+}
