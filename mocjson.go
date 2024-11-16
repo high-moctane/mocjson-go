@@ -150,3 +150,81 @@ type Lexer struct {
 func NewLexer(r io.Reader) Lexer {
 	return Lexer{sc: NewScanner(r)}
 }
+
+func (lx *Lexer) ExpectBeginArray() bool {
+	if !lx.sc.Load() {
+		return false
+	}
+
+	if lx.sc.Peek() != '[' {
+		return false
+	}
+
+	lx.sc.Skip(1)
+	return true
+}
+
+func (lx *Lexer) ExpectEndArray() bool {
+	if !lx.sc.Load() {
+		return false
+	}
+
+	if lx.sc.Peek() != ']' {
+		return false
+	}
+
+	lx.sc.Skip(1)
+	return true
+}
+
+func (lx *Lexer) ExpectBeginObject() bool {
+	if !lx.sc.Load() {
+		return false
+	}
+
+	if lx.sc.Peek() != '{' {
+		return false
+	}
+
+	lx.sc.Skip(1)
+	return true
+}
+
+func (lx *Lexer) ExpectEndObject() bool {
+	if !lx.sc.Load() {
+		return false
+	}
+
+	if lx.sc.Peek() != '}' {
+		return false
+	}
+
+	lx.sc.Skip(1)
+	return true
+}
+
+func (lx *Lexer) ExpectNameSeparator() bool {
+	if !lx.sc.Load() {
+		return false
+	}
+
+	if lx.sc.Peek() != ':' {
+		return false
+	}
+
+	lx.sc.Skip(1)
+	return true
+}
+
+func (lx *Lexer) ExpectValueSeparator() bool {
+	if !lx.sc.Load() {
+		return false
+	}
+
+	if lx.sc.Peek() != ',' {
+		return false
+	}
+
+	lx.sc.Skip(1)
+	return true
+}
