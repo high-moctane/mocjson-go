@@ -30,6 +30,22 @@ func (r *Reader) Read(b []byte) (int, error) {
 	return n, r.err
 }
 
+func (r *Reader) Skip(n int) (int, error) {
+	if r.err != nil {
+		return 0, r.err
+	}
+
+	nn := min(n, len(r.buf))
+
+	r.buf = r.buf[nn:]
+
+	if len(r.buf) == 0 {
+		r.err = io.EOF
+	}
+
+	return nn, r.err
+}
+
 func (r *Reader) Peek() (byte, error) {
 	if r.err != nil {
 		return 0, r.err
