@@ -4,6 +4,7 @@ import (
 	"io"
 	"math/bits"
 	"slices"
+	"unicode/utf8"
 )
 
 type Scanner struct {
@@ -119,4 +120,19 @@ func (sc *Scanner) UnescapedASCIILen() int {
 
 func (*Scanner) isUnescapedASCII(b byte) bool {
 	return 0x20 <= b && b <= 0x21 || 0x23 <= b && b <= 0x5B || 0x5D <= b && b <= 0x7F
+}
+
+func (sc *Scanner) MultiByteUTF8Len() int {
+	b := sc.buf
+
+	for {
+		_, size := utf8.DecodeRune(b)
+		if size < 2 {
+			break
+		}
+
+		b = b[size:]
+	}
+
+	return len(sc.buf) - len(b)
 }
