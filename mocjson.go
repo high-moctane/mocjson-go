@@ -151,6 +151,21 @@ func NewLexer(r io.Reader) Lexer {
 	return Lexer{sc: NewScanner(r)}
 }
 
+func (lx *Lexer) skipWhiteSpaces() {
+	for {
+		if !lx.sc.Load() {
+			break
+		}
+
+		n := lx.sc.WhiteSpaceLen()
+		if n == 0 {
+			break
+		}
+
+		lx.sc.Skip(n)
+	}
+}
+
 func (lx *Lexer) ExpectBeginArray() bool {
 	if !lx.sc.Load() {
 		return false
