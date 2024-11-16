@@ -94,6 +94,25 @@ func (r *Reader) DigitLen() (int, error) {
 	return len(r.buf), nil
 }
 
+func (r *Reader) ReadHex() rune {
+	const readLen = 4
+
+	var ret rune
+
+	for i := range readLen {
+		switch {
+		case r.buf[i] >= '0' && r.buf[i] <= '9':
+			ret = ret*16 + rune(r.buf[i]-'0')
+		case r.buf[i] >= 'a' && r.buf[i] <= 'f':
+			ret = ret*16 + rune(r.buf[i]-'a'+10)
+		case r.buf[i] >= 'A' && r.buf[i] <= 'F':
+			ret = ret*16 + rune(r.buf[i]-'A'+10)
+		}
+	}
+
+	return ret
+}
+
 func (r *Reader) HexLen() (int, error) {
 	if r.err != nil {
 		return 0, r.err
