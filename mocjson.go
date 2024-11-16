@@ -126,3 +126,21 @@ func (r *Reader) HexLen() (int, error) {
 
 	return len(r.buf), nil
 }
+
+func (r *Reader) UnescapedASCIILen() (int, error) {
+	if r.err != nil {
+		return 0, r.err
+	}
+
+	for i, b := range r.buf {
+		if !r.isUnescapedASCII(b) {
+			return i, nil
+		}
+	}
+
+	return len(r.buf), nil
+}
+
+func (*Reader) isUnescapedASCII(b byte) bool {
+	return 0x20 <= b && b <= 0x21 || 0x23 <= b && b <= 0x5B || 0x5D <= b && b <= 0x7F
+}
