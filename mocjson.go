@@ -94,18 +94,14 @@ func (sc *Scanner) HexLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) UnescapedASCIILen() (int, error) {
-	if sc.err != nil {
-		return 0, sc.err
-	}
-
+func (sc *Scanner) UnescapedASCIILen() int {
 	for i, b := range sc.buf {
 		if !sc.isUnescapedASCII(b) {
-			return i, nil
+			return i
 		}
 	}
 
-	return len(sc.buf), nil
+	return len(sc.buf)
 }
 
 func (*Scanner) isUnescapedASCII(b byte) bool {
