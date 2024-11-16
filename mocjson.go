@@ -15,21 +15,6 @@ func NewScanner(r io.Reader) *Scanner {
 	return &Scanner{buf: buf, err: err}
 }
 
-func (sc *Scanner) Read(b []byte) (int, error) {
-	if sc.err != nil {
-		return 0, sc.err
-	}
-
-	n := copy(b, sc.buf)
-	sc.buf = sc.buf[n:]
-
-	if len(sc.buf) == 0 {
-		sc.err = io.EOF
-	}
-
-	return n, sc.err
-}
-
 func (sc *Scanner) Skip(n int) (int, error) {
 	if sc.err != nil {
 		return 0, sc.err
