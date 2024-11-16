@@ -31,14 +31,8 @@ func (sc *Scanner) Skip(n int) {
 	sc.buf = sc.buf[n:]
 }
 
-func (sc *Scanner) Peek() (byte, error) {
-	if sc.err != nil {
-		return 0, sc.err
-	}
-	if len(sc.buf) == 0 {
-		return 0, io.EOF
-	}
-	return sc.buf[0], nil
+func (sc *Scanner) Peek() byte {
+	return sc.buf[0]
 }
 
 func (sc *Scanner) WhiteSpaceLen() int {
