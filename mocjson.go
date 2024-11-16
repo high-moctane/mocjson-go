@@ -36,10 +36,6 @@ func (sc *Scanner) Peek() byte {
 }
 
 func (sc *Scanner) WhiteSpaceLen() int {
-	if sc.err != nil {
-		return 0
-	}
-
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte(" \t\r\n"), b) {
 			return i
