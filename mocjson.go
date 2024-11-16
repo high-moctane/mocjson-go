@@ -70,6 +70,16 @@ func (r *Reader) WhiteSpaceLen() int {
 	return len(r.buf)
 }
 
+func (r *Reader) ReadUint64(n int) uint64 {
+	var ret uint64
+
+	for i := range n {
+		ret = ret*10 + uint64(r.buf[i]-'0')
+	}
+
+	return ret
+}
+
 func (r *Reader) DigitLen() (int, error) {
 	if r.err != nil {
 		return 0, r.err
