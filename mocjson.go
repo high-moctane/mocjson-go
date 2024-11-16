@@ -77,7 +77,7 @@ func (sc *Scanner) DigitLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) ReadHex() rune {
+func (sc *Scanner) ScanHexAsRune() rune {
 	const readLen = 4
 
 	var ret rune
@@ -93,6 +93,7 @@ func (sc *Scanner) ReadHex() rune {
 		}
 	}
 
+	sc.buf = sc.buf[readLen:]
 	return ret
 }
 
