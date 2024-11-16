@@ -2,6 +2,7 @@ package mocjson
 
 import (
 	"io"
+	"math/bits"
 	"slices"
 )
 
@@ -45,14 +46,23 @@ func (sc *Scanner) WhiteSpaceLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) ReadUint64(n int) uint64 {
+func (sc *Scanner) ScanAsUint64(n int) (uint64, bool) {
+	const maxUint64Len = 20
+
 	var ret uint64
 
 	for i := range n {
+		if i == maxUint64Len-1 {
+			var hi, carry uint64
+			hi, ret = bits.Mul64(ret, 10)
+			ret, carry = bits.Add64(ret, uint64(sc.buf[i]-'0'), 0)
+			return ret, (hi | carry) == 0
+		}
+
 		ret = ret*10 + uint64(sc.buf[i]-'0')
 	}
 
-	return ret
+	return ret, true
 }
 
 func (sc *Scanner) DigitLen() int {
