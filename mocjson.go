@@ -85,6 +85,16 @@ func (sc *Scanner) DigitLen() int {
 	return len(sc.buf)
 }
 
+func (sc *Scanner) ASCIIZeroLen() int {
+	for i, b := range sc.buf {
+		if b != '0' {
+			return i
+		}
+	}
+
+	return len(sc.buf)
+}
+
 func (sc *Scanner) ScanHexAsRune() rune {
 	const readLen = 4
 
