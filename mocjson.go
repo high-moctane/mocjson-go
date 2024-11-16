@@ -8,16 +8,22 @@ import (
 )
 
 type Scanner struct {
+	r   io.Reader
 	buf []byte
 	err error
 }
 
 func NewScanner(r io.Reader) Scanner {
-	buf, err := io.ReadAll(r)
-	return Scanner{buf: buf, err: err}
+	return Scanner{r: r}
 }
 
-func (sc *Scanner) Done() bool {
+func (sc *Scanner) Load() bool {
+	if sc.buf == nil {
+		b, err := io.ReadAll(sc.r)
+		sc.buf = b
+		sc.err = err
+	}
+
 	return len(sc.buf) == 0
 }
 
