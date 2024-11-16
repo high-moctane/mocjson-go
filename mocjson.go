@@ -56,12 +56,14 @@ func (sc *Scanner) ScanAsUint64(n int) (uint64, bool) {
 			var hi, carry uint64
 			hi, ret = bits.Mul64(ret, 10)
 			ret, carry = bits.Add64(ret, uint64(sc.buf[i]-'0'), 0)
+			sc.buf = sc.buf[i+1:]
 			return ret, (hi | carry) == 0
 		}
 
 		ret = ret*10 + uint64(sc.buf[i]-'0')
 	}
 
+	sc.buf = sc.buf[n:]
 	return ret, true
 }
 
