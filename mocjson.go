@@ -275,3 +275,31 @@ func (lx *Lexer) ExpectNull() bool {
 	lx.sc.Skip(4)
 	return true
 }
+
+func (lx *Lexer) ExpectBool() (bool, bool) {
+	lx.skipWhiteSpaces()
+
+	if !lx.sc.Load() {
+		return false, false
+	}
+
+	if lx.sc.UnescapedASCIILen() < 4 {
+		return false, false
+	}
+
+	if bytes.Equal(lx.sc.Bytes(4), []byte("true")) {
+		lx.sc.Skip(4)
+		return true, true
+	}
+
+	if lx.sc.UnescapedASCIILen() < 5 {
+		return false, false
+	}
+
+	if bytes.Equal(lx.sc.Bytes(5), []byte("false")) {
+		lx.sc.Skip(5)
+		return false, true
+	}
+
+	return false, false
+}
