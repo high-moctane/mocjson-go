@@ -27,20 +27,8 @@ func (sc *Scanner) Bytes(n int) []byte {
 	return sc.buf[:n]
 }
 
-func (sc *Scanner) Skip(n int) (int, error) {
-	if sc.err != nil {
-		return 0, sc.err
-	}
-
-	nn := min(n, len(sc.buf))
-
-	sc.buf = sc.buf[nn:]
-
-	if len(sc.buf) == 0 {
-		sc.err = io.EOF
-	}
-
-	return nn, sc.err
+func (sc *Scanner) Skip(n int) {
+	sc.buf = sc.buf[n:]
 }
 
 func (sc *Scanner) Peek() (byte, error) {
