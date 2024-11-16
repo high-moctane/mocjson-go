@@ -11,9 +11,9 @@ type Scanner struct {
 	err error
 }
 
-func NewScanner(r io.Reader) *Scanner {
+func NewScanner(r io.Reader) Scanner {
 	buf, err := io.ReadAll(r)
-	return &Scanner{buf: buf, err: err}
+	return Scanner{buf: buf, err: err}
 }
 
 func (sc *Scanner) Done() bool {
