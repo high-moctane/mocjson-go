@@ -84,18 +84,14 @@ func (sc *Scanner) ReadHex() rune {
 	return ret
 }
 
-func (sc *Scanner) HexLen() (int, error) {
-	if sc.err != nil {
-		return 0, sc.err
-	}
-
+func (sc *Scanner) HexLen() int {
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789abcdefABCDEF"), b) {
-			return i, nil
+			return i
 		}
 	}
 
-	return len(sc.buf), nil
+	return len(sc.buf)
 }
 
 func (sc *Scanner) UnescapedASCIILen() (int, error) {
