@@ -1,6 +1,7 @@
 package mocjson
 
 import (
+	"bytes"
 	"io"
 	"math/bits"
 	"slices"
@@ -253,5 +254,24 @@ func (lx *Lexer) ExpectValueSeparator() bool {
 	}
 
 	lx.sc.Skip(1)
+	return true
+}
+
+func (lx *Lexer) ExpectNull() bool {
+	lx.skipWhiteSpaces()
+
+	if !lx.sc.Load() {
+		return false
+	}
+
+	if lx.sc.UnescapedASCIILen() < 4 {
+		return false
+	}
+
+	if !bytes.Equal(lx.sc.Bytes(4), []byte("null")) {
+		return false
+	}
+
+	lx.sc.Skip(4)
 	return true
 }
