@@ -5,142 +5,142 @@ import (
 	"slices"
 )
 
-type Reader struct {
+type Scanner struct {
 	buf []byte
 	err error
 }
 
-func NewReader(r io.Reader) *Reader {
+func NewScanner(r io.Reader) *Scanner {
 	buf, err := io.ReadAll(r)
-	return &Reader{buf: buf, err: err}
+	return &Scanner{buf: buf, err: err}
 }
 
-func (r *Reader) Read(b []byte) (int, error) {
-	if r.err != nil {
-		return 0, r.err
+func (sc *Scanner) Read(b []byte) (int, error) {
+	if sc.err != nil {
+		return 0, sc.err
 	}
 
-	n := copy(b, r.buf)
-	r.buf = r.buf[n:]
+	n := copy(b, sc.buf)
+	sc.buf = sc.buf[n:]
 
-	if len(r.buf) == 0 {
-		r.err = io.EOF
+	if len(sc.buf) == 0 {
+		sc.err = io.EOF
 	}
 
-	return n, r.err
+	return n, sc.err
 }
 
-func (r *Reader) Skip(n int) (int, error) {
-	if r.err != nil {
-		return 0, r.err
+func (sc *Scanner) Skip(n int) (int, error) {
+	if sc.err != nil {
+		return 0, sc.err
 	}
 
-	nn := min(n, len(r.buf))
+	nn := min(n, len(sc.buf))
 
-	r.buf = r.buf[nn:]
+	sc.buf = sc.buf[nn:]
 
-	if len(r.buf) == 0 {
-		r.err = io.EOF
+	if len(sc.buf) == 0 {
+		sc.err = io.EOF
 	}
 
-	return nn, r.err
+	return nn, sc.err
 }
 
-func (r *Reader) Peek() (byte, error) {
-	if r.err != nil {
-		return 0, r.err
+func (sc *Scanner) Peek() (byte, error) {
+	if sc.err != nil {
+		return 0, sc.err
 	}
-	if len(r.buf) == 0 {
+	if len(sc.buf) == 0 {
 		return 0, io.EOF
 	}
-	return r.buf[0], nil
+	return sc.buf[0], nil
 }
 
-func (r *Reader) WhiteSpaceLen() int {
-	if r.err != nil {
+func (sc *Scanner) WhiteSpaceLen() int {
+	if sc.err != nil {
 		return 0
 	}
 
-	for i, b := range r.buf {
+	for i, b := range sc.buf {
 		if !slices.Contains([]byte(" \t\r\n"), b) {
 			return i
 		}
 	}
 
-	return len(r.buf)
+	return len(sc.buf)
 }
 
-func (r *Reader) ReadUint64(n int) uint64 {
+func (sc *Scanner) ReadUint64(n int) uint64 {
 	var ret uint64
 
 	for i := range n {
-		ret = ret*10 + uint64(r.buf[i]-'0')
+		ret = ret*10 + uint64(sc.buf[i]-'0')
 	}
 
 	return ret
 }
 
-func (r *Reader) DigitLen() (int, error) {
-	if r.err != nil {
-		return 0, r.err
+func (sc *Scanner) DigitLen() (int, error) {
+	if sc.err != nil {
+		return 0, sc.err
 	}
 
-	for i, b := range r.buf {
+	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789"), b) {
 			return i, nil
 		}
 	}
 
-	return len(r.buf), nil
+	return len(sc.buf), nil
 }
 
-func (r *Reader) ReadHex() rune {
+func (sc *Scanner) ReadHex() rune {
 	const readLen = 4
 
 	var ret rune
 
 	for i := range readLen {
 		switch {
-		case r.buf[i] >= '0' && r.buf[i] <= '9':
-			ret = ret*16 + rune(r.buf[i]-'0')
-		case r.buf[i] >= 'a' && r.buf[i] <= 'f':
-			ret = ret*16 + rune(r.buf[i]-'a'+10)
-		case r.buf[i] >= 'A' && r.buf[i] <= 'F':
-			ret = ret*16 + rune(r.buf[i]-'A'+10)
+		case sc.buf[i] >= '0' && sc.buf[i] <= '9':
+			ret = ret*16 + rune(sc.buf[i]-'0')
+		case sc.buf[i] >= 'a' && sc.buf[i] <= 'f':
+			ret = ret*16 + rune(sc.buf[i]-'a'+10)
+		case sc.buf[i] >= 'A' && sc.buf[i] <= 'F':
+			ret = ret*16 + rune(sc.buf[i]-'A'+10)
 		}
 	}
 
 	return ret
 }
 
-func (r *Reader) HexLen() (int, error) {
-	if r.err != nil {
-		return 0, r.err
+func (sc *Scanner) HexLen() (int, error) {
+	if sc.err != nil {
+		return 0, sc.err
 	}
 
-	for i, b := range r.buf {
+	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789abcdefABCDEF"), b) {
 			return i, nil
 		}
 	}
 
-	return len(r.buf), nil
+	return len(sc.buf), nil
 }
 
-func (r *Reader) UnescapedASCIILen() (int, error) {
-	if r.err != nil {
-		return 0, r.err
+func (sc *Scanner) UnescapedASCIILen() (int, error) {
+	if sc.err != nil {
+		return 0, sc.err
 	}
 
-	for i, b := range r.buf {
-		if !r.isUnescapedASCII(b) {
+	for i, b := range sc.buf {
+		if !sc.isUnescapedASCII(b) {
 			return i, nil
 		}
 	}
 
-	return len(r.buf), nil
+	return len(sc.buf), nil
 }
 
-func (*Reader) isUnescapedASCII(b byte) bool {
+func (*Scanner) isUnescapedASCII(b byte) bool {
 	return 0x20 <= b && b <= 0x21 || 0x23 <= b && b <= 0x5B || 0x5D <= b && b <= 0x7F
 }
