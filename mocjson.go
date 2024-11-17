@@ -6,6 +6,7 @@ import (
 	"math/bits"
 	"slices"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -433,4 +434,93 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 	}
 
 	return ret, true
+}
+
+func (lx *Lexer) ExpectString() (string, bool) {
+	lx.skipWhiteSpaces()
+
+	if !lx.sc.Load() {
+		return "", false
+	}
+
+	if lx.sc.Peek() != '"' {
+		return "", false
+	}
+	lx.sc.Skip(1)
+
+	var b strings.Builder
+
+	for {
+		if !lx.sc.Load() {
+			return "", false
+		}
+
+		if lx.sc.Peek() == '"' {
+			lx.sc.Skip(1)
+			break
+		}
+
+		if lx.sc.Peek() == '\\' {
+			lx.sc.Skip(1)
+
+			if !lx.sc.Load() {
+				return "", false
+			}
+
+			switch lx.sc.Peek() {
+			case '"':
+				b.WriteByte('"')
+				lx.sc.Skip(1)
+			case '\\':
+				b.WriteByte('\\')
+				lx.sc.Skip(1)
+			case '/':
+				b.WriteByte('/')
+				lx.sc.Skip(1)
+			case 'b':
+				b.WriteByte('\b')
+				lx.sc.Skip(1)
+			case 'f':
+				b.WriteByte('\f')
+				lx.sc.Skip(1)
+			case 'n':
+				b.WriteByte('\n')
+				lx.sc.Skip(1)
+			case 'r':
+				b.WriteByte('\r')
+				lx.sc.Skip(1)
+			case 't':
+				b.WriteByte('\t')
+				lx.sc.Skip(1)
+			case 'u':
+				// BUG(high-moctane): utf16 surrogate pair is not supported
+				lx.sc.Skip(1)
+
+				if !lx.sc.Load() {
+					return "", false
+				}
+
+				if lx.sc.HexLen() < 4 {
+					return "", false
+				}
+
+				r := lx.sc.ScanHexAsRune()
+				b.WriteRune(r)
+			default:
+				return "", false
+			}
+		} else {
+			if n := lx.sc.UnescapedASCIILen(); n > 0 {
+				b.Write(lx.sc.Bytes(n))
+				lx.sc.Skip(n)
+			} else if n := lx.sc.MultiByteUTF8Len(); n > 0 {
+				b.Write(lx.sc.Bytes(n))
+				lx.sc.Skip(n)
+			} else {
+				return "", false
+			}
+		}
+	}
+
+	return b.String(), true
 }
