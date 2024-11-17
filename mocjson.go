@@ -315,6 +315,31 @@ func (lx *Lexer) ExpectBool() (bool, bool) {
 	return false, false
 }
 
+func (lx *Lexer) ExpectUint64() (uint64, bool) {
+	lx.skipWhiteSpaces()
+
+	if !lx.sc.Load() {
+		return 0, false
+	}
+
+	digitLen := lx.sc.DigitLen()
+	if digitLen == 0 {
+		return 0, false
+	}
+	zeroLen := lx.sc.ASCIIZeroLen()
+	if (zeroLen == 1 && digitLen > 1) || zeroLen > 1 {
+		// leading zero is not allowed
+		return 0, false
+	}
+
+	ret, ok := lx.sc.ScanAsUint64(digitLen)
+	if !ok {
+		return 0, false
+	}
+
+	return ret, true
+}
+
 func (lx *Lexer) ExpectFloat64() (float64, bool) {
 	lx.skipWhiteSpaces()
 
