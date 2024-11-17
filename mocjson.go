@@ -560,3 +560,11 @@ func (lx *Lexer) ExpectString() (string, bool) {
 
 	return b.String(), true
 }
+
+type Parser struct {
+	lx Lexer
+}
+
+func NewParser(r io.Reader) Parser {
+	return Parser{lx: NewLexer(r)}
+}
