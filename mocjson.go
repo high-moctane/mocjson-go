@@ -161,6 +161,23 @@ func (sc *Scanner) MultiByteUTF8Len() int {
 	return len(sc.buf) - len(b)
 }
 
+type TokenType int
+
+const (
+	TokenTypeInvalid TokenType = iota
+	TokenTypeEOF
+	TokenTypeBeginArray
+	TokenTypeEndArray
+	TokenTypeBeginObject
+	TokenTypeEndObject
+	TokenTypeNameSeparator
+	TokenTypeValueSeparator
+	TokenTypeNull
+	TokenTypeBool
+	TokenTypeNumber
+	TokenTypeString
+)
+
 type Lexer struct {
 	sc Scanner
 }
@@ -181,6 +198,41 @@ func (lx *Lexer) skipWhiteSpaces() {
 		}
 
 		lx.sc.Skip(n)
+	}
+}
+
+func (lx *Lexer) NextTokenType() TokenType {
+	lx.skipWhiteSpaces()
+
+	if !lx.sc.Load() {
+		return TokenTypeEOF
+	}
+
+	switch lx.sc.Peek() {
+	case '[':
+		return TokenTypeBeginArray
+	case ']':
+		return TokenTypeEndArray
+	case '{':
+		return TokenTypeBeginObject
+	case '}':
+		return TokenTypeEndObject
+	case ':':
+		return TokenTypeNameSeparator
+	case ',':
+		return TokenTypeValueSeparator
+	case 'n':
+		return TokenTypeNull
+	case 't':
+		return TokenTypeBool
+	case 'f':
+		return TokenTypeBool
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return TokenTypeNumber
+	case '"':
+		return TokenTypeString
+	default:
+		return TokenTypeInvalid
 	}
 }
 
