@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode/utf16"
 	"unicode/utf8"
 )
 
@@ -497,7 +498,6 @@ func (lx *Lexer) ExpectString() (string, bool) {
 				b.WriteByte('\t')
 				lx.sc.Skip(1)
 			case 'u':
-				// BUG(high-moctane): utf16 surrogate pair is not supported
 				lx.sc.Skip(1)
 
 				if !lx.sc.Load() {
@@ -509,6 +509,38 @@ func (lx *Lexer) ExpectString() (string, bool) {
 				}
 
 				r := lx.sc.ScanHexAsRune()
+
+				if utf16.IsSurrogate(r) {
+					if !lx.sc.Load() {
+						return "", false
+					}
+
+					if lx.sc.LoadedLen() < 6 {
+						return "", false
+					}
+
+					if !bytes.Equal(lx.sc.Bytes(2), []byte("\\u")) {
+						return "", false
+					}
+
+					lx.sc.Skip(2)
+
+					if !lx.sc.Load() {
+						return "", false
+					}
+
+					if lx.sc.HexLen() < 4 {
+						return "", false
+					}
+
+					r2 := lx.sc.ScanHexAsRune()
+
+					r = utf16.DecodeRune(r, r2)
+					if r == utf8.RuneError {
+						return "", false
+					}
+				}
+
 				b.WriteRune(r)
 			default:
 				return "", false
