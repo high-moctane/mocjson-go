@@ -5,6 +5,7 @@ import (
 	"io"
 	"math/bits"
 	"slices"
+	"strconv"
 	"unicode/utf8"
 )
 
@@ -312,4 +313,99 @@ func (lx *Lexer) ExpectBool() (bool, bool) {
 	}
 
 	return false, false
+}
+
+func (lx *Lexer) ExpectFloat64() (float64, bool) {
+	lx.skipWhiteSpaces()
+
+	var b []byte
+
+	// minus
+	if !lx.sc.Load() {
+		return 0, false
+	}
+
+	if lx.sc.Peek() == '-' {
+		b = append(b, lx.sc.Bytes(1)...)
+		lx.sc.Skip(1)
+	}
+
+	// int
+	if !lx.sc.Load() {
+		return 0, false
+	}
+
+	digitLen := lx.sc.DigitLen()
+	if digitLen == 0 {
+		return 0, false
+	}
+
+	zeroLen := lx.sc.ASCIIZeroLen()
+	if (zeroLen == 1 && digitLen > 1) || zeroLen > 1 {
+		// leading zero is not allowed
+		return 0, false
+	}
+
+	b = append(b, lx.sc.Bytes(digitLen)...)
+	lx.sc.Skip(digitLen)
+
+	// frac
+	if !lx.sc.Load() {
+		return 0, false
+	}
+
+	if lx.sc.Peek() == '.' {
+		b = append(b, lx.sc.Bytes(1)...)
+		lx.sc.Skip(1)
+
+		if !lx.sc.Load() {
+			return 0, false
+		}
+
+		digitLen := lx.sc.DigitLen()
+		if digitLen == 0 {
+			return 0, false
+		}
+
+		b = append(b, lx.sc.Bytes(digitLen)...)
+		lx.sc.Skip(digitLen)
+	}
+
+	// exp
+	if !lx.sc.Load() {
+		return 0, false
+	}
+
+	if lx.sc.Peek() == 'e' || lx.sc.Peek() == 'E' {
+		b = append(b, lx.sc.Bytes(1)...)
+		lx.sc.Skip(1)
+
+		if !lx.sc.Load() {
+			return 0, false
+		}
+
+		if lx.sc.Peek() == '+' || lx.sc.Peek() == '-' {
+			b = append(b, lx.sc.Bytes(1)...)
+			lx.sc.Skip(1)
+		}
+
+		if !lx.sc.Load() {
+			return 0, false
+		}
+
+		digitLen := lx.sc.DigitLen()
+		if digitLen == 0 {
+			return 0, false
+		}
+
+		b = append(b, lx.sc.Bytes(digitLen)...)
+		lx.sc.Skip(digitLen)
+	}
+
+	ret, err := strconv.ParseFloat(string(b), 64)
+	if err != nil {
+		return 0, false
+	}
+
+	return ret, true
 }
