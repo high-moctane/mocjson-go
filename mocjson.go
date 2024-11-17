@@ -2,6 +2,8 @@ package mocjson
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"math/bits"
 	"slices"
@@ -234,6 +236,16 @@ func (lx *Lexer) NextTokenType() TokenType {
 	default:
 		return TokenTypeInvalid
 	}
+}
+
+func (lx *Lexer) ExpectEOF() bool {
+	lx.skipWhiteSpaces()
+
+	if !lx.sc.Load() {
+		return true
+	}
+
+	return false
 }
 
 func (lx *Lexer) ExpectBeginArray() bool {
@@ -619,4 +631,174 @@ type Parser struct {
 
 func NewParser(r io.Reader) Parser {
 	return Parser{lx: NewLexer(r)}
+}
+
+func (pa *Parser) Parse() (any, error) {
+	v, err := pa.ParseValue()
+	if err != nil {
+		return nil, fmt.Errorf("parse error: %w", err)
+	}
+
+	if !pa.lx.ExpectEOF() {
+		return nil, errors.New("expect EOF")
+	}
+
+	if pa.lx.sc.Err() != nil {
+		return nil, fmt.Errorf("scanner error: %w", pa.lx.sc.Err())
+	}
+
+	return v, nil
+}
+
+func (pa *Parser) ParseValue() (any, error) {
+	var (
+		v   any
+		err error
+	)
+
+	switch pa.lx.NextTokenType() {
+	case TokenTypeBeginArray:
+		v, err = pa.ParseArray()
+	case TokenTypeBeginObject:
+		v, err = pa.ParseObject()
+	case TokenTypeNull:
+		v, err = pa.ParseNull()
+	case TokenTypeBool:
+		v, err = pa.ParseBool()
+	case TokenTypeNumber:
+		v, err = pa.ParseNumber()
+	case TokenTypeString:
+		v, err = pa.ParseString()
+	default:
+		return nil, errors.New("invalid token type")
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("parse error: %w", err)
+	}
+
+	return v, nil
+}
+
+func (pa *Parser) ParseArray() ([]any, error) {
+	if !pa.lx.ExpectBeginArray() {
+		return nil, errors.New("expect begin array")
+	}
+
+	var ret []any
+
+	for {
+		if pa.lx.NextTokenType() == TokenTypeEndArray {
+			break
+		}
+
+		v, err := pa.ParseValue()
+		if err != nil {
+			return nil, fmt.Errorf("parse value error: %w", err)
+		}
+
+		ret = append(ret, v)
+
+		switch pa.lx.NextTokenType() {
+		case TokenTypeValueSeparator:
+			if !pa.lx.ExpectValueSeparator() {
+				return nil, errors.New("expect value separator")
+			}
+
+		case TokenTypeEndArray:
+			// NOP
+
+		default:
+			return nil, errors.New("expect value separator or end array")
+		}
+	}
+
+	if ret == nil {
+		ret = make([]any, 0)
+	}
+
+	return ret, nil
+}
+
+func (pa *Parser) ParseObject() (map[string]any, error) {
+	if !pa.lx.ExpectBeginObject() {
+		return nil, errors.New("expect begin object")
+	}
+
+	ret := make(map[string]any)
+
+	for {
+		if pa.lx.NextTokenType() == TokenTypeEndObject {
+			break
+		}
+
+		name, err := pa.ParseString()
+		if err != nil {
+			return nil, fmt.Errorf("parse name error: %w", err)
+		}
+
+		if !pa.lx.ExpectNameSeparator() {
+			return nil, errors.New("expect name separator")
+		}
+
+		v, err := pa.ParseValue()
+		if err != nil {
+			return nil, fmt.Errorf("parse value error: %w", err)
+		}
+
+		if _, ok := ret[name]; ok {
+			return nil, fmt.Errorf("duplicate key: %q", name)
+		}
+		ret[name] = v
+
+		switch pa.lx.NextTokenType() {
+		case TokenTypeValueSeparator:
+			if !pa.lx.ExpectValueSeparator() {
+				return nil, errors.New("expect value separator")
+			}
+
+		case TokenTypeEndObject:
+			// NOP
+
+		default:
+			return nil, errors.New("expect value separator or end object")
+		}
+	}
+
+	return ret, nil
+}
+
+func (pa *Parser) ParseBool() (bool, error) {
+	b, ok := pa.lx.ExpectBool()
+	if !ok {
+		return false, errors.New("expect bool")
+	}
+
+	return b, nil
+}
+
+func (pa *Parser) ParseNumber() (float64, error) {
+	n, ok := pa.lx.ExpectFloat64()
+	if !ok {
+		return 0, errors.New("expect number")
+	}
+
+	return n, nil
+}
+
+func (pa *Parser) ParseString() (string, error) {
+	s, ok := pa.lx.ExpectString()
+	if !ok {
+		return "", errors.New("expect string")
+	}
+
+	return s, nil
+}
+
+func (pa *Parser) ParseNull() (any, error) {
+	if !pa.lx.ExpectNull() {
+		return nil, errors.New("expect null")
+	}
+
+	return nil, nil
 }
