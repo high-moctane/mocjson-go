@@ -2,6 +2,7 @@ package mocjson
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -27,4 +28,63 @@ func TestScanner_Load(t *testing.T) {
 			t.Errorf("got %v, want %v", got, want)
 		}
 	})
+}
+
+func TestScanner_WhiteSpaceLen(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+		want int
+	}{
+		{
+			name: "space only",
+			b:    []byte(" \t\r\n \t\r\n"),
+			want: 8,
+		},
+		{
+			name: "space and ascii",
+			b:    []byte(" \t\r\na"),
+			want: 4,
+		},
+		{
+			name: "json only",
+			b:    []byte("{\"key\": \"value\"}"),
+			want: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			sc := NewScanner(r)
+
+			if sc.Load() == false {
+				t.Errorf("failed to load")
+			}
+
+			got := sc.WhiteSpaceLen()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkScanner_WhiteSpaceLen(b *testing.B) {
+	b.ReportAllocs()
+
+	r := bytes.NewReader([]byte(strings.Repeat(" \t\r\n", 100)))
+	sc := NewScanner(r)
+
+	if sc.Load() == false {
+		b.Errorf("failed to load")
+	}
+
+	for i := 0; i < b.N; i++ {
+		sc.WhiteSpaceLen()
+	}
 }
