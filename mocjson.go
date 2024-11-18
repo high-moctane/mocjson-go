@@ -30,7 +30,7 @@ func (sc *Scanner) Load() bool {
 		sc.err = err
 	}
 
-	return len(sc.buf) == 0
+	return len(sc.buf) != 0
 }
 
 func (sc *Scanner) Err() error {
