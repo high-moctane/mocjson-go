@@ -551,7 +551,6 @@ func (lx *Lexer) ExpectString() (string, bool) {
 					return "", false
 				}
 
-				// TODO(high-moctane): need validation
 				r := lx.parseUTF16Hex(lx.sc.Bytes(4))
 				lx.sc.Skip(4)
 
@@ -587,6 +586,9 @@ func (lx *Lexer) ExpectString() (string, bool) {
 					}
 				}
 
+				if !utf8.ValidRune(r) {
+					return "", false
+				}
 				b.WriteRune(r)
 			default:
 				return "", false
