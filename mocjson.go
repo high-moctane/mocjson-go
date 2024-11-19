@@ -83,26 +83,6 @@ func (sc *Scanner) ASCIIZeroLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) ScanHexAsRune() rune {
-	const readLen = 4
-
-	var ret rune
-
-	for i := range readLen {
-		switch {
-		case sc.buf[i] >= '0' && sc.buf[i] <= '9':
-			ret = ret*16 + rune(sc.buf[i]-'0')
-		case sc.buf[i] >= 'a' && sc.buf[i] <= 'f':
-			ret = ret*16 + rune(sc.buf[i]-'a'+10)
-		case sc.buf[i] >= 'A' && sc.buf[i] <= 'F':
-			ret = ret*16 + rune(sc.buf[i]-'A'+10)
-		}
-	}
-
-	sc.buf = sc.buf[readLen:]
-	return ret
-}
-
 func (sc *Scanner) HexLen() int {
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789abcdefABCDEF"), b) {
