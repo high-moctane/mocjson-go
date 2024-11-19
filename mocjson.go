@@ -63,27 +63,6 @@ func (sc *Scanner) WhiteSpaceLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) ScanAsUint64(n int) (uint64, bool) {
-	const maxUint64Len = 20
-
-	var ret uint64
-
-	for i := range n {
-		if i == maxUint64Len-1 {
-			var hi, carry uint64
-			hi, ret = bits.Mul64(ret, 10)
-			ret, carry = bits.Add64(ret, uint64(sc.buf[i]-'0'), 0)
-			sc.buf = sc.buf[i+1:]
-			return ret, (hi | carry) == 0
-		}
-
-		ret = ret*10 + uint64(sc.buf[i]-'0')
-	}
-
-	sc.buf = sc.buf[n:]
-	return ret, true
-}
-
 func (sc *Scanner) DigitLen() int {
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789"), b) {
@@ -406,6 +385,7 @@ func (lx *Lexer) ExpectUint64() (uint64, bool) {
 	if !ok {
 		return 0, false
 	}
+	lx.sc.Skip(digitLen)
 
 	return ret, true
 }
