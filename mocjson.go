@@ -571,7 +571,9 @@ func (lx *Lexer) ExpectString() (string, bool) {
 					return "", false
 				}
 
-				r := lx.sc.ScanHexAsRune()
+				// TODO(high-moctane): need validation
+				r := lx.parseUTF16Hex(lx.sc.Bytes(4))
+				lx.sc.Skip(4)
 
 				if utf16.IsSurrogate(r) {
 					if !lx.sc.Load() {
@@ -596,7 +598,8 @@ func (lx *Lexer) ExpectString() (string, bool) {
 						return "", false
 					}
 
-					r2 := lx.sc.ScanHexAsRune()
+					r2 := lx.parseUTF16Hex(lx.sc.Bytes(4))
+					lx.sc.Skip(4)
 
 					r = utf16.DecodeRune(r, r2)
 					if r == utf8.RuneError {
@@ -622,6 +625,27 @@ func (lx *Lexer) ExpectString() (string, bool) {
 	}
 
 	return b.String(), true
+}
+
+func (lx *Lexer) parseUTF16Hex(b []byte) rune {
+	if len(b) != 4 {
+		panic(fmt.Sprintf("invalid hex: %q", b))
+	}
+
+	var ret rune
+
+	for i := range b {
+		switch {
+		case b[i] >= '0' && b[i] <= '9':
+			ret = ret*16 + rune(b[i]-'0')
+		case b[i] >= 'a' && b[i] <= 'f':
+			ret = ret*16 + rune(b[i]-'a'+10)
+		case b[i] >= 'A' && b[i] <= 'F':
+			ret = ret*16 + rune(b[i]-'A'+10)
+		}
+	}
+
+	return ret
 }
 
 type Parser struct {
