@@ -402,9 +402,28 @@ func (lx *Lexer) ExpectUint64() (uint64, bool) {
 		return 0, false
 	}
 
-	ret, ok := lx.sc.ScanAsUint64(digitLen)
+	ret, ok := lx.parseUint64(lx.sc.Bytes(digitLen))
 	if !ok {
 		return 0, false
+	}
+
+	return ret, true
+}
+
+func (lx *Lexer) parseUint64(b []byte) (uint64, bool) {
+	const maxUint64Len = 20
+
+	var ret uint64
+
+	for i := range b {
+		if i == maxUint64Len-1 {
+			var hi, carry uint64
+			hi, ret = bits.Mul64(ret, 10)
+			ret, carry = bits.Add64(ret, uint64(b[i]-'0'), 0)
+			return ret, (hi | carry) == 0
+		}
+
+		ret = ret*10 + uint64(b[i]-'0')
 	}
 
 	return ret, true
