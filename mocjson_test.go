@@ -340,3 +340,65 @@ func BenchmarkScanner_UnescapedASCIILen(b *testing.B) {
 		sc.UnescapedASCIILen()
 	}
 }
+
+func TestScanner_MultiByteUTF8Len(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+		want int
+	}{
+		{
+			name: "two bytes characters",
+			b:    []byte("±ħɛΩב"),
+			want: 10,
+		},
+		{
+			name: "three bytes characters",
+			b:    []byte("あいうえお"),
+			want: 15,
+		},
+		{
+			name: "four bytes characters",
+			b:    []byte("😀🫨🩷🍣🍺"),
+			want: 20,
+		},
+		{
+			name: "json only",
+			b:    []byte("{\"key\": \"value\"}"),
+			want: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			sc := NewScanner(r)
+
+			if sc.Load() == false {
+				t.Errorf("failed to load")
+			}
+
+			got := sc.MultiByteUTF8Len()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkScanner_MultiByteUTF8Len(b *testing.B) {
+	r := strings.NewReader(strings.Repeat("±ħɛΩבあいうえお😀🫨🩷🍣🍺", 100)[:100])
+	sc := NewScanner(r)
+
+	if sc.Load() == false {
+		b.Errorf("failed to load")
+	}
+
+	for range b.N {
+		sc.MultiByteUTF8Len()
+	}
+}
