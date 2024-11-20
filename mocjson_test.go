@@ -75,16 +75,14 @@ func TestScanner_WhiteSpaceLen(t *testing.T) {
 }
 
 func BenchmarkScanner_WhiteSpaceLen(b *testing.B) {
-	b.ReportAllocs()
-
-	r := bytes.NewReader([]byte(strings.Repeat(" \t\r\n", 100)))
+	r := bytes.NewReader([]byte(strings.Repeat(" \t\r\n", 100)[:100]))
 	sc := NewScanner(r)
 
 	if sc.Load() == false {
 		b.Errorf("failed to load")
 	}
 
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		sc.WhiteSpaceLen()
 	}
 }
