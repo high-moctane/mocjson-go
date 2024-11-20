@@ -257,3 +257,86 @@ func BenchmarkScanner_HexLen(b *testing.B) {
 		sc.HexLen()
 	}
 }
+
+func TestScanner_UnescapedASCIILen(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+		want int
+	}{
+		{
+			name: "unescaped ascii only",
+			b: func() []byte {
+				var ret []byte
+				for i := 0x20; i <= 0x21; i++ {
+					ret = append(ret, byte(i))
+				}
+				for i := 0x23; i <= 0x5B; i++ {
+					ret = append(ret, byte(i))
+				}
+				for i := 0x5D; i <= 0x7F; i++ {
+					ret = append(ret, byte(i))
+				}
+				return ret
+			}(),
+			want: 94,
+		},
+		{
+			name: "0x22",
+			b:    []byte("\""),
+			want: 0,
+		},
+		{
+			name: "0x5C",
+			b:    []byte("\\"),
+			want: 0,
+		},
+		{
+			name: "json only",
+			b:    []byte("{\"key\": \"value\"}"),
+			want: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			sc := NewScanner(r)
+
+			if sc.Load() == false {
+				t.Errorf("failed to load")
+			}
+
+			got := sc.UnescapedASCIILen()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkScanner_UnescapedASCIILen(b *testing.B) {
+	var buf bytes.Buffer
+	for i := 0x20; i <= 0x21; i++ {
+		buf.WriteByte(byte(i))
+	}
+	for i := 0x23; i <= 0x5B; i++ {
+		buf.WriteByte(byte(i))
+	}
+	for i := 0x5D; i <= 0x7F; i++ {
+		buf.WriteByte(byte(i))
+	}
+	sc := NewScanner(&buf)
+
+	if sc.Load() == false {
+		b.Errorf("failed to load")
+	}
+
+	for range b.N {
+		sc.UnescapedASCIILen()
+	}
+}
