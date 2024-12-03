@@ -402,3 +402,176 @@ func BenchmarkScanner_MultiByteUTF8Len(b *testing.B) {
 		sc.MultiByteUTF8Len()
 	}
 }
+
+func TestLexer_NextTokenType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+		want TokenType
+	}{
+		{
+			name: "EOF",
+			b:    []byte(""),
+			want: TokenTypeEOF,
+		},
+		{
+			name: "begin array",
+			b:    []byte("["),
+			want: TokenTypeBeginArray,
+		},
+		{
+			name: "end array",
+			b:    []byte("]"),
+			want: TokenTypeEndArray,
+		},
+		{
+			name: "begin object",
+			b:    []byte("{"),
+			want: TokenTypeBeginObject,
+		},
+		{
+			name: "end object",
+			b:    []byte("}"),
+			want: TokenTypeEndObject,
+		},
+		{
+			name: "name separator",
+			b:    []byte(":"),
+			want: TokenTypeNameSeparator,
+		},
+		{
+			name: "value separator",
+			b:    []byte(","),
+			want: TokenTypeValueSeparator,
+		},
+		{
+			name: "null",
+			b:    []byte("n"),
+			want: TokenTypeNull,
+		},
+		{
+			name: "true",
+			b:    []byte("t"),
+			want: TokenTypeBool,
+		},
+		{
+			name: "false",
+			b:    []byte("f"),
+			want: TokenTypeBool,
+		},
+		{
+			name: "-",
+			b:    []byte("-"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "0",
+			b:    []byte("0"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "1",
+			b:    []byte("1"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "2",
+			b:    []byte("2"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "3",
+			b:    []byte("3"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "4",
+			b:    []byte("4"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "5",
+			b:    []byte("5"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "6",
+			b:    []byte("6"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "7",
+			b:    []byte("7"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "8",
+			b:    []byte("8"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "9",
+			b:    []byte("9"),
+			want: TokenTypeNumber,
+		},
+		{
+			name: "string",
+			b:    []byte("\""),
+			want: TokenTypeString,
+		},
+		{
+			name: "other",
+			b:    []byte("a"),
+			want: TokenTypeInvalid,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.NextTokenType()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.NextTokenType()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with many whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), 25), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.NextTokenType()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkLexer_NextTokenType(b *testing.B) {
+	r := bytes.NewReader(append([]byte(" \t\r\n"), []byte("a")...))
+	lx := NewLexer(r)
+
+	for range b.N {
+		lx.NextTokenType()
+	}
+}
