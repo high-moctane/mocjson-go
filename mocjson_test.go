@@ -575,3 +575,71 @@ func BenchmarkLexer_NextTokenType(b *testing.B) {
 		lx.NextTokenType()
 	}
 }
+
+func TestLexer_ExpectEOF(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+		want bool
+	}{
+		{
+			name: "EOF",
+			b:    []byte(""),
+			want: true,
+		},
+		{
+			name: "not EOF",
+			b:    []byte("a"),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.ExpectEOF()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.ExpectEOF()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with many whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), 25), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.ExpectEOF()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkLexer_ExpectEOF(b *testing.B) {
+	r := bytes.NewReader(append([]byte(" \t\r\n"), []byte("")...))
+	lx := NewLexer(r)
+
+	for range b.N {
+		lx.ExpectEOF()
+	}
+}
