@@ -82,6 +82,7 @@ func BenchmarkScanner_WhiteSpaceLen(b *testing.B) {
 		b.Errorf("failed to load")
 	}
 
+	b.ResetTimer()
 	for range b.N {
 		sc.WhiteSpaceLen()
 	}
@@ -139,6 +140,7 @@ func BenchmarkScanner_DigitLen(b *testing.B) {
 		b.Errorf("failed to load")
 	}
 
+	b.ResetTimer()
 	for range b.N {
 		sc.DigitLen()
 	}
@@ -196,6 +198,7 @@ func BenchmarkScanner_ASCIIZeroLen(b *testing.B) {
 		b.Errorf("failed to load")
 	}
 
+	b.ResetTimer()
 	for range b.N {
 		sc.ASCIIZeroLen()
 	}
@@ -253,6 +256,7 @@ func BenchmarkScanner_HexLen(b *testing.B) {
 		b.Errorf("failed to load")
 	}
 
+	b.ResetTimer()
 	for range b.N {
 		sc.HexLen()
 	}
@@ -336,6 +340,7 @@ func BenchmarkScanner_UnescapedASCIILen(b *testing.B) {
 		b.Errorf("failed to load")
 	}
 
+	b.ResetTimer()
 	for range b.N {
 		sc.UnescapedASCIILen()
 	}
@@ -398,6 +403,7 @@ func BenchmarkScanner_MultiByteUTF8Len(b *testing.B) {
 		b.Errorf("failed to load")
 	}
 
+	b.ResetTimer()
 	for range b.N {
 		sc.MultiByteUTF8Len()
 	}
@@ -571,6 +577,7 @@ func BenchmarkLexer_NextTokenType(b *testing.B) {
 	r := bytes.NewReader(append([]byte(" \t\r\n"), []byte("a")...))
 	lx := NewLexer(r)
 
+	b.ResetTimer()
 	for range b.N {
 		lx.NextTokenType()
 	}
@@ -639,6 +646,7 @@ func BenchmarkLexer_ExpectEOF(b *testing.B) {
 	r := bytes.NewReader(append([]byte(" \t\r\n"), []byte("")...))
 	lx := NewLexer(r)
 
+	b.ResetTimer()
 	for range b.N {
 		lx.ExpectEOF()
 	}
