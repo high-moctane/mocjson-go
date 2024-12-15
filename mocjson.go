@@ -1,12 +1,16 @@
 package mocjson
 
-import "io"
+import (
+	"io"
+	"slices"
+)
 
 type opCode int
 
 const (
 	opCodeUndefined opCode = iota
 	opCodeScannerLoad
+	opCodeScannerWhitespaceLen
 )
 
 type data struct {
@@ -25,11 +29,12 @@ const (
 )
 
 type scanner struct {
-	buf       [bufSize]byte
-	rawcur    int
-	rawbufend int
-	err       error
-	r         io.Reader
+	buf           [bufSize]byte
+	rawcur        int
+	rawbufend     int
+	err           error
+	whitespaceLen int
+	r             io.Reader
 }
 
 func (*scanner) calcCur(n int) int {
@@ -62,6 +67,15 @@ func (sc *scanner) readBufFromTo(from, to int) {
 	sc.rawbufend = from + n
 }
 
+func (sc *scanner) calcWhitespaceLen() {
+	for sc.whitespaceLen = 0; sc.rawcur+sc.whitespaceLen < sc.rawbufend; sc.whitespaceLen++ {
+		b := sc.buf[sc.calcCur(sc.rawcur+sc.whitespaceLen)]
+		if !slices.Contains([]byte(" \t\n\r"), b) {
+			break
+		}
+	}
+}
+
 func parse(d *data) error {
 loop:
 	for len(d.ops) > 0 {
@@ -85,6 +99,9 @@ loop:
 			case bufend < cur:
 				d.sc.readBufFromTo(bufend, cur)
 			}
+
+		case opCodeScannerWhitespaceLen:
+			d.sc.calcWhitespaceLen()
 
 		default:
 			panic("invalid op code")
