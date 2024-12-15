@@ -14,6 +14,7 @@ const (
 	opCodeScannerASCIIDigitLen
 	opCodeScannerASCIIHexLen
 	opCodeScannerASCIIZeroLen
+	opCodeScannerUnescapedASCIILen
 )
 
 type data struct {
@@ -32,15 +33,16 @@ const (
 )
 
 type scanner struct {
-	buf           [bufSize]byte
-	rawcur        int
-	rawbufend     int
-	err           error
-	whitespaceLen int
-	asciiDigitLen int
-	asciiHexLen   int
-	asciiZeroLen  int
-	r             io.Reader
+	buf               [bufSize]byte
+	rawcur            int
+	rawbufend         int
+	err               error
+	whitespaceLen     int
+	asciiDigitLen     int
+	asciiHexLen       int
+	asciiZeroLen      int
+	unescapedASCIILen int
+	r                 io.Reader
 }
 
 func (*scanner) calcCur(n int) int {
@@ -109,6 +111,16 @@ func (sc *scanner) calcASCIIZeroLen() {
 	}
 }
 
+func (sc *scanner) calcUnescapedASCIILen() {
+	for sc.unescapedASCIILen = 0; sc.rawcur+sc.unescapedASCIILen < sc.rawbufend; sc.unescapedASCIILen++ {
+		b := sc.buf[sc.calcCur(sc.rawcur+sc.unescapedASCIILen)]
+		ok := 0x20 <= b && b <= 0x21 || 0x23 <= b && b <= 0x5B || 0x5D <= b && b <= 0x7F
+		if !ok {
+			break
+		}
+	}
+}
+
 func parse(d *data) error {
 loop:
 	for len(d.ops) > 0 {
@@ -144,6 +156,9 @@ loop:
 
 		case opCodeScannerASCIIZeroLen:
 			d.sc.calcASCIIZeroLen()
+
+		case opCodeScannerUnescapedASCIILen:
+			d.sc.calcUnescapedASCIILen()
 
 		default:
 			panic("invalid op code")
