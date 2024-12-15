@@ -11,6 +11,7 @@ const (
 	opCodeUndefined opCode = iota
 	opCodeScannerLoad
 	opCodeScannerWhitespaceLen
+	opCodeScannerASCIIDigitLen
 )
 
 type data struct {
@@ -34,6 +35,7 @@ type scanner struct {
 	rawbufend     int
 	err           error
 	whitespaceLen int
+	asciiDigitLen int
 	r             io.Reader
 }
 
@@ -76,6 +78,15 @@ func (sc *scanner) calcWhitespaceLen() {
 	}
 }
 
+func (sc *scanner) calcASCIIDigitLen() {
+	for sc.asciiDigitLen = 0; sc.rawcur+sc.asciiDigitLen < sc.rawbufend; sc.asciiDigitLen++ {
+		b := sc.buf[sc.calcCur(sc.rawcur+sc.asciiDigitLen)]
+		if b < '0' || '9' < b {
+			break
+		}
+	}
+}
+
 func parse(d *data) error {
 loop:
 	for len(d.ops) > 0 {
@@ -102,6 +113,9 @@ loop:
 
 		case opCodeScannerWhitespaceLen:
 			d.sc.calcWhitespaceLen()
+
+		case opCodeScannerASCIIDigitLen:
+			d.sc.calcASCIIDigitLen()
 
 		default:
 			panic("invalid op code")
