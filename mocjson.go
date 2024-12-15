@@ -3,6 +3,7 @@ package mocjson
 import (
 	"io"
 	"slices"
+	"unicode/utf8"
 )
 
 type opCode int
@@ -15,6 +16,7 @@ const (
 	opCodeScannerASCIIHexLen
 	opCodeScannerASCIIZeroLen
 	opCodeScannerUnescapedASCIILen
+	opCodeScannerMultiByteUTF8Len
 )
 
 type data struct {
@@ -42,6 +44,7 @@ type scanner struct {
 	asciiHexLen       int
 	asciiZeroLen      int
 	unescapedASCIILen int
+	multiByteUTF8Len  int
 	r                 io.Reader
 }
 
@@ -121,6 +124,19 @@ func (sc *scanner) calcUnescapedASCIILen() {
 	}
 }
 
+func (sc *scanner) bytes(b []byte) int {
+	cur := sc.cur()
+	bufend := sc.bufend()
+
+	if cur < bufend {
+		return copy(b, sc.buf[cur:bufend])
+	}
+
+	n := copy(b, sc.buf[cur:])
+	n += copy(b[n:], sc.buf[:bufend])
+	return n
+}
+
 func parse(d *data) error {
 loop:
 	for len(d.ops) > 0 {
@@ -159,6 +175,19 @@ loop:
 
 		case opCodeScannerUnescapedASCIILen:
 			d.sc.calcUnescapedASCIILen()
+
+		case opCodeScannerMultiByteUTF8Len:
+			var buf [bufSize]byte
+			n := d.sc.bytes(buf[:])
+			b := buf[:n]
+			for {
+				_, size := utf8.DecodeRune(b)
+				if size < 2 {
+					break
+				}
+				b = b[size:]
+			}
+			d.sc.multiByteUTF8Len = n - len(b)
 
 		default:
 			panic("invalid op code")
