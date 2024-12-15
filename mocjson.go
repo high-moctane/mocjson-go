@@ -12,6 +12,7 @@ const (
 	opCodeScannerLoad
 	opCodeScannerWhitespaceLen
 	opCodeScannerASCIIDigitLen
+	opCodeScannerASCIIHexLen
 )
 
 type data struct {
@@ -36,6 +37,7 @@ type scanner struct {
 	err           error
 	whitespaceLen int
 	asciiDigitLen int
+	asciiHexLen   int
 	r             io.Reader
 }
 
@@ -87,6 +89,15 @@ func (sc *scanner) calcASCIIDigitLen() {
 	}
 }
 
+func (sc *scanner) calcASCIIHexLen() {
+	for sc.asciiHexLen = 0; sc.rawcur+sc.asciiHexLen < sc.rawbufend; sc.asciiHexLen++ {
+		b := sc.buf[sc.calcCur(sc.rawcur+sc.asciiHexLen)]
+		if !slices.Contains([]byte("0123456789abcdefABCDEF"), b) {
+			break
+		}
+	}
+}
+
 func parse(d *data) error {
 loop:
 	for len(d.ops) > 0 {
@@ -116,6 +127,9 @@ loop:
 
 		case opCodeScannerASCIIDigitLen:
 			d.sc.calcASCIIDigitLen()
+
+		case opCodeScannerASCIIHexLen:
+			d.sc.calcASCIIHexLen()
 
 		default:
 			panic("invalid op code")
