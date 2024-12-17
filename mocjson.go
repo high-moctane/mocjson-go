@@ -63,19 +63,19 @@ func (sc *scanner) bufend() int {
 func (sc *scanner) readBufFrom(from int) {
 	var n int
 	n, sc.err = sc.r.Read(sc.buf[from:])
-	sc.rawbufend = from + n
+	sc.rawbufend += n
 }
 
 func (sc *scanner) readBufTo(to int) {
 	var n int
 	n, sc.err = sc.r.Read(sc.buf[:to])
-	sc.rawbufend = n
+	sc.rawbufend += n
 }
 
 func (sc *scanner) readBufFromTo(from, to int) {
 	var n int
 	n, sc.err = sc.r.Read(sc.buf[from:to])
-	sc.rawbufend = from + n
+	sc.rawbufend += n
 }
 
 func (sc *scanner) calcWhitespaceLen() {
