@@ -1,6 +1,7 @@
 package mocjson
 
 import (
+	"fmt"
 	"io"
 	"slices"
 	"unicode/utf8"
@@ -11,6 +12,7 @@ type opCode int
 const (
 	opCodeUndefined opCode = iota
 	opCodeScannerLoad
+	opCodeScannerSkip
 	opCodeScannerWhitespaceLen
 	opCodeScannerASCIIDigitLen
 	opCodeScannerASCIIHexLen
@@ -39,6 +41,7 @@ type scanner struct {
 	rawcur            int
 	rawbufend         int
 	err               error
+	skipLen           int
 	whitespaceLen     int
 	asciiDigitLen     int
 	asciiHexLen       int
@@ -160,6 +163,13 @@ loop:
 			case bufend < cur:
 				d.sc.readBufFromTo(bufend, cur)
 			}
+
+		case opCodeScannerSkip:
+			nextrawcur := d.sc.rawcur + d.sc.skipLen
+			if nextrawcur > d.sc.rawbufend {
+				panic(fmt.Sprintf("skipLen %d is too large (rawcur=%d, rawbufend=%d)", d.sc.skipLen, d.sc.rawcur, d.sc.rawbufend))
+			}
+			d.sc.rawcur = nextrawcur
 
 		case opCodeScannerWhitespaceLen:
 			d.sc.calcWhitespaceLen()
