@@ -31,7 +31,7 @@ bench:
 
 .PHONY: analyze
 analyze:
-	go build -gcflags="-m" ./... 2> mocjson.analysis
+	go build -gcflags="-m -m" ./... 2> mocjson.analysis
 
 
 .PHONY: asm
