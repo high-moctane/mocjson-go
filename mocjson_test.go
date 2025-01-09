@@ -1135,3 +1135,68 @@ func BenchmarkLexer_ExpectUint64(b *testing.B) {
 		lx.ExpectUint64()
 	}
 }
+
+func TestLexer_ExpectFloat64(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		b      []byte
+		want   float64
+		wantOK bool
+	}{
+		{
+			name:   "ok: 0",
+			b:      []byte("0"),
+			want:   0,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1",
+			b:      []byte("1"),
+			want:   1,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890",
+			b:      []byte("1234567890"),
+			want:   1234567890,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 0.0",
+			b:      []byte("0.0"),
+			want:   0.0,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1.0",
+			b:      []byte("1.0"),
+			want:   1.0,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789",
+			b:      []byte("1234567890.0123456789"),
+			want:   1234567890.0,
+			wantOK: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectFloat64()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+	}
+}
