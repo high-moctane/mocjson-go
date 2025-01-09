@@ -921,3 +921,53 @@ func BenchmarkLexer_ExpectValueSeparator(b *testing.B) {
 		lx.ExpectValueSeparator()
 	}
 }
+
+func TestLexer_ExpectNull(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+		want bool
+	}{
+		{
+			name: "null",
+			b:    []byte("null"),
+			want: true,
+		},
+		{
+			name: "not null: nula",
+			b:    []byte("nula"),
+			want: false,
+		},
+		{
+			name: "not null: nul",
+			b:    []byte("nul"),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.ExpectNull()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkLexer_ExpectNull(b *testing.B) {
+	r := bytes.NewReader([]byte("null"))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectNull()
+	}
+}
