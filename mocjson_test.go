@@ -1314,3 +1314,13 @@ func TestLexer_ExpectFloat64(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkLexer_ExpectFloat64(b *testing.B) {
+	r := bytes.NewReader([]byte("1234567890.0123456789e123"))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectFloat64()
+	}
+}
