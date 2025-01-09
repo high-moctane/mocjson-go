@@ -741,3 +741,48 @@ func BenchmarkLexer_ExpectEndArray(b *testing.B) {
 		lx.ExpectEndArray()
 	}
 }
+
+func TestLexer_ExpectBeginObject(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		b    []byte
+		want bool
+	}{
+		{
+			name: "begin object",
+			b:    []byte("{"),
+			want: true,
+		},
+		{
+			name: "not begin object",
+			b:    []byte("a"),
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.ExpectBeginObject()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkLexer_ExpectBeginObject(b *testing.B) {
+	r := bytes.NewReader([]byte("{"))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectBeginObject()
+	}
+}
