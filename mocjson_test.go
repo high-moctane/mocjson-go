@@ -1324,3 +1324,104 @@ func BenchmarkLexer_ExpectFloat64(b *testing.B) {
 		lx.ExpectFloat64()
 	}
 }
+
+func TestLexer_ExpectString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		b      []byte
+		want   string
+		wantOK bool
+	}{
+		{
+			name:   "ok: empty string",
+			b:      []byte(`""`),
+			want:   "",
+			wantOK: true,
+		},
+		{
+			name:   "ok: simple string",
+			b:      []byte(`"hello"`),
+			want:   "hello",
+			wantOK: true,
+		},
+		{
+			name:   "ok: string with escape characters",
+			b:      []byte(`"hello\nworld"`),
+			want:   "hello\nworld",
+			wantOK: true,
+		},
+		{
+			name:   "ok: string with unicode escape",
+			b:      []byte(`"\u0041"`),
+			want:   "A",
+			wantOK: true,
+		},
+		{
+			name:   "ng: unterminated string",
+			b:      []byte(`"hello`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   "ng: invalid escape sequence",
+			b:      []byte(`"hello\qworld"`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   "ok: utf-8 2-byte string",
+			b:      []byte(`"こんにちは"`),
+			want:   "こんにちは",
+			wantOK: true,
+		},
+		{
+			name:   "ok: utf-8 3-byte string",
+			b:      []byte(`"𠮷野家"`),
+			want:   "𠮷野家",
+			wantOK: true,
+		},
+		{
+			name:   "ok: utf-8 4-byte string",
+			b:      []byte(`"😀😃😄😁"`),
+			want:   "😀😃😄😁",
+			wantOK: true,
+		},
+		{
+			name:   "ng: invalid utf-8 2-byte string",
+			b:      []byte{'"', '\xc3', '\x28', '"'},
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   "ng: invalid utf-8 3-byte string",
+			b:      []byte{'"', '\xe2', '\x28', '\xa1', '"'},
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   "ng: invalid utf-8 4-byte string",
+			b:      []byte{'"', '\xf0', '\x28', '\x8c', '\xbc', '"'},
+			want:   "",
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectString()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+	}
+}
