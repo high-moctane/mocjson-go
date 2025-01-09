@@ -686,3 +686,13 @@ func TestLexer_ExpectBeginArray(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkLexer_ExpectBeginArray(b *testing.B) {
+	r := bytes.NewReader([]byte("["))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectBeginArray()
+	}
+}
