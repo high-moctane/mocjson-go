@@ -425,7 +425,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 
 	// frac
 	if !lx.sc.Load() {
-		return 0, false
+		goto Parse
 	}
 
 	if lx.sc.Peek() == '.' {
@@ -447,7 +447,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 
 	// exp
 	if !lx.sc.Load() {
-		return 0, false
+		goto Parse
 	}
 
 	if lx.sc.Peek() == 'e' || lx.sc.Peek() == 'E' {
@@ -476,6 +476,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 		lx.sc.Skip(digitLen)
 	}
 
+Parse:
 	ret, err := strconv.ParseFloat(string(b), 64)
 	if err != nil {
 		return 0, false
