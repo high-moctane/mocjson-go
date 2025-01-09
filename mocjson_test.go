@@ -971,3 +971,74 @@ func BenchmarkLexer_ExpectNull(b *testing.B) {
 		lx.ExpectNull()
 	}
 }
+
+func TestLexer_ExpectBool(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		b      []byte
+		want   bool
+		wantOK bool
+	}{
+		{
+			name:   "true",
+			b:      []byte("true"),
+			want:   true,
+			wantOK: true,
+		},
+		{
+			name:   "false",
+			b:      []byte("false"),
+			want:   false,
+			wantOK: true,
+		},
+		{
+			name:   "not bool: tru",
+			b:      []byte("tru"),
+			wantOK: false,
+		},
+		{
+			name:   "not bool: trua",
+			b:      []byte("trua"),
+			wantOK: false,
+		},
+		{
+			name:   "not bool: fals",
+			b:      []byte("fals"),
+			wantOK: false,
+		},
+		{
+			name:   "not bool: falsa",
+			b:      []byte("falsa"),
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectBool()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+	}
+}
+
+func BenchmarkLexer_ExpectBool(b *testing.B) {
+	r := bytes.NewReader([]byte("false"))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectBool()
+	}
+}
