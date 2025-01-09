@@ -1042,3 +1042,96 @@ func BenchmarkLexer_ExpectBool(b *testing.B) {
 		lx.ExpectBool()
 	}
 }
+
+func TestLexer_ExpectUint64(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		b      []byte
+		want   uint64
+		wantOK bool
+	}{
+		{
+			name:   "ok: 0",
+			b:      []byte("0"),
+			want:   0,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1",
+			b:      []byte("1"),
+			want:   1,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890",
+			b:      []byte("1234567890"),
+			want:   1234567890,
+			wantOK: true,
+		},
+		{
+			name:   "ok: max uint64",
+			b:      []byte("18446744073709551615"),
+			want:   18446744073709551615,
+			wantOK: true,
+		},
+		{
+			name:   "not ok: 00",
+			b:      []byte("00"),
+			wantOK: false,
+		},
+		{
+			name:   "not ok: 01",
+			b:      []byte("01"),
+			wantOK: false,
+		},
+		{
+			name:   "not ok: -0",
+			b:      []byte("-0"),
+			wantOK: false,
+		},
+		{
+			name:   "not ok: -1",
+			b:      []byte("-1"),
+			wantOK: false,
+		},
+		{
+			name:   "not ok: uint64 max + 1",
+			b:      []byte("18446744073709551616"),
+			wantOK: false,
+		},
+		{
+			name:   "not ok: a",
+			b:      []byte("a"),
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectUint64()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+	}
+}
+
+func BenchmarkLexer_ExpectUint64(b *testing.B) {
+	r := bytes.NewReader([]byte("18446744073709551615"))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectUint64()
+	}
+}
