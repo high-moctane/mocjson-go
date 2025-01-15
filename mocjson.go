@@ -735,6 +735,9 @@ func (pa *Parser) ParseObject() (map[string]any, error) {
 
 	for {
 		if pa.lx.NextTokenType() == TokenTypeEndObject {
+			if !pa.lx.ExpectEndObject() {
+				return nil, errors.New("expect end object")
+			}
 			break
 		}
 

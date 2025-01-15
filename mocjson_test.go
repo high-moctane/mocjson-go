@@ -1549,13 +1549,13 @@ func TestParser_ParseObject(t *testing.T) {
 		},
 		{
 			name: "simple object",
-			b:    []byte(`{"key":"value"}`),
-			want: map[string]any{"key": "value"},
+			b:    []byte(`{"key1":"value1","key2":"value2"}`),
+			want: map[string]any{"key1": "value1", "key2": "value2"},
 		},
 		{
 			name: "nested object",
-			b:    []byte(`{"key":{"key":"value"}}`),
-			want: map[string]any{"key": map[string]any{"key": "value"}},
+			b:    []byte(`{"key1":{"key11":"value11"},"key2":"value2"}`),
+			want: map[string]any{"key1": map[string]any{"key11": "value11"}, "key2": "value2"},
 		},
 		{
 			name:    "invalid object",
