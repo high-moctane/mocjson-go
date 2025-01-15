@@ -672,7 +672,7 @@ func (pa *Parser) ParseValue() (any, error) {
 	case TokenTypeBool:
 		v, err = pa.ParseBool()
 	case TokenTypeNumber:
-		v, err = pa.ParseNumber()
+		v, err = pa.ParseFloat64()
 	case TokenTypeString:
 		v, err = pa.ParseString()
 	default:
@@ -783,10 +783,10 @@ func (pa *Parser) ParseBool() (bool, error) {
 	return b, nil
 }
 
-func (pa *Parser) ParseNumber() (float64, error) {
+func (pa *Parser) ParseFloat64() (float64, error) {
 	n, ok := pa.lx.ExpectFloat64()
 	if !ok {
-		return 0, errors.New("expect number")
+		return 0, errors.New("expect float64")
 	}
 
 	return n, nil
