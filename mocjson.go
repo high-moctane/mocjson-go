@@ -695,6 +695,9 @@ func (pa *Parser) ParseArray() ([]any, error) {
 
 	for {
 		if pa.lx.NextTokenType() == TokenTypeEndArray {
+			if !pa.lx.ExpectEndArray() {
+				return nil, errors.New("expect end array")
+			}
 			break
 		}
 

@@ -1533,6 +1533,56 @@ func BenchmarkLexer_ExpectString(b *testing.B) {
 	}
 }
 
+func TestParser_ParseArray(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		b       []byte
+		want    []any
+		wantErr bool
+	}{
+		{
+			name: "empty array",
+			b:    []byte("[]"),
+			want: []any{},
+		},
+		{
+			name: "simple array",
+			b:    []byte(`["value1","value2"]`),
+			want: []any{"value1", "value2"},
+		},
+		{
+			name: "nested array",
+			b:    []byte(`[["value11"],"value2"]`),
+			want: []any{[]any{"value11"}, "value2"},
+		},
+		{
+			name:    "invalid array",
+			b:       []byte("["),
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			pa := NewParser(r)
+
+			got, err := pa.ParseArray()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("gotErr %v, wantErr %v", err != nil, tt.wantErr)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestParser_ParseObject(t *testing.T) {
 	t.Parallel()
 
