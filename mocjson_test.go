@@ -2,6 +2,7 @@ package mocjson
 
 import (
 	"bytes"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -1529,6 +1530,56 @@ func BenchmarkLexer_ExpectString(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		lx.ExpectString()
+	}
+}
+
+func TestParser_ParseObject(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		b       []byte
+		want    map[string]any
+		wantErr bool
+	}{
+		{
+			name: "empty object",
+			b:    []byte("{}"),
+			want: map[string]any{},
+		},
+		{
+			name: "simple object",
+			b:    []byte(`{"key":"value"}`),
+			want: map[string]any{"key": "value"},
+		},
+		{
+			name: "nested object",
+			b:    []byte(`{"key":{"key":"value"}}`),
+			want: map[string]any{"key": map[string]any{"key": "value"}},
+		},
+		{
+			name:    "invalid object",
+			b:       []byte("{"),
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			pa := NewParser(r)
+
+			got, err := pa.ParseObject()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("gotErr %v, wantErr %v", err != nil, tt.wantErr)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
