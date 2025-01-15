@@ -1532,6 +1532,47 @@ func BenchmarkLexer_ExpectString(b *testing.B) {
 	}
 }
 
+func TestParser_ParseFloat64(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		b       []byte
+		want    float64
+		wantErr bool
+	}{
+		{
+			name:    "valid float64",
+			b:       []byte("1.0"),
+			want:    1.0,
+			wantErr: false,
+		},
+		{
+			name:    "invalid float64",
+			b:       []byte("hello"),
+			want:    0,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			pa := NewParser(r)
+
+			got, err := pa.ParseFloat64()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("gotErr %v, wantErr %v", err != nil, tt.wantErr)
+			}
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestParser_ParseString(t *testing.T) {
 	t.Parallel()
 
