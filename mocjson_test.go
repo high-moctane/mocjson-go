@@ -1503,3 +1503,31 @@ func TestLexer_ExpectString(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkLexer_ExpectString(b *testing.B) {
+	longString := `"` +
+		`hello` +
+		`hello\nworld` +
+		`\u0041` +
+		`こんにちは` +
+		`灰木炭` +
+		`😀😃😄😁` +
+		`hello \"world` +
+		`hello \\ world` +
+		`hello \/ world` +
+		`hello \b world` +
+		`hello \f world` +
+		`hello \n world` +
+		`hello \r world` +
+		`hello \t world` +
+		`hello \u0041 world` +
+		`hello \uD83D\uDE00 world` +
+		`"`
+	r := bytes.NewReader([]byte(longString))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectString()
+	}
+}
