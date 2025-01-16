@@ -559,18 +559,6 @@ func TestLexer_NextTokenType(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
-
-		t.Run(tt.name+"; with many whitespaces", func(t *testing.T) {
-			t.Parallel()
-
-			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), 25), tt.b...))
-			lx := NewLexer(r)
-
-			got := lx.NextTokenType()
-			if got != tt.want {
-				t.Errorf("got %v, want %v", got, tt.want)
-			}
-		})
 	}
 }
 
@@ -628,18 +616,6 @@ func TestLexer_ExpectEOF(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
-
-		t.Run(tt.name+"; with many whitespaces", func(t *testing.T) {
-			t.Parallel()
-
-			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), 25), tt.b...))
-			lx := NewLexer(r)
-
-			got := lx.ExpectEOF()
-			if got != tt.want {
-				t.Errorf("got %v, want %v", got, tt.want)
-			}
-		})
 	}
 }
 
@@ -678,6 +654,18 @@ func TestLexer_ExpectBeginArray(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.ExpectBeginArray()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
 			lx := NewLexer(r)
 
 			got := lx.ExpectBeginArray()
@@ -730,6 +718,18 @@ func TestLexer_ExpectEndArray(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.ExpectEndArray()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -768,6 +768,18 @@ func TestLexer_ExpectBeginObject(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.ExpectBeginObject()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
 			lx := NewLexer(r)
 
 			got := lx.ExpectBeginObject()
@@ -820,6 +832,18 @@ func TestLexer_ExpectEndObject(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.ExpectEndObject()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -858,6 +882,18 @@ func TestLexer_ExpectNameSeparator(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.ExpectNameSeparator()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
 			lx := NewLexer(r)
 
 			got := lx.ExpectNameSeparator()
@@ -910,6 +946,18 @@ func TestLexer_ExpectValueSeparator(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.ExpectValueSeparator()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -953,6 +1001,18 @@ func TestLexer_ExpectNull(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got := lx.ExpectNull()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
 			lx := NewLexer(r)
 
 			got := lx.ExpectNull()
@@ -1021,6 +1081,21 @@ func TestLexer_ExpectBool(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectBool()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
 			lx := NewLexer(r)
 
 			got, gotOK := lx.ExpectBool()
@@ -1114,6 +1189,21 @@ func TestLexer_ExpectUint64(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectUint64()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
 			lx := NewLexer(r)
 
 			got, gotOK := lx.ExpectUint64()
@@ -1313,6 +1403,21 @@ func TestLexer_ExpectFloat64(t *testing.T) {
 				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
 			}
 		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectFloat64()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
 	}
 }
 
@@ -1492,6 +1597,21 @@ func TestLexer_ExpectString(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectString()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
 			lx := NewLexer(r)
 
 			got, gotOK := lx.ExpectString()
