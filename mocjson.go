@@ -13,6 +13,11 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	ScannerBufSize       = 1024
+	ScannerBufRetainSize = 64
+)
+
 type Scanner struct {
 	r   io.Reader
 	buf []byte
@@ -24,9 +29,11 @@ func NewScanner(r io.Reader) Scanner {
 }
 
 func (sc *Scanner) Load() bool {
-	if sc.buf == nil {
-		b, err := io.ReadAll(sc.r)
-		sc.buf = b
+	if sc.err == nil && len(sc.buf) < ScannerBufRetainSize {
+		b := make([]byte, ScannerBufSize)
+		copy(b, sc.buf)
+		n, err := sc.r.Read(b[len(sc.buf):])
+		sc.buf = b[:len(sc.buf)+n]
 		sc.err = err
 	}
 
@@ -201,7 +208,7 @@ func (lx *Lexer) ExpectEOF() bool {
 	lx.skipWhiteSpaces()
 
 	if !lx.sc.Load() {
-		return true
+		return lx.sc.Err() == io.EOF
 	}
 
 	return false
@@ -649,7 +656,7 @@ func (pa *Parser) Parse() (any, error) {
 		return nil, errors.New("expect EOF")
 	}
 
-	if pa.lx.sc.Err() != nil {
+	if err := pa.lx.sc.Err(); err != nil && err != io.EOF {
 		return nil, fmt.Errorf("scanner error: %w", pa.lx.sc.Err())
 	}
 

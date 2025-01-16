@@ -19,6 +19,46 @@ func TestScanner_Load(t *testing.T) {
 		}
 	})
 
+	t.Run("longer than bufsize", func(t *testing.T) {
+		r := bytes.NewReader([]byte(strings.Repeat("a", 2000)))
+		sc := NewScanner(r)
+
+		got := sc.Load()
+		want := true
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+			return
+		}
+		gotbuf := sc.buf
+		wantbuf := []byte(strings.Repeat("a", 1024))
+		if !bytes.Equal(gotbuf, wantbuf) {
+			t.Errorf("got %v, want %v", gotbuf, wantbuf)
+			return
+		}
+		sc.Skip(len(wantbuf))
+
+		got = sc.Load()
+		want = true
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+			return
+		}
+		gotbuf = sc.buf
+		wantbuf = []byte(strings.Repeat("a", 976))
+		if !bytes.Equal(gotbuf, wantbuf) {
+			t.Errorf("got %v, want %v", gotbuf, wantbuf)
+			return
+		}
+
+		sc.Skip(len(wantbuf))
+
+		got = sc.Load()
+		want = false
+		if got != want {
+			t.Errorf("got %v, want %v", got, want)
+		}
+	})
+
 	t.Run("not available", func(t *testing.T) {
 		r := bytes.NewReader([]byte(``))
 		sc := NewScanner(r)
