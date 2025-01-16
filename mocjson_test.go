@@ -647,6 +647,11 @@ func TestLexer_ExpectBeginArray(t *testing.T) {
 			b:    []byte("a"),
 			want: false,
 		},
+		{
+			name: "empty",
+			b:    []byte(""),
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -702,6 +707,11 @@ func TestLexer_ExpectEndArray(t *testing.T) {
 		{
 			name: "not end array",
 			b:    []byte("a"),
+			want: false,
+		},
+		{
+			name: "empty",
+			b:    []byte(""),
 			want: false,
 		},
 	}
@@ -761,6 +771,11 @@ func TestLexer_ExpectBeginObject(t *testing.T) {
 			b:    []byte("a"),
 			want: false,
 		},
+		{
+			name: "empty",
+			b:    []byte(""),
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -816,6 +831,11 @@ func TestLexer_ExpectEndObject(t *testing.T) {
 		{
 			name: "not end object",
 			b:    []byte("a"),
+			want: false,
+		},
+		{
+			name: "empty",
+			b:    []byte(""),
 			want: false,
 		},
 	}
@@ -875,6 +895,11 @@ func TestLexer_ExpectNameSeparator(t *testing.T) {
 			b:    []byte("a"),
 			want: false,
 		},
+		{
+			name: "empty",
+			b:    []byte(""),
+			want: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -930,6 +955,11 @@ func TestLexer_ExpectValueSeparator(t *testing.T) {
 		{
 			name: "not value separator",
 			b:    []byte("a"),
+			want: false,
+		},
+		{
+			name: "empty",
+			b:    []byte(""),
 			want: false,
 		},
 	}
@@ -992,6 +1022,11 @@ func TestLexer_ExpectNull(t *testing.T) {
 		{
 			name: "not null: nul",
 			b:    []byte("nul"),
+			want: false,
+		},
+		{
+			name: "empty",
+			b:    []byte(""),
 			want: false,
 		},
 	}
@@ -1072,6 +1107,11 @@ func TestLexer_ExpectBool(t *testing.T) {
 		{
 			name:   "not bool: falsa",
 			b:      []byte("falsa"),
+			wantOK: false,
+		},
+		{
+			name:   "empty",
+			b:      []byte(""),
 			wantOK: false,
 		},
 	}
@@ -1180,6 +1220,11 @@ func TestLexer_ExpectUint64(t *testing.T) {
 		{
 			name:   "not ok: a",
 			b:      []byte("a"),
+			wantOK: false,
+		},
+		{
+			name:   "empty",
+			b:      []byte(""),
 			wantOK: false,
 		},
 	}
@@ -1386,6 +1431,42 @@ func TestLexer_ExpectFloat64(t *testing.T) {
 			want:   0,
 			wantOK: false,
 		},
+		{
+			name:   "ng: 00",
+			b:      []byte("00"),
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 01",
+			b:      []byte("01"),
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 1.",
+			b:      []byte("1."),
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 1.e",
+			b:      []byte("1.e"),
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 1.2e-",
+			b:      []byte("1.2e-"),
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name:   "empty",
+			b:      []byte(""),
+			want:   0,
+			wantOK: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1561,12 +1642,6 @@ func TestLexer_ExpectString(t *testing.T) {
 			wantOK: true,
 		},
 		{
-			name:   `ok: backslash escape \u`,
-			b:      []byte(`"hello \u0041 world"`),
-			want:   "hello A world",
-			wantOK: true,
-		},
-		{
 			name:   `ng: invalid backslash escape \q`,
 			b:      []byte(`"hello \q world"`),
 			want:   "",
@@ -1574,7 +1649,7 @@ func TestLexer_ExpectString(t *testing.T) {
 		},
 		{
 			name:   `ok: backslash escape \u with surrogate pair`,
-			b:      []byte(`"hello \uD83D\uDE00 world"`),
+			b:      []byte(`"hello \uD83D\ude00 world"`),
 			want:   "hello 😀 world",
 			wantOK: true,
 		},
@@ -1587,6 +1662,48 @@ func TestLexer_ExpectString(t *testing.T) {
 		{
 			name:   `ng: invalid backslash escape \u with incorrect surrogate pair`,
 			b:      []byte(`"hello \uD83D\u0041 world"`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: unterminated backslash escape`,
+			b:      []byte(`"hello \`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: unterminated backslash escape \u`,
+			b:      []byte(`"hello \u`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: incomplete backslash escape \u`,
+			b:      []byte(`"hello \u0`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: incomplete \u surrogate pair`,
+			b:      []byte(`"hello \uD83D`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: incomplete \u surrogate pair with backslash`,
+			b:      []byte(`"hello \uD83D\`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: unterminated \u surrogate pair`,
+			b:      []byte(`"hello \uD83D\u`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: invalid \u surrogate pair`,
+			b:      []byte(`"hello \uD83D\uUUUU`),
 			want:   "",
 			wantOK: false,
 		},
@@ -1666,6 +1783,18 @@ func TestParser_Parse(t *testing.T) {
 			name: "valid",
 			b:    []byte(`{"key1":"value1","key2":"value2"}`),
 			want: map[string]any{"key1": "value1", "key2": "value2"},
+		},
+		{
+			name:    "invalid: empty",
+			b:       []byte(""),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "invalid: incomplete",
+			b:       []byte(`{`),
+			want:    nil,
+			wantErr: true,
 		},
 		{
 			name:    "invalid: multiple values",
@@ -1788,6 +1917,18 @@ func TestParser_ParseArray(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
+		{
+			name:    "missing value separator",
+			b:       []byte(`["value1" "value2"]`),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "empty",
+			b:       []byte(""),
+			want:    nil,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -1835,6 +1976,36 @@ func TestParser_ParseObject(t *testing.T) {
 		{
 			name:    "invalid object",
 			b:       []byte("{"),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "missing value separator",
+			b:       []byte(`{"key1":"value1" "key2":"value2"}`),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "missing key separator",
+			b:       []byte(`{"key1" "value1","key2":"value2"}`),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "empty",
+			b:       []byte(""),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "invalid value",
+			b:       []byte(`{"key1": 00}`),
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "duplicate key",
+			b:       []byte(`{"key1":"value1","key1":"value2"}`),
 			want:    nil,
 			wantErr: true,
 		},

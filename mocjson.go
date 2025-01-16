@@ -479,7 +479,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 Parse:
 	ret, err := strconv.ParseFloat(string(b), 64)
 	if err != nil {
-		return 0, false
+		panic(fmt.Sprintf("parse float64 error: %v", err))
 	}
 
 	return ret, true
@@ -560,7 +560,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 						return "", false
 					}
 
-					if lx.sc.LoadedLen() < 6 {
+					if lx.sc.LoadedLen() < 2 {
 						return "", false
 					}
 
@@ -588,7 +588,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 				}
 
 				if !utf8.ValidRune(r) {
-					return "", false
+					panic("unreachable")
 				}
 				b.WriteRune(r)
 			default:
@@ -695,9 +695,7 @@ func (pa *Parser) ParseArray() ([]any, error) {
 
 	for {
 		if pa.lx.NextTokenType() == TokenTypeEndArray {
-			if !pa.lx.ExpectEndArray() {
-				return nil, errors.New("expect end array")
-			}
+			pa.lx.sc.Skip(1)
 			break
 		}
 
@@ -710,9 +708,7 @@ func (pa *Parser) ParseArray() ([]any, error) {
 
 		switch pa.lx.NextTokenType() {
 		case TokenTypeValueSeparator:
-			if !pa.lx.ExpectValueSeparator() {
-				return nil, errors.New("expect value separator")
-			}
+			pa.lx.sc.Skip(1)
 
 		case TokenTypeEndArray:
 			// NOP
@@ -738,9 +734,7 @@ func (pa *Parser) ParseObject() (map[string]any, error) {
 
 	for {
 		if pa.lx.NextTokenType() == TokenTypeEndObject {
-			if !pa.lx.ExpectEndObject() {
-				return nil, errors.New("expect end object")
-			}
+			pa.lx.sc.Skip(1)
 			break
 		}
 
@@ -765,9 +759,7 @@ func (pa *Parser) ParseObject() (map[string]any, error) {
 
 		switch pa.lx.NextTokenType() {
 		case TokenTypeValueSeparator:
-			if !pa.lx.ExpectValueSeparator() {
-				return nil, errors.New("expect value separator")
-			}
+			pa.lx.sc.Skip(1)
 
 		case TokenTypeEndObject:
 			// NOP
