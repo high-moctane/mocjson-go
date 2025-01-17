@@ -8,7 +8,11 @@ import (
 )
 
 func TestScanner_Load(t *testing.T) {
+	t.Parallel()
+
 	t.Run("available", func(t *testing.T) {
+		t.Parallel()
+
 		r := bytes.NewReader([]byte(`{"key": "value"}`))
 		sc := NewScanner(r)
 
@@ -20,6 +24,8 @@ func TestScanner_Load(t *testing.T) {
 	})
 
 	t.Run("longer than bufsize", func(t *testing.T) {
+		t.Parallel()
+
 		r := bytes.NewReader([]byte(strings.Repeat("a", 2000)))
 		sc := NewScanner(r)
 
@@ -60,6 +66,8 @@ func TestScanner_Load(t *testing.T) {
 	})
 
 	t.Run("not available", func(t *testing.T) {
+		t.Parallel()
+
 		r := bytes.NewReader([]byte(``))
 		sc := NewScanner(r)
 
@@ -107,7 +115,7 @@ func TestScanner_WhiteSpaceLen(t *testing.T) {
 				t.Errorf("failed to load")
 			}
 
-			got := sc.WhiteSpaceLen()
+			got := sc.CountWhiteSpace()
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
@@ -125,7 +133,7 @@ func BenchmarkScanner_WhiteSpaceLen(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		sc.WhiteSpaceLen()
+		sc.CountWhiteSpace()
 	}
 }
 
@@ -165,7 +173,7 @@ func TestScanner_DigitLen(t *testing.T) {
 				t.Errorf("failed to load")
 			}
 
-			got := sc.DigitLen()
+			got := sc.CountDigit()
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
@@ -183,7 +191,7 @@ func BenchmarkScanner_DigitLen(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		sc.DigitLen()
+		sc.CountDigit()
 	}
 }
 
@@ -223,7 +231,7 @@ func TestScanner_ASCIIZeroLen(t *testing.T) {
 				t.Errorf("failed to load")
 			}
 
-			got := sc.ASCIIZeroLen()
+			got := sc.CountASCIIZero()
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
@@ -241,7 +249,7 @@ func BenchmarkScanner_ASCIIZeroLen(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		sc.ASCIIZeroLen()
+		sc.CountASCIIZero()
 	}
 }
 
@@ -281,7 +289,7 @@ func TestScanner_HexLen(t *testing.T) {
 				t.Errorf("failed to load")
 			}
 
-			got := sc.HexLen()
+			got := sc.CountHex()
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
@@ -299,7 +307,7 @@ func BenchmarkScanner_HexLen(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		sc.HexLen()
+		sc.CountHex()
 	}
 }
 
@@ -356,7 +364,7 @@ func TestScanner_UnescapedASCIILen(t *testing.T) {
 				t.Errorf("failed to load")
 			}
 
-			got := sc.UnescapedASCIILen()
+			got := sc.CountUnescapedASCII()
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
@@ -383,7 +391,7 @@ func BenchmarkScanner_UnescapedASCIILen(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		sc.UnescapedASCIILen()
+		sc.CountUnescapedASCII()
 	}
 }
 
@@ -428,7 +436,7 @@ func TestScanner_MultiByteUTF8Len(t *testing.T) {
 				t.Errorf("failed to load")
 			}
 
-			got := sc.MultiByteUTF8Len()
+			got := sc.CountMultiByteUTF8()
 			if got != tt.want {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
@@ -446,7 +454,7 @@ func BenchmarkScanner_MultiByteUTF8Len(b *testing.B) {
 
 	b.ResetTimer()
 	for range b.N {
-		sc.MultiByteUTF8Len()
+		sc.CountMultiByteUTF8()
 	}
 }
 
