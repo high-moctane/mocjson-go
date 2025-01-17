@@ -44,16 +44,16 @@ func (sc *Scanner) Err() error {
 	return sc.err
 }
 
-func (sc *Scanner) Bytes(n int) []byte {
-	return sc.buf[:n]
-}
-
 func (sc *Scanner) Skip(n int) {
 	sc.buf = sc.buf[n:]
 }
 
 func (sc *Scanner) Peek() byte {
 	return sc.buf[0]
+}
+
+func (sc *Scanner) PeekN(n int) []byte {
+	return sc.buf[:n]
 }
 
 func (sc *Scanner) LoadedLen() int {
@@ -315,7 +315,7 @@ func (lx *Lexer) ExpectNull() bool {
 		return false
 	}
 
-	if !bytes.Equal(lx.sc.Bytes(4), []byte("null")) {
+	if !bytes.Equal(lx.sc.PeekN(4), []byte("null")) {
 		return false
 	}
 
@@ -334,7 +334,7 @@ func (lx *Lexer) ExpectBool() (bool, bool) {
 		return false, false
 	}
 
-	if bytes.Equal(lx.sc.Bytes(4), []byte("true")) {
+	if bytes.Equal(lx.sc.PeekN(4), []byte("true")) {
 		lx.sc.Skip(4)
 		return true, true
 	}
@@ -343,7 +343,7 @@ func (lx *Lexer) ExpectBool() (bool, bool) {
 		return false, false
 	}
 
-	if bytes.Equal(lx.sc.Bytes(5), []byte("false")) {
+	if bytes.Equal(lx.sc.PeekN(5), []byte("false")) {
 		lx.sc.Skip(5)
 		return false, true
 	}
@@ -368,7 +368,7 @@ func (lx *Lexer) ExpectUint64() (uint64, bool) {
 		return 0, false
 	}
 
-	ret, ok := lx.parseUint64(lx.sc.Bytes(digitLen))
+	ret, ok := lx.parseUint64(lx.sc.PeekN(digitLen))
 	if !ok {
 		return 0, false
 	}
@@ -407,7 +407,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 	}
 
 	if lx.sc.Peek() == '-' {
-		b = append(b, lx.sc.Bytes(1)...)
+		b = append(b, lx.sc.PeekN(1)...)
 		lx.sc.Skip(1)
 	}
 
@@ -427,7 +427,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 		return 0, false
 	}
 
-	b = append(b, lx.sc.Bytes(digitLen)...)
+	b = append(b, lx.sc.PeekN(digitLen)...)
 	lx.sc.Skip(digitLen)
 
 	// frac
@@ -436,7 +436,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 	}
 
 	if lx.sc.Peek() == '.' {
-		b = append(b, lx.sc.Bytes(1)...)
+		b = append(b, lx.sc.PeekN(1)...)
 		lx.sc.Skip(1)
 
 		if !lx.sc.Load() {
@@ -448,7 +448,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 			return 0, false
 		}
 
-		b = append(b, lx.sc.Bytes(digitLen)...)
+		b = append(b, lx.sc.PeekN(digitLen)...)
 		lx.sc.Skip(digitLen)
 	}
 
@@ -458,7 +458,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 	}
 
 	if lx.sc.Peek() == 'e' || lx.sc.Peek() == 'E' {
-		b = append(b, lx.sc.Bytes(1)...)
+		b = append(b, lx.sc.PeekN(1)...)
 		lx.sc.Skip(1)
 
 		if !lx.sc.Load() {
@@ -466,7 +466,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 		}
 
 		if lx.sc.Peek() == '+' || lx.sc.Peek() == '-' {
-			b = append(b, lx.sc.Bytes(1)...)
+			b = append(b, lx.sc.PeekN(1)...)
 			lx.sc.Skip(1)
 		}
 
@@ -479,7 +479,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 			return 0, false
 		}
 
-		b = append(b, lx.sc.Bytes(digitLen)...)
+		b = append(b, lx.sc.PeekN(digitLen)...)
 		lx.sc.Skip(digitLen)
 	}
 
@@ -559,7 +559,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 					return "", false
 				}
 
-				r := lx.parseUTF16Hex(lx.sc.Bytes(4))
+				r := lx.parseUTF16Hex(lx.sc.PeekN(4))
 				lx.sc.Skip(4)
 
 				if utf16.IsSurrogate(r) {
@@ -571,7 +571,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 						return "", false
 					}
 
-					if !bytes.Equal(lx.sc.Bytes(2), []byte("\\u")) {
+					if !bytes.Equal(lx.sc.PeekN(2), []byte("\\u")) {
 						return "", false
 					}
 
@@ -585,7 +585,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 						return "", false
 					}
 
-					r2 := lx.parseUTF16Hex(lx.sc.Bytes(4))
+					r2 := lx.parseUTF16Hex(lx.sc.PeekN(4))
 					lx.sc.Skip(4)
 
 					r = utf16.DecodeRune(r, r2)
@@ -603,10 +603,10 @@ func (lx *Lexer) ExpectString() (string, bool) {
 			}
 		} else {
 			if n := lx.sc.UnescapedASCIILen(); n > 0 {
-				b.Write(lx.sc.Bytes(n))
+				b.Write(lx.sc.PeekN(n))
 				lx.sc.Skip(n)
 			} else if n := lx.sc.MultiByteUTF8Len(); n > 0 {
-				b.Write(lx.sc.Bytes(n))
+				b.Write(lx.sc.PeekN(n))
 				lx.sc.Skip(n)
 			} else {
 				return "", false
