@@ -5,7 +5,128 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"testing/iotest"
 )
+
+func TestScanner_ReadAll(t *testing.T) {
+	t.Parallel()
+
+	longStr := bytes.Repeat([]byte("0123456789"), 1000)
+
+	tests := []struct {
+		name string
+		b    []byte
+	}{
+		{
+			name: "empty",
+			b:    []byte(""),
+		},
+		{
+			name: "one byte",
+			b:    longStr[:1],
+		},
+		{
+			name: "half of bufsize",
+			b:    longStr[:ScannerBufSize/2],
+		},
+		{
+			name: "bufsize - 1",
+			b:    longStr[:ScannerBufSize-1],
+		},
+		{
+			name: "bufsize",
+			b:    longStr[:ScannerBufSize],
+		},
+		{
+			name: "bufsize + 1",
+			b:    longStr[:ScannerBufSize+1],
+		},
+		{
+			name: "twice of bufsize",
+			b:    longStr[:ScannerBufSize*2],
+		},
+		{
+			name: "buf retain size - 1",
+			b:    longStr[:ScannerBufRetainSize-1],
+		},
+		{
+			name: "buf retain size",
+			b:    longStr[:ScannerBufRetainSize],
+		},
+		{
+			name: "buf retain size + 1",
+			b:    longStr[:ScannerBufRetainSize+1],
+		},
+		{
+			name: "twice of buf retain size",
+			b:    longStr[:ScannerBufRetainSize*2],
+		},
+	}
+
+	for _, tt := range tests {
+		for readSize := 1; readSize <= len(tt.b); readSize++ {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+
+				r := bytes.NewReader(tt.b)
+				sc := NewScanner(r)
+
+				var got []byte
+
+				for sc.Load() {
+					n := min(readSize, sc.BufferedLen())
+					b := sc.PeekN(n)
+					got = append(got, b...)
+					sc.Skip(n)
+				}
+
+				if !bytes.Equal(got, tt.b) {
+					t.Errorf("got %v, want %v", got, tt.b)
+				}
+			})
+
+			t.Run(tt.name+" (iotest.HalfReader)", func(t *testing.T) {
+				t.Parallel()
+
+				r := iotest.HalfReader(bytes.NewReader(tt.b))
+				sc := NewScanner(r)
+
+				var got []byte
+
+				for sc.Load() {
+					n := min(readSize, sc.BufferedLen())
+					b := sc.PeekN(n)
+					got = append(got, b...)
+					sc.Skip(n)
+				}
+
+				if !bytes.Equal(got, tt.b) {
+					t.Errorf("got %v, want %v", got, tt.b)
+				}
+			})
+
+			t.Run(tt.name+" (iotest.OneByteReader)", func(t *testing.T) {
+				t.Parallel()
+
+				r := iotest.OneByteReader(bytes.NewReader(tt.b))
+				sc := NewScanner(r)
+
+				var got []byte
+
+				for sc.Load() {
+					n := min(readSize, sc.BufferedLen())
+					b := sc.PeekN(n)
+					got = append(got, b...)
+					sc.Skip(n)
+				}
+
+				if !bytes.Equal(got, tt.b) {
+					t.Errorf("got %v, want %v", got, tt.b)
+				}
+			})
+		}
+	}
+}
 
 func TestScanner_Load(t *testing.T) {
 	t.Parallel()
