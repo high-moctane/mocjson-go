@@ -56,11 +56,11 @@ func (sc *Scanner) PeekN(n int) []byte {
 	return sc.buf[:n]
 }
 
-func (sc *Scanner) LoadedLen() int {
+func (sc *Scanner) BufferedLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) WhiteSpaceLen() int {
+func (sc *Scanner) CountWhiteSpace() int {
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte(" \t\r\n"), b) {
 			return i
@@ -70,7 +70,7 @@ func (sc *Scanner) WhiteSpaceLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) DigitLen() int {
+func (sc *Scanner) CountDigit() int {
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789"), b) {
 			return i
@@ -80,7 +80,7 @@ func (sc *Scanner) DigitLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) ASCIIZeroLen() int {
+func (sc *Scanner) CountASCIIZero() int {
 	for i, b := range sc.buf {
 		if b != '0' {
 			return i
@@ -90,7 +90,7 @@ func (sc *Scanner) ASCIIZeroLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) HexLen() int {
+func (sc *Scanner) CountHex() int {
 	for i, b := range sc.buf {
 		if !slices.Contains([]byte("0123456789abcdefABCDEF"), b) {
 			return i
@@ -100,7 +100,7 @@ func (sc *Scanner) HexLen() int {
 	return len(sc.buf)
 }
 
-func (sc *Scanner) UnescapedASCIILen() int {
+func (sc *Scanner) CountUnescapedASCII() int {
 	for i, b := range sc.buf {
 		if !sc.isUnescapedASCII(b) {
 			return i
@@ -114,7 +114,7 @@ func (*Scanner) isUnescapedASCII(b byte) bool {
 	return 0x20 <= b && b <= 0x21 || 0x23 <= b && b <= 0x5B || 0x5D <= b && b <= 0x7F
 }
 
-func (sc *Scanner) MultiByteUTF8Len() int {
+func (sc *Scanner) CountMultiByteUTF8() int {
 	b := sc.buf
 
 	for {
@@ -160,7 +160,7 @@ func (lx *Lexer) skipWhiteSpaces() {
 			break
 		}
 
-		n := lx.sc.WhiteSpaceLen()
+		n := lx.sc.CountWhiteSpace()
 		if n == 0 {
 			break
 		}
@@ -311,7 +311,7 @@ func (lx *Lexer) ExpectNull() bool {
 		return false
 	}
 
-	if lx.sc.UnescapedASCIILen() < 4 {
+	if lx.sc.CountUnescapedASCII() < 4 {
 		return false
 	}
 
@@ -330,7 +330,7 @@ func (lx *Lexer) ExpectBool() (bool, bool) {
 		return false, false
 	}
 
-	if lx.sc.UnescapedASCIILen() < 4 {
+	if lx.sc.CountUnescapedASCII() < 4 {
 		return false, false
 	}
 
@@ -339,7 +339,7 @@ func (lx *Lexer) ExpectBool() (bool, bool) {
 		return true, true
 	}
 
-	if lx.sc.UnescapedASCIILen() < 5 {
+	if lx.sc.CountUnescapedASCII() < 5 {
 		return false, false
 	}
 
@@ -358,11 +358,11 @@ func (lx *Lexer) ExpectUint64() (uint64, bool) {
 		return 0, false
 	}
 
-	digitLen := lx.sc.DigitLen()
+	digitLen := lx.sc.CountDigit()
 	if digitLen == 0 {
 		return 0, false
 	}
-	zeroLen := lx.sc.ASCIIZeroLen()
+	zeroLen := lx.sc.CountASCIIZero()
 	if (zeroLen == 1 && digitLen > 1) || zeroLen > 1 {
 		// leading zero is not allowed
 		return 0, false
@@ -416,12 +416,12 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 		return 0, false
 	}
 
-	digitLen := lx.sc.DigitLen()
+	digitLen := lx.sc.CountDigit()
 	if digitLen == 0 {
 		return 0, false
 	}
 
-	zeroLen := lx.sc.ASCIIZeroLen()
+	zeroLen := lx.sc.CountASCIIZero()
 	if (zeroLen == 1 && digitLen > 1) || zeroLen > 1 {
 		// leading zero is not allowed
 		return 0, false
@@ -443,7 +443,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 			return 0, false
 		}
 
-		digitLen := lx.sc.DigitLen()
+		digitLen := lx.sc.CountDigit()
 		if digitLen == 0 {
 			return 0, false
 		}
@@ -474,7 +474,7 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 			return 0, false
 		}
 
-		digitLen := lx.sc.DigitLen()
+		digitLen := lx.sc.CountDigit()
 		if digitLen == 0 {
 			return 0, false
 		}
@@ -555,7 +555,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 					return "", false
 				}
 
-				if lx.sc.HexLen() < 4 {
+				if lx.sc.CountHex() < 4 {
 					return "", false
 				}
 
@@ -567,7 +567,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 						return "", false
 					}
 
-					if lx.sc.LoadedLen() < 2 {
+					if lx.sc.BufferedLen() < 2 {
 						return "", false
 					}
 
@@ -581,7 +581,7 @@ func (lx *Lexer) ExpectString() (string, bool) {
 						return "", false
 					}
 
-					if lx.sc.HexLen() < 4 {
+					if lx.sc.CountHex() < 4 {
 						return "", false
 					}
 
@@ -602,10 +602,10 @@ func (lx *Lexer) ExpectString() (string, bool) {
 				return "", false
 			}
 		} else {
-			if n := lx.sc.UnescapedASCIILen(); n > 0 {
+			if n := lx.sc.CountUnescapedASCII(); n > 0 {
 				b.Write(lx.sc.PeekN(n))
 				lx.sc.Skip(n)
-			} else if n := lx.sc.MultiByteUTF8Len(); n > 0 {
+			} else if n := lx.sc.CountMultiByteUTF8(); n > 0 {
 				b.Write(lx.sc.PeekN(n))
 				lx.sc.Skip(n)
 			} else {
