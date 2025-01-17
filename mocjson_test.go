@@ -8,7 +8,7 @@ import (
 	"testing/iotest"
 )
 
-func TestScanner_ReadAll(t *testing.T) {
+func TestScanner_Load_ReadAll(t *testing.T) {
 	t.Parallel()
 
 	longStr := bytes.Repeat([]byte("0123456789"), 1000)

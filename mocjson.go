@@ -31,10 +31,15 @@ func NewScanner(r io.Reader) Scanner {
 func (sc *Scanner) Load() bool {
 	if sc.err == nil && len(sc.buf) < ScannerBufRetainSize {
 		b := make([]byte, ScannerBufSize)
-		copy(b, sc.buf)
-		n, err := sc.r.Read(b[len(sc.buf):])
-		sc.buf = b[:len(sc.buf)+n]
-		sc.err = err
+		n := copy(b, sc.buf)
+
+		for sc.err == nil && n < len(b) {
+			var nn int
+			nn, sc.err = sc.r.Read(b[n:])
+			n += nn
+		}
+
+		sc.buf = b[:n]
 	}
 
 	return len(sc.buf) != 0
