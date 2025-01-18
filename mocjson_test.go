@@ -2,6 +2,7 @@ package mocjson
 
 import (
 	"bytes"
+	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -145,6 +146,53 @@ func TestScanner_Load_ReadAll(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestScanner_Load_WithError(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		err     error
+		wantErr error
+	}{
+		{
+			name:    "EOF",
+			err:     io.EOF,
+			wantErr: io.EOF,
+		},
+		{
+			name:    "io.ErrUnexpectedEOF",
+			err:     io.ErrUnexpectedEOF,
+			wantErr: io.ErrUnexpectedEOF,
+		},
+		{
+			name:    "io.ErrNoProgress",
+			err:     io.ErrNoProgress,
+			wantErr: io.ErrNoProgress,
+		},
+		{
+			name:    "io.ErrShortBuffer",
+			err:     io.ErrShortBuffer,
+			wantErr: io.ErrShortBuffer,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := iotest.ErrReader(tt.err)
+			sc := NewScanner(r)
+
+			if sc.Load() {
+				t.Errorf("unexpectedly loaded")
+			}
+			if sc.Err() != tt.wantErr {
+				t.Errorf("got %v, want %v", sc.Err(), tt.wantErr)
+			}
+		})
 	}
 }
 
