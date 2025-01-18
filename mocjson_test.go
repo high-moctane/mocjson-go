@@ -1581,6 +1581,13 @@ func TestLexer_ExpectUint64(t *testing.T) {
 			wantOK: true,
 		},
 		{
+			// may fail next call of ExpectValueSeparator(), etc.
+			name:   "ok: 1234567890.1234567890",
+			b:      []byte("1234567890.1234567890"),
+			want:   1234567890,
+			wantOK: true,
+		},
+		{
 			name:   "not ok: 00",
 			b:      []byte("00"),
 			wantOK: false,
@@ -1637,6 +1644,21 @@ func TestLexer_ExpectUint64(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectUint64()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
 			lx := NewLexer(r)
 
 			got, gotOK := lx.ExpectUint64()
