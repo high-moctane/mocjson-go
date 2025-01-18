@@ -1453,6 +1453,16 @@ func TestLexer_ExpectBool(t *testing.T) {
 			wantOK: false,
 		},
 		{
+			name:   "not bool: TRUE",
+			b:      []byte("TRUE"),
+			wantOK: false,
+		},
+		{
+			name:   "not bool: trUE",
+			b:      []byte("trUE"),
+			wantOK: false,
+		},
+		{
 			name:   "not bool: fals",
 			b:      []byte("fals"),
 			wantOK: false,
@@ -1460,6 +1470,16 @@ func TestLexer_ExpectBool(t *testing.T) {
 		{
 			name:   "not bool: falsa",
 			b:      []byte("falsa"),
+			wantOK: false,
+		},
+		{
+			name:   "not bool: FALSE",
+			b:      []byte("FALSE"),
+			wantOK: false,
+		},
+		{
+			name:   "not bool: falSE",
+			b:      []byte("falSE"),
 			wantOK: false,
 		},
 		{
@@ -1489,6 +1509,21 @@ func TestLexer_ExpectBool(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectBool()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
 			lx := NewLexer(r)
 
 			got, gotOK := lx.ExpectBool()
