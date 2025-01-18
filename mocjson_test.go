@@ -2,6 +2,7 @@ package mocjson
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"reflect"
 	"strings"
@@ -451,6 +452,30 @@ func BenchmarkScanner_CountHex(b *testing.B) {
 func TestScanner_CountUnescapedASCII(t *testing.T) {
 	t.Parallel()
 
+	unescapedASCII := func() []byte {
+		var ret []byte
+		for i := 0x20; i <= 0x21; i++ {
+			ret = append(ret, byte(i))
+		}
+		for i := 0x23; i <= 0x5B; i++ {
+			ret = append(ret, byte(i))
+		}
+		for i := 0x5D; i <= 0x7F; i++ {
+			ret = append(ret, byte(i))
+		}
+		return ret
+	}()
+
+	needEscapeASCII := func() []byte {
+		var ret []byte
+		for i := 0x00; i <= 0x1F; i++ {
+			ret = append(ret, byte(i))
+		}
+		ret = append(ret, byte(0x22))
+		ret = append(ret, byte(0x5C))
+		return ret
+	}()
+
 	tests := []struct {
 		name string
 		b    []byte
@@ -458,35 +483,18 @@ func TestScanner_CountUnescapedASCII(t *testing.T) {
 	}{
 		{
 			name: "unescaped ascii only",
-			b: func() []byte {
-				var ret []byte
-				for i := 0x20; i <= 0x21; i++ {
-					ret = append(ret, byte(i))
-				}
-				for i := 0x23; i <= 0x5B; i++ {
-					ret = append(ret, byte(i))
-				}
-				for i := 0x5D; i <= 0x7F; i++ {
-					ret = append(ret, byte(i))
-				}
-				return ret
-			}(),
+			b:    unescapedASCII,
 			want: 94,
 		},
 		{
-			name: "0x22",
-			b:    []byte("\""),
-			want: 0,
+			name: "unescaped ascii and escaped ascii",
+			b:    append(unescapedASCII, []byte("\"\\")...),
+			want: 94,
 		},
 		{
-			name: "0x5C",
-			b:    []byte("\\"),
-			want: 0,
-		},
-		{
-			name: "json only",
-			b:    []byte("{\"key\": \"value\"}"),
-			want: 1,
+			name: "long unescaped ascii",
+			b:    bytes.Repeat(unescapedASCII, 1000),
+			want: ScannerBufSize,
 		},
 	}
 
@@ -507,6 +515,29 @@ func TestScanner_CountUnescapedASCII(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("need escape ascii", func(t *testing.T) {
+		t.Parallel()
+
+		for _, b := range needEscapeASCII {
+			t.Run(fmt.Sprintf("%q", b), func(t *testing.T) {
+				t.Parallel()
+
+				r := bytes.NewReader([]byte{b})
+				sc := NewScanner(r)
+
+				if !sc.Load() {
+					t.Errorf("failed to load")
+					return
+				}
+
+				got := sc.CountUnescapedASCII()
+				if got != 0 {
+					t.Errorf("got %v, want 0", got)
+				}
+			})
+		}
+	})
 }
 
 func BenchmarkScanner_CountUnescapedASCII(b *testing.B) {
