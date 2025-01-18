@@ -278,9 +278,14 @@ func TestScanner_CountDigit(t *testing.T) {
 			want: 10,
 		},
 		{
-			name: "json only",
-			b:    []byte("{\"key\": \"value\"}"),
+			name: "alphabet",
+			b:    []byte("abc"),
 			want: 0,
+		},
+		{
+			name: "long digit",
+			b:    []byte(strings.Repeat("1234567890", 1000)),
+			want: ScannerBufSize,
 		},
 	}
 
