@@ -1356,6 +1356,16 @@ func TestLexer_ExpectNull(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "not null: NULL",
+			b:    []byte("NULL"),
+			want: false,
+		},
+		{
+			name: "not null: nULL",
+			b:    []byte("nULL"),
+			want: false,
+		},
+		{
 			name: "empty",
 			b:    []byte(""),
 			want: false,
@@ -1379,6 +1389,18 @@ func TestLexer_ExpectNull(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.ExpectNull()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+
+		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
 			lx := NewLexer(r)
 
 			got := lx.ExpectNull()
