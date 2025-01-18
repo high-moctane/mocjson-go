@@ -404,9 +404,14 @@ func TestScanner_CountHex(t *testing.T) {
 			want: 22,
 		},
 		{
-			name: "json only",
-			b:    []byte("{\"key\": \"value\"}"),
+			name: "non-hex alphabet",
+			b:    []byte("ghijklmnopqrstuvwxyz"),
 			want: 0,
+		},
+		{
+			name: "long hex",
+			b:    []byte(strings.Repeat("0123456789abcdefABCDEF", 1000)),
+			want: ScannerBufSize,
 		},
 	}
 
