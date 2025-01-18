@@ -28,6 +28,12 @@ func NewScanner(r io.Reader) Scanner {
 	return Scanner{r: r}
 }
 
+// reset is called for testing.
+func (sc *Scanner) reset() {
+	sc.buf = nil
+	sc.err = nil
+}
+
 func (sc *Scanner) Load() bool {
 	if sc.err == nil && len(sc.buf) < ScannerBufRetainSize {
 		b := make([]byte, ScannerBufSize)

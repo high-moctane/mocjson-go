@@ -2457,10 +2457,13 @@ func BenchmarkParser_Parse(b *testing.B) {
 ]
 `)
 
+	r := bytes.NewReader(buf)
+	pa := NewParser(r)
+
 	b.ResetTimer()
 	for range b.N {
-		r := bytes.NewReader(buf)
-		pa := NewParser(r)
+		r.Reset(buf)
+		pa.lx.sc.reset()
 		pa.Parse()
 	}
 }
@@ -2548,10 +2551,13 @@ func BenchmarkParser_ParseValue(b *testing.B) {
 ]
 `)
 
+	r := bytes.NewReader(buf)
+	pa := NewParser(r)
+
 	b.ResetTimer()
 	for range b.N {
-		r := bytes.NewReader(buf)
-		pa := NewParser(r)
+		r.Reset(buf)
+		pa.lx.sc.reset()
 		pa.ParseValue()
 	}
 }
