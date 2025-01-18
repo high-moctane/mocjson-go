@@ -1746,9 +1746,45 @@ func TestLexer_ExpectFloat64(t *testing.T) {
 			wantOK: true,
 		},
 		{
+			name:   "ok: 1234567890.0123456789e+123",
+			b:      []byte("1234567890.0123456789e123"),
+			want:   1234567890.0123456789e123,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e000123",
+			b:      []byte("1234567890.0123456789e000123"),
+			want:   1234567890.0123456789e123,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e+000123",
+			b:      []byte("1234567890.0123456789e+000123"),
+			want:   1234567890.0123456789e123,
+			wantOK: true,
+		},
+		{
 			name:   "ok: 1234567890.0123456789e-123",
 			b:      []byte("1234567890.0123456789e-123"),
 			want:   1234567890.0123456789e-123,
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e-000123",
+			b:      []byte("1234567890.0123456789e-000123"),
+			want:   1234567890.0123456789e-123,
+			wantOK: true,
+		},
+		{
+			name:   "ok: max uint64",
+			b:      []byte("18446744073709551615"),
+			want:   18446744073709551615,
+			wantOK: true,
+		},
+		{
+			name:   "ok: big int",
+			b:      []byte("999999999999999999999999999999999999999999999999999999999999999"),
+			want:   999999999999999999999999999999999999999999999999999999999999999,
 			wantOK: true,
 		},
 		{
@@ -1800,8 +1836,32 @@ func TestLexer_ExpectFloat64(t *testing.T) {
 			wantOK: true,
 		},
 		{
+			name:   "ok: -1234567890.0123456789e+123",
+			b:      []byte("-1234567890.0123456789e123"),
+			want:   -1234567890.0123456789e123,
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e000123",
+			b:      []byte("-1234567890.0123456789e000123"),
+			want:   -1234567890.0123456789e123,
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e+000123",
+			b:      []byte("-1234567890.0123456789e+000123"),
+			want:   -1234567890.0123456789e123,
+			wantOK: true,
+		},
+		{
 			name:   "ok: -1234567890.0123456789e-123",
 			b:      []byte("-1234567890.0123456789e-123"),
+			want:   -1234567890.0123456789e-123,
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e-000123",
+			b:      []byte("-1234567890.0123456789e-000123"),
 			want:   -1234567890.0123456789e-123,
 			wantOK: true,
 		},
@@ -1866,8 +1926,27 @@ func TestLexer_ExpectFloat64(t *testing.T) {
 			wantOK: false,
 		},
 		{
+			name:   "ng: 1.2e+",
+			b:      []byte("1.2e-"),
+			want:   0,
+			wantOK: false,
+		},
+		{
 			name:   "ng: 1.2e-",
 			b:      []byte("1.2e-"),
+			want:   0,
+			wantOK: false,
+		},
+		{
+			// Constraint by strconv.ParseFloat()
+			name:   "ng: big exp",
+			b:      []byte("1e999999999999999999999999999999999999999999999999999999999999999"),
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name:   "ng: a",
+			b:      []byte("a"),
 			want:   0,
 			wantOK: false,
 		},
@@ -1899,6 +1978,21 @@ func TestLexer_ExpectFloat64(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectFloat64()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
 			lx := NewLexer(r)
 
 			got, gotOK := lx.ExpectFloat64()

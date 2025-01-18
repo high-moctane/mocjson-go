@@ -485,7 +485,8 @@ func (lx *Lexer) ExpectFloat64() (float64, bool) {
 Parse:
 	ret, err := strconv.ParseFloat(string(b), 64)
 	if err != nil {
-		panic(fmt.Sprintf("parse float64 error: %v", err))
+		// TODO(high-moctane): return error (move to Parser.ParseFloat64())
+		return 0, false
 	}
 
 	return ret, true
