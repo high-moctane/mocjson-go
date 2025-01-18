@@ -1682,356 +1682,6 @@ func BenchmarkLexer_ExpectUint64(b *testing.B) {
 	}
 }
 
-func TestLexer_ExpectFloat64(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name   string
-		b      []byte
-		want   float64
-		wantOK bool
-	}{
-		{
-			name:   "ok: 0",
-			b:      []byte("0"),
-			want:   0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1",
-			b:      []byte("1"),
-			want:   1,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890",
-			b:      []byte("1234567890"),
-			want:   1234567890,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 0.0",
-			b:      []byte("0.0"),
-			want:   0.0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1.0",
-			b:      []byte("1.0"),
-			want:   1.0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890.0123456789",
-			b:      []byte("1234567890.0123456789"),
-			want:   1234567890.0123456789,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 0.0e0",
-			b:      []byte("0.0e0"),
-			want:   0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 0.0E0",
-			b:      []byte("0.0e0"),
-			want:   0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890.0123456789e123",
-			b:      []byte("1234567890.0123456789e123"),
-			want:   1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890.0123456789e+123",
-			b:      []byte("1234567890.0123456789e123"),
-			want:   1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890.0123456789e000123",
-			b:      []byte("1234567890.0123456789e000123"),
-			want:   1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890.0123456789e+000123",
-			b:      []byte("1234567890.0123456789e+000123"),
-			want:   1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890.0123456789e-123",
-			b:      []byte("1234567890.0123456789e-123"),
-			want:   1234567890.0123456789e-123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: 1234567890.0123456789e-000123",
-			b:      []byte("1234567890.0123456789e-000123"),
-			want:   1234567890.0123456789e-123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: max uint64",
-			b:      []byte("18446744073709551615"),
-			want:   18446744073709551615,
-			wantOK: true,
-		},
-		{
-			name:   "ok: big int",
-			b:      []byte("999999999999999999999999999999999999999999999999999999999999999"),
-			want:   999999999999999999999999999999999999999999999999999999999999999,
-			wantOK: true,
-		},
-		{
-			name: "ok: big float",
-			b: []byte(
-				"999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999",
-			),
-			want:   999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999,
-			wantOK: true,
-		},
-		{
-			name: "ok: small float",
-			b: []byte(
-				"0.00000000000000000000000000000000000000000000000000000000000000000000001",
-			),
-			want:   0.00000000000000000000000000000000000000000000000000000000000000000000001,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1",
-			b:      []byte("-1"),
-			want:   -1,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890",
-			b:      []byte("-1234567890"),
-			want:   -1234567890,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -0.0",
-			b:      []byte("-0.0"),
-			want:   -0.0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1.0",
-			b:      []byte("-1.0"),
-			want:   -1.0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890.0123456789",
-			b:      []byte("-1234567890.0123456789"),
-			want:   -1234567890.0123456789,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -0.0e0",
-			b:      []byte("-0.0e0"),
-			want:   -0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -0.0E0",
-			b:      []byte("-0.0e0"),
-			want:   -0,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890.0123456789e123",
-			b:      []byte("-1234567890.0123456789e123"),
-			want:   -1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890.0123456789e+123",
-			b:      []byte("-1234567890.0123456789e123"),
-			want:   -1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890.0123456789e000123",
-			b:      []byte("-1234567890.0123456789e000123"),
-			want:   -1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890.0123456789e+000123",
-			b:      []byte("-1234567890.0123456789e+000123"),
-			want:   -1234567890.0123456789e123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890.0123456789e-123",
-			b:      []byte("-1234567890.0123456789e-123"),
-			want:   -1234567890.0123456789e-123,
-			wantOK: true,
-		},
-		{
-			name:   "ok: -1234567890.0123456789e-000123",
-			b:      []byte("-1234567890.0123456789e-000123"),
-			want:   -1234567890.0123456789e-123,
-			wantOK: true,
-		},
-		{
-			name:   "ng: --1",
-			b:      []byte("--1"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: -1e--1",
-			b:      []byte("-1e--1"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: -1e++1",
-			b:      []byte("-1e++1"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: -1.0e",
-			b:      []byte("-1.0e"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: -e1",
-			b:      []byte("-e1"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: -",
-			b:      []byte("-"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: 00",
-			b:      []byte("00"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: 01",
-			b:      []byte("01"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: 1.",
-			b:      []byte("1."),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: 1.e",
-			b:      []byte("1.e"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: 1.2e+",
-			b:      []byte("1.2e-"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: 1.2e-",
-			b:      []byte("1.2e-"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			// Constraint by strconv.ParseFloat()
-			name:   "ng: big exp",
-			b:      []byte("1e999999999999999999999999999999999999999999999999999999999999999"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "ng: a",
-			b:      []byte("a"),
-			want:   0,
-			wantOK: false,
-		},
-		{
-			name:   "empty",
-			b:      []byte(""),
-			want:   0,
-			wantOK: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			r := bytes.NewReader(tt.b)
-			lx := NewLexer(r)
-
-			got, gotOK := lx.ExpectFloat64()
-			if got != tt.want {
-				t.Errorf("got %v, want %v", got, tt.want)
-			}
-			if gotOK != tt.wantOK {
-				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
-			}
-		})
-
-		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
-			t.Parallel()
-
-			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
-			lx := NewLexer(r)
-
-			got, gotOK := lx.ExpectFloat64()
-			if got != tt.want {
-				t.Errorf("got %v, want %v", got, tt.want)
-			}
-			if gotOK != tt.wantOK {
-				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
-			}
-		})
-
-		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
-			t.Parallel()
-
-			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
-			lx := NewLexer(r)
-
-			got, gotOK := lx.ExpectFloat64()
-			if got != tt.want {
-				t.Errorf("got %v, want %v", got, tt.want)
-			}
-			if gotOK != tt.wantOK {
-				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
-			}
-		})
-	}
-}
-
-func BenchmarkLexer_ExpectFloat64(b *testing.B) {
-	r := bytes.NewReader([]byte("1234567890.0123456789e123"))
-	lx := NewLexer(r)
-
-	b.ResetTimer()
-	for range b.N {
-		lx.ExpectFloat64()
-	}
-}
-
 func TestLexer_ExpectNumberBytes(t *testing.T) {
 	t.Parallel()
 
@@ -3030,14 +2680,252 @@ func TestParser_ParseFloat64(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "valid float64",
-			b:       []byte("1.0"),
-			want:    1.0,
-			wantErr: false,
+			name: "ok: 0",
+			b:    []byte("0"),
+			want: 0,
 		},
 		{
-			name:    "invalid float64",
-			b:       []byte("hello"),
+			name: "ok: 1",
+			b:    []byte("1"),
+			want: 1,
+		},
+		{
+			name: "ok: 1234567890",
+			b:    []byte("1234567890"),
+			want: 1234567890,
+		},
+		{
+			name: "ok: 0.0",
+			b:    []byte("0.0"),
+			want: 0.0,
+		},
+		{
+			name: "ok: 1.0",
+			b:    []byte("1.0"),
+			want: 1.0,
+		},
+		{
+			name: "ok: 1234567890.0123456789",
+			b:    []byte("1234567890.0123456789"),
+			want: 1234567890.0123456789,
+		},
+		{
+			name: "ok: 0.0e0",
+			b:    []byte("0.0e0"),
+			want: 0,
+		},
+		{
+			name: "ok: 0.0E0",
+			b:    []byte("0.0e0"),
+			want: 0,
+		},
+		{
+			name: "ok: 1234567890.0123456789e123",
+			b:    []byte("1234567890.0123456789e123"),
+			want: 1234567890.0123456789e123,
+		},
+		{
+			name: "ok: 1234567890.0123456789e+123",
+			b:    []byte("1234567890.0123456789e123"),
+			want: 1234567890.0123456789e123,
+		},
+		{
+			name: "ok: 1234567890.0123456789e000123",
+			b:    []byte("1234567890.0123456789e000123"),
+			want: 1234567890.0123456789e123,
+		},
+		{
+			name: "ok: 1234567890.0123456789e+000123",
+			b:    []byte("1234567890.0123456789e+000123"),
+			want: 1234567890.0123456789e123,
+		},
+		{
+			name: "ok: 1234567890.0123456789e-123",
+			b:    []byte("1234567890.0123456789e-123"),
+			want: 1234567890.0123456789e-123,
+		},
+		{
+			name: "ok: 1234567890.0123456789e-000123",
+			b:    []byte("1234567890.0123456789e-000123"),
+			want: 1234567890.0123456789e-123,
+		},
+		{
+			name: "ok: max uint64",
+			b:    []byte("18446744073709551615"),
+			want: 18446744073709551615,
+		},
+		{
+			name: "ok: big int",
+			b:    []byte("999999999999999999999999999999999999999999999999999999999999999"),
+			want: 999999999999999999999999999999999999999999999999999999999999999,
+		},
+		{
+			name: "ok: big float",
+			b: []byte(
+				"999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999",
+			),
+			want: 999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999,
+		},
+		{
+			name: "ok: small float",
+			b: []byte(
+				"0.00000000000000000000000000000000000000000000000000000000000000000000001",
+			),
+			want: 0.00000000000000000000000000000000000000000000000000000000000000000000001,
+		},
+		{
+			name: "ok: -1",
+			b:    []byte("-1"),
+			want: -1,
+		},
+		{
+			name: "ok: -1234567890",
+			b:    []byte("-1234567890"),
+			want: -1234567890,
+		},
+		{
+			name: "ok: -0.0",
+			b:    []byte("-0.0"),
+			want: -0.0,
+		},
+		{
+			name: "ok: -1.0",
+			b:    []byte("-1.0"),
+			want: -1.0,
+		},
+		{
+			name: "ok: -1234567890.0123456789",
+			b:    []byte("-1234567890.0123456789"),
+			want: -1234567890.0123456789,
+		},
+		{
+			name: "ok: -0.0e0",
+			b:    []byte("-0.0e0"),
+			want: -0,
+		},
+		{
+			name: "ok: -0.0E0",
+			b:    []byte("-0.0e0"),
+			want: -0,
+		},
+		{
+			name: "ok: -1234567890.0123456789e123",
+			b:    []byte("-1234567890.0123456789e123"),
+			want: -1234567890.0123456789e123,
+		},
+		{
+			name: "ok: -1234567890.0123456789e+123",
+			b:    []byte("-1234567890.0123456789e123"),
+			want: -1234567890.0123456789e123,
+		},
+		{
+			name: "ok: -1234567890.0123456789e000123",
+			b:    []byte("-1234567890.0123456789e000123"),
+			want: -1234567890.0123456789e123,
+		},
+		{
+			name: "ok: -1234567890.0123456789e+000123",
+			b:    []byte("-1234567890.0123456789e+000123"),
+			want: -1234567890.0123456789e123,
+		},
+		{
+			name: "ok: -1234567890.0123456789e-123",
+			b:    []byte("-1234567890.0123456789e-123"),
+			want: -1234567890.0123456789e-123,
+		},
+		{
+			name: "ok: -1234567890.0123456789e-000123",
+			b:    []byte("-1234567890.0123456789e-000123"),
+			want: -1234567890.0123456789e-123,
+		},
+		{
+			name:    "ng: --1",
+			b:       []byte("--1"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: -1e--1",
+			b:       []byte("-1e--1"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: -1e++1",
+			b:       []byte("-1e++1"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: -1.0e",
+			b:       []byte("-1.0e"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: -e1",
+			b:       []byte("-e1"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: -",
+			b:       []byte("-"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: 00",
+			b:       []byte("00"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: 01",
+			b:       []byte("01"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.",
+			b:       []byte("1."),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.e",
+			b:       []byte("1.e"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.2e+",
+			b:       []byte("1.2e-"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.2e-",
+			b:       []byte("1.2e-"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			// Constraint by strconv.ParseFloat()
+			name:    "ng: big exp",
+			b:       []byte("1e999999999999999999999999999999999999999999999999999999999999999"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "ng: a",
+			b:       []byte("a"),
+			want:    0,
+			wantErr: true,
+		},
+		{
+			name:    "empty",
+			b:       []byte(""),
 			want:    0,
 			wantErr: true,
 		},
