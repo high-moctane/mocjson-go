@@ -151,6 +151,30 @@ func TestScanner_Load_ReadAll(t *testing.T) {
 	}
 }
 
+func BenchmarkScanner_Load_ReadAll(b *testing.B) {
+	for strlen := 1; strlen <= 100_000_000; strlen *= 100 {
+		b.Run(fmt.Sprintf("strlen=%d", strlen), func(b *testing.B) {
+			for readSize := 1; readSize <= min(strlen, ScannerBufSize); readSize *= 10 {
+				b.Run(fmt.Sprintf("readSize=%d", readSize), func(b *testing.B) {
+					bs := bytes.Repeat([]byte("a"), strlen)
+					r := bytes.NewReader(bs)
+					sc := NewScanner(r)
+
+					b.ResetTimer()
+					for range b.N {
+						r.Reset(bs)
+						sc.reset()
+
+						for sc.Load() {
+							sc.Skip(sc.BufferedLen())
+						}
+					}
+				})
+			}
+		})
+	}
+}
+
 func TestScanner_Load_WithError(t *testing.T) {
 	t.Parallel()
 
