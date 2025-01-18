@@ -192,9 +192,7 @@ func (lx *Lexer) NextTokenType() TokenType {
 		return TokenTypeValueSeparator
 	case 'n':
 		return TokenTypeNull
-	case 't':
-		return TokenTypeBool
-	case 'f':
+	case 't', 'f':
 		return TokenTypeBool
 	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		return TokenTypeNumber
