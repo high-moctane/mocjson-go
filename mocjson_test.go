@@ -152,7 +152,9 @@ func TestScanner_Load_ReadAll(t *testing.T) {
 }
 
 func BenchmarkScanner_Load_ReadAll(b *testing.B) {
-	for strlen := 1; strlen <= 100_000_000; strlen *= 100 {
+	strLens := []int{0, 1, 10, 100, 1000, 10000, 100000, 1000000}
+
+	for _, strlen := range strLens {
 		b.Run(fmt.Sprintf("strlen=%d", strlen), func(b *testing.B) {
 			for readSize := 1; readSize <= min(strlen, ScannerBufSize); readSize *= 10 {
 				b.Run(fmt.Sprintf("readSize=%d", readSize), func(b *testing.B) {
@@ -2699,33 +2701,39 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 		"true",
 		"123.456",
 		`"🍣😋🍺"`,
-		`["value1", 2]`,
-		`{"key1": "value1", "key2": 2}`,
+		`[]`,
+		`{}`,
 	}
 
-	var buf bytes.Buffer
-	buf.WriteString("[")
-	for i := 0; i < 100; i++ {
-		buf.WriteString(values[i%len(values)])
-		if i < 99 {
-			buf.WriteString(",")
-		}
-	}
-	buf.WriteString("]")
+	cases := []int{0, 1, 10, 100, 1000}
 
-	bs := buf.Bytes()
+	for _, arrayLen := range cases {
+		b.Run(fmt.Sprintf("len=%d", arrayLen), func(b *testing.B) {
+			var buf bytes.Buffer
+			buf.WriteString("[")
+			for i := 0; i < arrayLen; i++ {
+				buf.WriteString(values[i%len(values)])
+				if i < arrayLen-1 {
+					buf.WriteString(",")
+				}
+			}
+			buf.WriteString("]")
 
-	r := bytes.NewReader(bs)
-	pa := NewParser(r)
+			bs := buf.Bytes()
 
-	b.ResetTimer()
-	for range b.N {
-		r.Reset(bs)
-		pa.reset()
-		_, err := pa.ParseArray()
-		if err != nil {
-			b.Fatal(err)
-		}
+			r := bytes.NewReader(bs)
+			pa := NewParser(r)
+
+			b.ResetTimer()
+			for range b.N {
+				r.Reset(bs)
+				pa.reset()
+				_, err := pa.ParseArray()
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 	}
 }
 
@@ -2815,35 +2823,41 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 		"true",
 		"123.456",
 		`"🍣😋🍺"`,
-		`["value1", 2]`,
-		`{"key1": "value1", "key2": 2}`,
+		`[]`,
+		`{}`,
 	}
 
-	var buf bytes.Buffer
-	buf.WriteString("{")
-	for i := 0; i < 100; i++ {
-		buf.WriteString(`"key`)
-		buf.WriteString(strconv.Itoa(i))
-		buf.WriteString(`":`)
-		buf.WriteString(values[i%len(values)])
-		if i < 99 {
-			buf.WriteString(",")
-		}
-	}
-	buf.WriteString("}")
+	cases := []int{0, 1, 10, 100, 1000}
 
-	bs := buf.Bytes()
-	r := bytes.NewReader(bs)
-	pa := NewParser(r)
+	for _, objectLen := range cases {
+		b.Run(fmt.Sprintf("len=%d", objectLen), func(b *testing.B) {
+			var buf bytes.Buffer
+			buf.WriteString("{")
+			for i := 0; i < objectLen; i++ {
+				buf.WriteString(`"key`)
+				buf.WriteString(strconv.Itoa(i))
+				buf.WriteString(`":`)
+				buf.WriteString(values[i%len(values)])
+				if i < objectLen-1 {
+					buf.WriteString(",")
+				}
+			}
+			buf.WriteString("}")
 
-	b.ResetTimer()
-	for range b.N {
-		r.Reset(bs)
-		pa.reset()
-		_, err := pa.ParseObject()
-		if err != nil {
-			b.Fatal(err)
-		}
+			bs := buf.Bytes()
+			r := bytes.NewReader(bs)
+			pa := NewParser(r)
+
+			b.ResetTimer()
+			for range b.N {
+				r.Reset(bs)
+				pa.reset()
+				_, err := pa.ParseObject()
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 	}
 }
 
