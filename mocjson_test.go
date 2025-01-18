@@ -2624,6 +2624,42 @@ func TestParser_ParseArray(t *testing.T) {
 	}
 }
 
+func BenchmarkParser_ParseArray(b *testing.B) {
+	values := []string{
+		"null",
+		"true",
+		"123.456",
+		`"🍣😋🍺"`,
+		`["value1", 2]`,
+		`{"key1": "value1", "key2": 2}`,
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("[")
+	for i := 0; i < 100; i++ {
+		buf.WriteString(values[i%len(values)])
+		if i < 99 {
+			buf.WriteString(",")
+		}
+	}
+	buf.WriteString("]")
+
+	bs := buf.Bytes()
+
+	r := bytes.NewReader(bs)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		r.Reset(bs)
+		pa.lx.sc.reset()
+		_, err := pa.ParseArray()
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func TestParser_ParseObject(t *testing.T) {
 	t.Parallel()
 
