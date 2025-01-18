@@ -2341,24 +2341,44 @@ func TestParser_Parse(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "valid",
+			name: "ok: null",
+			b:    []byte("null"),
+			want: nil,
+		},
+		{
+			name: "ok: string",
+			b:    []byte(`"hello"`),
+			want: "hello",
+		},
+		{
+			name: "ok: object",
 			b:    []byte(`{"key1":"value1","key2":"value2"}`),
 			want: map[string]any{"key1": "value1", "key2": "value2"},
 		},
 		{
-			name:    "invalid: empty",
+			name: "ok: array",
+			b:    []byte(`["value1","value2"]`),
+			want: []any{"value1", "value2"},
+		},
+		{
+			name: "ok: surrounding whitespaces",
+			b:    []byte(" \t\r\n\"hello\" \t\r\n"),
+			want: "hello",
+		},
+		{
+			name:    "ng: empty",
 			b:       []byte(""),
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name:    "invalid: incomplete",
+			name:    "ng: incomplete",
 			b:       []byte(`{`),
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name:    "invalid: multiple values",
+			name:    "ng: multiple values",
 			b:       []byte(`"value1""value2"`),
 			want:    nil,
 			wantErr: true,
