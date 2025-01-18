@@ -124,6 +124,26 @@ func TestScanner_Load_ReadAll(t *testing.T) {
 					t.Errorf("got %v, want %v", got, tt.b)
 				}
 			})
+
+			t.Run(tt.name+" (iotest.DataErrReader)", func(t *testing.T) {
+				t.Parallel()
+
+				r := iotest.DataErrReader(bytes.NewReader(tt.b))
+				sc := NewScanner(r)
+
+				var got []byte
+
+				for sc.Load() {
+					n := min(readSize, sc.BufferedLen())
+					b := sc.PeekN(n)
+					got = append(got, b...)
+					sc.Skip(n)
+				}
+
+				if !bytes.Equal(got, tt.b) {
+					t.Errorf("got %v, want %v", got, tt.b)
+				}
+			})
 		}
 	}
 }
