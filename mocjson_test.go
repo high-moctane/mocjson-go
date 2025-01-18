@@ -2146,16 +2146,58 @@ func TestLexer_ExpectString(t *testing.T) {
 			wantOK: true,
 		},
 		{
+			name:   "ok: long ascii",
+			b:      []byte(`"` + strings.Repeat("a", ScannerBufSize*2) + `"`),
+			want:   strings.Repeat("a", ScannerBufSize*2),
+			wantOK: true,
+		},
+		{
+			name:   "ok: long utf-8",
+			b:      []byte(`"` + strings.Repeat("±ħɛΩבあいうえお😀🫨🩷🍣🍺", ScannerBufSize*2) + `"`),
+			want:   strings.Repeat("±ħɛΩבあいうえお😀🫨🩷🍣🍺", ScannerBufSize*2),
+			wantOK: true,
+		},
+		{
 			name:   `ng: invalid backslash escape \q`,
 			b:      []byte(`"hello \q world"`),
 			want:   "",
 			wantOK: false,
 		},
 		{
-			name:   `ok: backslash escape \u with surrogate pair`,
-			b:      []byte(`"hello \uD83D\ude00 world"`),
-			want:   "hello 😀 world",
-			wantOK: true,
+			name:   `ng: backslash escape \B`,
+			b:      []byte(`"hello \B world"`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: backslash escape \F`,
+			b:      []byte(`"hello \F world"`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: backslash escape \N`,
+			b:      []byte(`"hello \N world"`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: backslash escape \R`,
+			b:      []byte(`"hello \R world"`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: backslash escape \T`,
+			b:      []byte(`"hello \T world"`),
+			want:   "",
+			wantOK: false,
+		},
+		{
+			name:   `ng: backslash escape \U`,
+			b:      []byte(`"\U0041"`),
+			want:   "",
+			wantOK: false,
 		},
 		{
 			name:   `ng: invalid backslash escape \u with incomplete surrogate pair`,
@@ -2183,13 +2225,13 @@ func TestLexer_ExpectString(t *testing.T) {
 		},
 		{
 			name:   `ng: incomplete backslash escape \u`,
-			b:      []byte(`"hello \u0`),
+			b:      []byte(`"hello \u0"`),
 			want:   "",
 			wantOK: false,
 		},
 		{
 			name:   `ng: incomplete \u surrogate pair`,
-			b:      []byte(`"hello \uD83D`),
+			b:      []byte(`"hello \uD83D"`),
 			want:   "",
 			wantOK: false,
 		},
@@ -2201,13 +2243,13 @@ func TestLexer_ExpectString(t *testing.T) {
 		},
 		{
 			name:   `ng: unterminated \u surrogate pair`,
-			b:      []byte(`"hello \uD83D\u`),
+			b:      []byte(`"hello \uD83D\u"`),
 			want:   "",
 			wantOK: false,
 		},
 		{
 			name:   `ng: invalid \u surrogate pair`,
-			b:      []byte(`"hello \uD83D\uUUUU`),
+			b:      []byte(`"hello \uD83D\uUUUU"`),
 			want:   "",
 			wantOK: false,
 		},
@@ -2233,6 +2275,21 @@ func TestLexer_ExpectString(t *testing.T) {
 			t.Parallel()
 
 			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectString()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
 			lx := NewLexer(r)
 
 			got, gotOK := lx.ExpectString()
