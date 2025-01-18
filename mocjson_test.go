@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"testing/iotest"
@@ -2737,6 +2738,44 @@ func TestParser_ParseObject(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkParser_ParseObject(b *testing.B) {
+	values := []string{
+		"null",
+		"true",
+		"123.456",
+		`"🍣😋🍺"`,
+		`["value1", 2]`,
+		`{"key1": "value1", "key2": 2}`,
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("{")
+	for i := 0; i < 100; i++ {
+		buf.WriteString(`"key`)
+		buf.WriteString(strconv.Itoa(i))
+		buf.WriteString(`":`)
+		buf.WriteString(values[i%len(values)])
+		if i < 99 {
+			buf.WriteString(",")
+		}
+	}
+	buf.WriteString("}")
+
+	bs := buf.Bytes()
+	r := bytes.NewReader(bs)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		r.Reset(bs)
+		pa.lx.sc.reset()
+		_, err := pa.ParseObject()
+		if err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
