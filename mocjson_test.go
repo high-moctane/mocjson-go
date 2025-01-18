@@ -3249,16 +3249,25 @@ func TestParser_ParseString(t *testing.T) {
 }
 
 func BenchmarkParser_ParseString(b *testing.B) {
-	bs := []byte(`"hello\"\n\t\r\b\f\\\/\uD83D\uDE00こんにちは灰木炭😀😃😄😁"`)
-	bs = bytes.Repeat(bs, 1000)
-	r := bytes.NewReader(bs)
-	pa := NewParser(r)
+	orig := []byte(`hello\"\n\t\r\b\f\\\/\uD83D\uDE00こんにちは灰木炭😀😃😄😁`)
+	strLens := []int{0, 1, 10, 100, 1000, 10000}
 
-	b.ResetTimer()
-	for range b.N {
-		r.Reset(bs)
-		pa.reset()
-		pa.ParseString()
+	for _, strLen := range strLens {
+		b.Run(fmt.Sprintf("len=%d", strLen), func(b *testing.B) {
+			var bs []byte
+			bs = append(bs, '"')
+			bs = append(bs, bytes.Repeat(orig, strLen/len(orig)+1)[:strLen]...)
+			bs = append(bs, '"')
+			r := bytes.NewReader(bs)
+			pa := NewParser(r)
+
+			b.ResetTimer()
+			for range b.N {
+				r.Reset(bs)
+				pa.reset()
+				pa.ParseString()
+			}
+		})
 	}
 }
 
