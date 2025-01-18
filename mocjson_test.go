@@ -811,11 +811,14 @@ func TestLexer_NextTokenType(t *testing.T) {
 }
 
 func BenchmarkLexer_NextTokenType(b *testing.B) {
-	r := bytes.NewReader(append([]byte(" \t\r\n"), []byte("a")...))
+	bs := []byte(" \t\r\n\"a\"")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.NextTokenType()
 	}
 }
@@ -880,11 +883,14 @@ func TestLexer_ExpectEOF(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectEOF(b *testing.B) {
-	r := bytes.NewReader(append([]byte(" \t\r\n"), []byte("")...))
+	bs := []byte(" \t\r\n")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectEOF()
 	}
 }
@@ -954,11 +960,14 @@ func TestLexer_ExpectBeginArray(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectBeginArray(b *testing.B) {
-	r := bytes.NewReader([]byte("["))
+	bs := []byte("[")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectBeginArray()
 	}
 }
@@ -1028,11 +1037,14 @@ func TestLexer_ExpectEndArray(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectEndArray(b *testing.B) {
-	r := bytes.NewReader([]byte("]"))
+	bs := []byte("]")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectEndArray()
 	}
 }
@@ -1102,11 +1114,14 @@ func TestLexer_ExpectBeginObject(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectBeginObject(b *testing.B) {
-	r := bytes.NewReader([]byte("{"))
+	bs := []byte("{")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectBeginObject()
 	}
 }
@@ -1176,11 +1191,14 @@ func TestLexer_ExpectEndObject(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectEndObject(b *testing.B) {
-	r := bytes.NewReader([]byte("}"))
+	bs := []byte("}")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectEndObject()
 	}
 }
@@ -1250,11 +1268,14 @@ func TestLexer_ExpectNameSeparator(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectNameSeparator(b *testing.B) {
-	r := bytes.NewReader([]byte(":"))
+	bs := []byte(":")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectNameSeparator()
 	}
 }
@@ -1324,11 +1345,14 @@ func TestLexer_ExpectValueSeparator(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectValueSeparator(b *testing.B) {
-	r := bytes.NewReader([]byte(","))
+	bs := []byte(",")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectValueSeparator()
 	}
 }
@@ -1413,11 +1437,14 @@ func TestLexer_ExpectNull(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectNull(b *testing.B) {
-	r := bytes.NewReader([]byte("null"))
+	bs := []byte("null")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectNull()
 	}
 }
@@ -1539,11 +1566,14 @@ func TestLexer_ExpectBool(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectBool(b *testing.B) {
-	r := bytes.NewReader([]byte("false"))
+	bs := []byte("false")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectBool()
 	}
 }
@@ -1674,11 +1704,14 @@ func TestLexer_ExpectUint64(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectUint64(b *testing.B) {
-	r := bytes.NewReader([]byte("18446744073709551615"))
+	bs := []byte("18446744073709551615")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectUint64()
 	}
 }
@@ -2027,11 +2060,14 @@ func TestLexer_ExpectNumberBytes(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectNumberBytes(b *testing.B) {
-	r := bytes.NewReader([]byte("1234567890.0123456789e123"))
+	bs := []byte("1234567890.0123456789e123")
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectNumberBytes()
 	}
 }
@@ -2324,29 +2360,37 @@ func TestLexer_ExpectString(t *testing.T) {
 }
 
 func BenchmarkLexer_ExpectString(b *testing.B) {
-	longString := `"` +
-		`hello` +
-		`hello\nworld` +
-		`\u0041` +
-		`こんにちは` +
-		`灰木炭` +
-		`😀😃😄😁` +
-		`hello \"world` +
-		`hello \\ world` +
-		`hello \/ world` +
-		`hello \b world` +
-		`hello \f world` +
-		`hello \n world` +
-		`hello \r world` +
-		`hello \t world` +
-		`hello \u0041 world` +
-		`hello \uD83D\uDE00 world` +
-		`"`
-	r := bytes.NewReader([]byte(longString))
+	var bs []byte
+	bs = append(bs, '"')
+	for i := 0; i < 100; i++ {
+		bs = append(bs, []byte(
+			`hello`+
+				`hello\nworld`+
+				`\u0041`+
+				`こんにちは`+
+				`灰木炭`+
+				`😀😃😄😁`+
+				`hello \"world`+
+				`hello \\ world`+
+				`hello \/ world`+
+				`hello \b world`+
+				`hello \f world`+
+				`hello \n world`+
+				`hello \r world`+
+				`hello \t world`+
+				`hello \u0041 world`+
+				`hello \uD83D\uDE00 world`,
+		)...)
+	}
+	bs = append(bs, '"')
+
+	r := bytes.NewReader(bs)
 	lx := NewLexer(r)
 
 	b.ResetTimer()
 	for range b.N {
+		r.Reset(bs)
+		lx.reset()
 		lx.ExpectString()
 	}
 }
