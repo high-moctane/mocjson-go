@@ -3,6 +3,7 @@ pre-commit:
     fmt:
       glob: "*.go"
       run: make fmt
+      stage_fixed: true
     lint:
       glob: "*.go"
       run: make lint
