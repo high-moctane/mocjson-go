@@ -2386,7 +2386,9 @@ func TestParser_Parse(t *testing.T) {
 		},
 		{
 			name: "ok: composite",
-			b:    []byte("[{\"null\":null,\"bool\":true,\"number\":123.456,\"string\":\"🍣😋🍺\",\"array\":[\"value1\",2],\"object\":{\"key1\":\"value1\",\"key2\":2}},null]"),
+			b: []byte(
+				"[{\"null\":null,\"bool\":true,\"number\":123.456,\"string\":\"🍣😋🍺\",\"array\":[\"value1\",2],\"object\":{\"key1\":\"value1\",\"key2\":2}},null]",
+			),
 			want: []any{
 				map[string]any{
 					"null":   nil,
