@@ -2705,9 +2705,8 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 		`{}`,
 	}
 
-	cases := []int{0, 1, 10, 100, 1000}
-
-	for _, arrayLen := range cases {
+	// len
+	for _, arrayLen := range []int{0, 1, 10, 100, 1000} {
 		b.Run(fmt.Sprintf("len=%d", arrayLen), func(b *testing.B) {
 			var buf bytes.Buffer
 			buf.WriteString("[")
@@ -2718,6 +2717,34 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 				}
 			}
 			buf.WriteString("]")
+
+			bs := buf.Bytes()
+
+			r := bytes.NewReader(bs)
+			pa := NewParser(r)
+
+			b.ResetTimer()
+			for range b.N {
+				r.Reset(bs)
+				pa.reset()
+				_, err := pa.ParseArray()
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+
+	// depth
+	for _, arrayDepth := range []int{1, 10, 100, 1000} {
+		b.Run(fmt.Sprintf("depth=%d", arrayDepth), func(b *testing.B) {
+			var buf bytes.Buffer
+			for i := 0; i < arrayDepth; i++ {
+				buf.WriteString("[")
+			}
+			for i := 0; i < arrayDepth; i++ {
+				buf.WriteString("]")
+			}
 
 			bs := buf.Bytes()
 
@@ -2827,9 +2854,8 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 		`{}`,
 	}
 
-	cases := []int{0, 1, 10, 100, 1000}
-
-	for _, objectLen := range cases {
+	// len
+	for _, objectLen := range []int{0, 1, 10, 100, 1000} {
 		b.Run(fmt.Sprintf("len=%d", objectLen), func(b *testing.B) {
 			var buf bytes.Buffer
 			buf.WriteString("{")
@@ -2843,6 +2869,34 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 				}
 			}
 			buf.WriteString("}")
+
+			bs := buf.Bytes()
+			r := bytes.NewReader(bs)
+			pa := NewParser(r)
+
+			b.ResetTimer()
+			for range b.N {
+				r.Reset(bs)
+				pa.reset()
+				_, err := pa.ParseObject()
+				if err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	}
+
+	// depth
+	for _, objectDepth := range []int{1, 10, 100, 1000} {
+		b.Run(fmt.Sprintf("depth=%d", objectDepth), func(b *testing.B) {
+			var buf bytes.Buffer
+			for i := 0; i < objectDepth-1; i++ {
+				buf.WriteString(`{"k":`)
+			}
+			buf.WriteString(`{`)
+			for i := 0; i < objectDepth; i++ {
+				buf.WriteString("}")
+			}
 
 			bs := buf.Bytes()
 			r := bytes.NewReader(bs)
