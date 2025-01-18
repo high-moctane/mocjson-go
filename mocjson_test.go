@@ -794,6 +794,18 @@ func TestLexer_NextTokenType(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+
+		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
+			lx := NewLexer(r)
+
+			got := lx.NextTokenType()
+			if got != tt.want {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
