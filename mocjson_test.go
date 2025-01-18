@@ -2441,7 +2441,7 @@ func TestParser_Parse(t *testing.T) {
 }
 
 func BenchmarkParser_Parse(b *testing.B) {
-	buf := []byte(`
+	bs := []byte(`
 [
     {
         "null": null,
@@ -2458,12 +2458,12 @@ func BenchmarkParser_Parse(b *testing.B) {
 ]
 `)
 
-	r := bytes.NewReader(buf)
+	r := bytes.NewReader(bs)
 	pa := NewParser(r)
 
 	b.ResetTimer()
 	for range b.N {
-		r.Reset(buf)
+		r.Reset(bs)
 		pa.lx.sc.reset()
 		pa.Parse()
 	}
@@ -2535,7 +2535,7 @@ func TestParser_ParseValue(t *testing.T) {
 }
 
 func BenchmarkParser_ParseValue(b *testing.B) {
-	buf := []byte(`
+	bs := []byte(`
 [
     {
         "null": null,
@@ -2552,12 +2552,12 @@ func BenchmarkParser_ParseValue(b *testing.B) {
 ]
 `)
 
-	r := bytes.NewReader(buf)
+	r := bytes.NewReader(bs)
 	pa := NewParser(r)
 
 	b.ResetTimer()
 	for range b.N {
-		r.Reset(buf)
+		r.Reset(bs)
 		pa.lx.sc.reset()
 		pa.ParseValue()
 	}
@@ -2817,6 +2817,19 @@ func TestParser_ParseBool(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkParser_ParseBool(b *testing.B) {
+	bs := []byte("false")
+	r := bytes.NewReader(bs)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		r.Reset(bs)
+		pa.lx.sc.reset()
+		pa.ParseBool()
 	}
 }
 
@@ -3099,6 +3112,19 @@ func TestParser_ParseFloat64(t *testing.T) {
 	}
 }
 
+func BenchmarkParser_ParseFloat64(b *testing.B) {
+	bs := []byte("-1234567890.0123456789e123")
+	r := bytes.NewReader(bs)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		r.Reset(bs)
+		pa.lx.sc.reset()
+		pa.ParseFloat64()
+	}
+}
+
 func TestParser_ParseString(t *testing.T) {
 	t.Parallel()
 
@@ -3140,6 +3166,20 @@ func TestParser_ParseString(t *testing.T) {
 	}
 }
 
+func BenchmarkParser_ParseString(b *testing.B) {
+	bs := []byte(`"hello\"\n\t\r\b\f\\\/\uD83D\uDE00こんにちは灰木炭😀😃😄😁"`)
+	bs = bytes.Repeat(bs, 1000)
+	r := bytes.NewReader(bs)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		r.Reset(bs)
+		pa.lx.sc.reset()
+		pa.ParseString()
+	}
+}
+
 func TestParser_ParseNull(t *testing.T) {
 	t.Parallel()
 
@@ -3178,5 +3218,18 @@ func TestParser_ParseNull(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkParser_ParseNull(b *testing.B) {
+	bs := []byte("null")
+	r := bytes.NewReader(bs)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		r.Reset(bs)
+		pa.lx.sc.reset()
+		pa.ParseNull()
 	}
 }
