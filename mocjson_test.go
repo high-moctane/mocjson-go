@@ -2385,6 +2385,21 @@ func TestParser_Parse(t *testing.T) {
 			want: "hello",
 		},
 		{
+			name: "ok: composite",
+			b:    []byte("[{\"null\":null,\"bool\":true,\"number\":123.456,\"string\":\"🍣😋🍺\",\"array\":[\"value1\",2],\"object\":{\"key1\":\"value1\",\"key2\":2}},null]"),
+			want: []any{
+				map[string]any{
+					"null":   nil,
+					"bool":   true,
+					"number": 123.456,
+					"string": "🍣😋🍺",
+					"array":  []any{"value1", 2.0},
+					"object": map[string]any{"key1": "value1", "key2": 2.0},
+				},
+				nil,
+			},
+		},
+		{
 			name:    "ng: empty",
 			b:       []byte(""),
 			want:    nil,
@@ -2419,6 +2434,33 @@ func TestParser_Parse(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkParser_Parse(b *testing.B) {
+	buf := []byte(`
+[
+    {
+        "null": null,
+        "bool": true,
+        "number": 123.456,
+        "string": "🍣😋🍺",
+        "array": ["value1", 2],
+        "object": {
+            "key1": "value1",
+            "key2": 2
+        },
+    },
+    null
+]
+`)
+
+	r := bytes.NewReader(buf)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		pa.Parse()
 	}
 }
 
