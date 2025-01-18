@@ -205,19 +205,24 @@ func TestScanner_WhiteSpaceLen(t *testing.T) {
 		want int
 	}{
 		{
-			name: "space only",
+			name: "whitespace only",
 			b:    []byte(" \t\r\n \t\r\n"),
 			want: 8,
 		},
 		{
-			name: "space and ascii",
+			name: "whitespace + alphabet",
 			b:    []byte(" \t\r\na"),
 			want: 4,
 		},
 		{
-			name: "json only",
-			b:    []byte("{\"key\": \"value\"}"),
+			name: "alphabet",
+			b:    []byte("abc"),
 			want: 0,
+		},
+		{
+			name: "long whitespace",
+			b:    []byte(strings.Repeat(" \t\r\n", 1000)),
+			want: ScannerBufSize,
 		},
 	}
 
