@@ -2449,17 +2449,16 @@ func BenchmarkParser_Parse(b *testing.B) {
         "object": {
             "key1": "value1",
             "key2": 2
-        },
+        }
     },
     null
 ]
 `)
 
-	r := bytes.NewReader(buf)
-	pa := NewParser(r)
-
 	b.ResetTimer()
 	for range b.N {
+		r := bytes.NewReader(buf)
+		pa := NewParser(r)
 		pa.Parse()
 	}
 }
@@ -2526,6 +2525,32 @@ func TestParser_ParseValue(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func BenchmarkParser_ParseValue(b *testing.B) {
+	buf := []byte(`
+[
+    {
+        "null": null,
+        "bool": true,
+        "number": 123.456,
+        "string": "🍣😋🍺",
+        "array": ["value1", 2],
+        "object": {
+            "key1": "value1",
+            "key2": 2
+        }
+    },
+    null
+]
+`)
+
+	b.ResetTimer()
+	for range b.N {
+		r := bytes.NewReader(buf)
+		pa := NewParser(r)
+		pa.ParseValue()
 	}
 }
 
