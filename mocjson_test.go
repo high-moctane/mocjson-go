@@ -2032,6 +2032,359 @@ func BenchmarkLexer_ExpectFloat64(b *testing.B) {
 	}
 }
 
+func TestLexer_ExpectNumberBytes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		b      []byte
+		want   []byte
+		wantOK bool
+	}{
+		{
+			name:   "ok: 0",
+			b:      []byte("0"),
+			want:   []byte("0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1",
+			b:      []byte("1"),
+			want:   []byte("1"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890",
+			b:      []byte("1234567890"),
+			want:   []byte("1234567890"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 0.0",
+			b:      []byte("0.0"),
+			want:   []byte("0.0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1.0",
+			b:      []byte("1.0"),
+			want:   []byte("1.0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789",
+			b:      []byte("1234567890.0123456789"),
+			want:   []byte("1234567890.0123456789"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 0.0e0",
+			b:      []byte("0.0e0"),
+			want:   []byte("0.0e0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 0.0E0",
+			b:      []byte("0.0e0"),
+			want:   []byte("0.0e0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e123",
+			b:      []byte("1234567890.0123456789e123"),
+			want:   []byte("1234567890.0123456789e123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e+123",
+			b:      []byte("1234567890.0123456789e123"),
+			want:   []byte("1234567890.0123456789e123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e000123",
+			b:      []byte("1234567890.0123456789e000123"),
+			want:   []byte("1234567890.0123456789e000123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e+000123",
+			b:      []byte("1234567890.0123456789e+000123"),
+			want:   []byte("1234567890.0123456789e+000123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e-123",
+			b:      []byte("1234567890.0123456789e-123"),
+			want:   []byte("1234567890.0123456789e-123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: 1234567890.0123456789e-000123",
+			b:      []byte("1234567890.0123456789e-000123"),
+			want:   []byte("1234567890.0123456789e-000123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: max uint64",
+			b:      []byte("18446744073709551615"),
+			want:   []byte("18446744073709551615"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: big int",
+			b:      []byte("999999999999999999999999999999999999999999999999999999999999999"),
+			want:   []byte("999999999999999999999999999999999999999999999999999999999999999"),
+			wantOK: true,
+		},
+		{
+			name: "ok: big float",
+			b: []byte(
+				"999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999",
+			),
+			want: []byte(
+				"999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999",
+			),
+			wantOK: true,
+		},
+		{
+			name: "ok: small float",
+			b: []byte(
+				"0.00000000000000000000000000000000000000000000000000000000000000000000001",
+			),
+			want: []byte(
+				"0.00000000000000000000000000000000000000000000000000000000000000000000001",
+			),
+			wantOK: true,
+		},
+		{
+			name:   "ok: big exp",
+			b:      []byte("1e999999999999999999999999999999999999999999999999999999999999999"),
+			want:   []byte("1e999999999999999999999999999999999999999999999999999999999999999"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1",
+			b:      []byte("-1"),
+			want:   []byte("-1"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890",
+			b:      []byte("-1234567890"),
+			want:   []byte("-1234567890"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -0.0",
+			b:      []byte("-0.0"),
+			want:   []byte("-0.0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1.0",
+			b:      []byte("-1.0"),
+			want:   []byte("-1.0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789",
+			b:      []byte("-1234567890.0123456789"),
+			want:   []byte("-1234567890.0123456789"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -0.0e0",
+			b:      []byte("-0.0e0"),
+			want:   []byte("-0.0e0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -0.0E0",
+			b:      []byte("-0.0e0"),
+			want:   []byte("-0.0e0"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e123",
+			b:      []byte("-1234567890.0123456789e123"),
+			want:   []byte("-1234567890.0123456789e123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e+123",
+			b:      []byte("-1234567890.0123456789e123"),
+			want:   []byte("-1234567890.0123456789e123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e000123",
+			b:      []byte("-1234567890.0123456789e000123"),
+			want:   []byte("-1234567890.0123456789e000123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e+000123",
+			b:      []byte("-1234567890.0123456789e+000123"),
+			want:   []byte("-1234567890.0123456789e+000123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e-123",
+			b:      []byte("-1234567890.0123456789e-123"),
+			want:   []byte("-1234567890.0123456789e-123"),
+			wantOK: true,
+		},
+		{
+			name:   "ok: -1234567890.0123456789e-000123",
+			b:      []byte("-1234567890.0123456789e-000123"),
+			want:   []byte("-1234567890.0123456789e-000123"),
+			wantOK: true,
+		},
+		{
+			name:   "ng: --1",
+			b:      []byte("--1"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: -1e--1",
+			b:      []byte("-1e--1"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: -1e++1",
+			b:      []byte("-1e++1"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: -1.0e",
+			b:      []byte("-1.0e"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: -e1",
+			b:      []byte("-e1"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: -",
+			b:      []byte("-"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 00",
+			b:      []byte("00"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 01",
+			b:      []byte("01"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 1.",
+			b:      []byte("1."),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 1.e",
+			b:      []byte("1.e"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 1.2e+",
+			b:      []byte("1.2e-"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: 1.2e-",
+			b:      []byte("1.2e-"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "ng: a",
+			b:      []byte("a"),
+			want:   nil,
+			wantOK: false,
+		},
+		{
+			name:   "empty",
+			b:      []byte(""),
+			want:   nil,
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectNumberBytes()
+			if !bytes.Equal(got, tt.want) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append([]byte(" \t\r\n"), tt.b...))
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectNumberBytes()
+			if !bytes.Equal(got, tt.want) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+
+		t.Run(tt.name+"; with long whitespaces", func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(append(bytes.Repeat([]byte(" \t\r\n"), ScannerBufSize), tt.b...))
+			lx := NewLexer(r)
+
+			got, gotOK := lx.ExpectNumberBytes()
+			if !bytes.Equal(got, tt.want) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("gotOK %v, wantOK %v", gotOK, tt.wantOK)
+			}
+		})
+	}
+}
+
+func BenchmarkLexer_ExpectNumberBytes(b *testing.B) {
+	r := bytes.NewReader([]byte("1234567890.0123456789e123"))
+	lx := NewLexer(r)
+
+	b.ResetTimer()
+	for range b.N {
+		lx.ExpectNumberBytes()
+	}
+}
+
 func TestLexer_ExpectString(t *testing.T) {
 	t.Parallel()
 

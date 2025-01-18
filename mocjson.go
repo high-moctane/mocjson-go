@@ -492,6 +492,96 @@ Parse:
 	return ret, true
 }
 
+func (lx *Lexer) ExpectNumberBytes() ([]byte, bool) {
+	lx.skipWhiteSpaces()
+
+	var ret []byte
+
+	// minus
+	if !lx.sc.Load() {
+		return nil, false
+	}
+
+	if lx.sc.Peek() == '-' {
+		ret = append(ret, lx.sc.PeekN(1)...)
+		lx.sc.Skip(1)
+	}
+
+	// int
+	if !lx.sc.Load() {
+		return nil, false
+	}
+
+	digitLen := lx.sc.CountDigit()
+	if digitLen == 0 {
+		return nil, false
+	}
+
+	zeroLen := lx.sc.CountASCIIZero()
+	if (zeroLen == 1 && digitLen > 1) || zeroLen > 1 {
+		// leading zero is not allowed
+		return nil, false
+	}
+
+	ret = append(ret, lx.sc.PeekN(digitLen)...)
+	lx.sc.Skip(digitLen)
+
+	// frac
+	if !lx.sc.Load() {
+		return ret, true
+	}
+
+	if lx.sc.Peek() == '.' {
+		ret = append(ret, lx.sc.PeekN(1)...)
+		lx.sc.Skip(1)
+
+		if !lx.sc.Load() {
+			return nil, false
+		}
+
+		digitLen := lx.sc.CountDigit()
+		if digitLen == 0 {
+			return nil, false
+		}
+
+		ret = append(ret, lx.sc.PeekN(digitLen)...)
+		lx.sc.Skip(digitLen)
+	}
+
+	// exp
+	if !lx.sc.Load() {
+		return ret, true
+	}
+
+	if lx.sc.Peek() == 'e' || lx.sc.Peek() == 'E' {
+		ret = append(ret, lx.sc.PeekN(1)...)
+		lx.sc.Skip(1)
+
+		if !lx.sc.Load() {
+			return nil, false
+		}
+
+		if lx.sc.Peek() == '+' || lx.sc.Peek() == '-' {
+			ret = append(ret, lx.sc.PeekN(1)...)
+			lx.sc.Skip(1)
+		}
+
+		if !lx.sc.Load() {
+			return nil, false
+		}
+
+		digitLen := lx.sc.CountDigit()
+		if digitLen == 0 {
+			return nil, false
+		}
+
+		ret = append(ret, lx.sc.PeekN(digitLen)...)
+		lx.sc.Skip(digitLen)
+	}
+
+	return ret, true
+}
+
 func (lx *Lexer) ExpectString() (string, bool) {
 	lx.skipWhiteSpaces()
 
