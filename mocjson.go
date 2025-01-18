@@ -160,11 +160,7 @@ func NewLexer(r io.Reader) Lexer {
 }
 
 func (lx *Lexer) skipWhiteSpaces() {
-	for {
-		if !lx.sc.Load() {
-			break
-		}
-
+	for lx.sc.Load() {
 		n := lx.sc.CountWhiteSpace()
 		if n == 0 {
 			break
