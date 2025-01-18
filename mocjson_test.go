@@ -341,9 +341,14 @@ func TestScanner_CountASCIIZero(t *testing.T) {
 			want: 3,
 		},
 		{
-			name: "json only",
-			b:    []byte("{\"key\": \"value\"}"),
+			name: "alphabet",
+			b:    []byte("abc"),
 			want: 0,
+		},
+		{
+			name: "long ascii zero",
+			b:    []byte(strings.Repeat("0", 10000)),
+			want: ScannerBufSize,
 		},
 	}
 
