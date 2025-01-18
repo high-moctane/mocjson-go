@@ -566,6 +566,10 @@ func BenchmarkScanner_CountUnescapedASCII(b *testing.B) {
 func TestScanner_CountMultiByteUTF8(t *testing.T) {
 	t.Parallel()
 
+	two := []byte("±ħɛΩב")
+	three := []byte("あいうえお")
+	four := []byte("😀🫨🩷🍣🍺")
+
 	tests := []struct {
 		name string
 		b    []byte
@@ -573,23 +577,38 @@ func TestScanner_CountMultiByteUTF8(t *testing.T) {
 	}{
 		{
 			name: "two bytes characters",
-			b:    []byte("±ħɛΩב"),
+			b:    two,
 			want: 10,
 		},
 		{
 			name: "three bytes characters",
-			b:    []byte("あいうえお"),
+			b:    three,
 			want: 15,
 		},
 		{
 			name: "four bytes characters",
-			b:    []byte("😀🫨🩷🍣🍺"),
+			b:    four,
 			want: 20,
 		},
 		{
-			name: "json only",
-			b:    []byte("{\"key\": \"value\"}"),
+			name: "one byte characters",
+			b:    []byte("abc"),
 			want: 0,
+		},
+		{
+			name: "long two bytes characters",
+			b:    bytes.Repeat(two, 10000),
+			want: ScannerBufSize / 2 * 2,
+		},
+		{
+			name: "long three bytes characters",
+			b:    bytes.Repeat(three, 10000),
+			want: ScannerBufSize / 3 * 3,
+		},
+		{
+			name: "long four bytes characters",
+			b:    bytes.Repeat(four, 10000),
+			want: ScannerBufSize / 4 * 4,
 		},
 	}
 
