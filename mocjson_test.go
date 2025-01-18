@@ -2464,7 +2464,7 @@ func BenchmarkParser_Parse(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		pa.Parse()
 	}
 }
@@ -2558,7 +2558,7 @@ func BenchmarkParser_ParseValue(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		pa.ParseValue()
 	}
 }
@@ -2653,7 +2653,7 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		_, err := pa.ParseArray()
 		if err != nil {
 			b.Fatal(err)
@@ -2771,7 +2771,7 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		_, err := pa.ParseObject()
 		if err != nil {
 			b.Fatal(err)
@@ -2828,7 +2828,7 @@ func BenchmarkParser_ParseBool(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		pa.ParseBool()
 	}
 }
@@ -3120,7 +3120,7 @@ func BenchmarkParser_ParseFloat64(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		pa.ParseFloat64()
 	}
 }
@@ -3175,7 +3175,7 @@ func BenchmarkParser_ParseString(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		pa.ParseString()
 	}
 }
@@ -3229,7 +3229,7 @@ func BenchmarkParser_ParseNull(b *testing.B) {
 	b.ResetTimer()
 	for range b.N {
 		r.Reset(bs)
-		pa.lx.sc.reset()
+		pa.reset()
 		pa.ParseNull()
 	}
 }

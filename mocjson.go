@@ -165,6 +165,11 @@ func NewLexer(r io.Reader) Lexer {
 	return Lexer{sc: NewScanner(r)}
 }
 
+// reset is called for testing.
+func (lx *Lexer) reset() {
+	lx.sc.reset()
+}
+
 func (lx *Lexer) skipWhiteSpaces() {
 	for lx.sc.Load() {
 		n := lx.sc.CountWhiteSpace()
@@ -643,6 +648,11 @@ type Parser struct {
 
 func NewParser(r io.Reader) Parser {
 	return Parser{lx: NewLexer(r)}
+}
+
+// reset is called for testing.
+func (pa *Parser) reset() {
+	pa.lx.reset()
 }
 
 func (pa *Parser) Parse() (any, error) {
