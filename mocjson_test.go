@@ -196,7 +196,7 @@ func TestScanner_Load_WithError(t *testing.T) {
 	}
 }
 
-func TestScanner_WhiteSpaceLen(t *testing.T) {
+func TestScanner_CountWhiteSpace(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -245,7 +245,7 @@ func TestScanner_WhiteSpaceLen(t *testing.T) {
 	}
 }
 
-func BenchmarkScanner_WhiteSpaceLen(b *testing.B) {
+func BenchmarkScanner_CountWhiteSpace(b *testing.B) {
 	r := bytes.NewReader([]byte(strings.Repeat(" \t\r\n", 100)[:100]))
 	sc := NewScanner(r)
 
@@ -259,7 +259,7 @@ func BenchmarkScanner_WhiteSpaceLen(b *testing.B) {
 	}
 }
 
-func TestScanner_DigitLen(t *testing.T) {
+func TestScanner_CountDigit(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -303,7 +303,7 @@ func TestScanner_DigitLen(t *testing.T) {
 	}
 }
 
-func BenchmarkScanner_DigitLen(b *testing.B) {
+func BenchmarkScanner_CountDigit(b *testing.B) {
 	r := bytes.NewReader([]byte(strings.Repeat("1234567890", 100)[:100]))
 	sc := NewScanner(r)
 
@@ -317,7 +317,7 @@ func BenchmarkScanner_DigitLen(b *testing.B) {
 	}
 }
 
-func TestScanner_ASCIIZeroLen(t *testing.T) {
+func TestScanner_CountASCIIZero(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -361,7 +361,7 @@ func TestScanner_ASCIIZeroLen(t *testing.T) {
 	}
 }
 
-func BenchmarkScanner_ASCIIZeroLen(b *testing.B) {
+func BenchmarkScanner_CountASCIIZero(b *testing.B) {
 	r := bytes.NewReader([]byte(strings.Repeat("000", 100)[:100]))
 	sc := NewScanner(r)
 
@@ -375,7 +375,7 @@ func BenchmarkScanner_ASCIIZeroLen(b *testing.B) {
 	}
 }
 
-func TestScanner_HexLen(t *testing.T) {
+func TestScanner_CountHex(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -419,7 +419,7 @@ func TestScanner_HexLen(t *testing.T) {
 	}
 }
 
-func BenchmarkScanner_HexLen(b *testing.B) {
+func BenchmarkScanner_CountHex(b *testing.B) {
 	r := bytes.NewReader([]byte(strings.Repeat("0123456789abcdefABCDEF", 100)[:100]))
 	sc := NewScanner(r)
 
@@ -433,7 +433,7 @@ func BenchmarkScanner_HexLen(b *testing.B) {
 	}
 }
 
-func TestScanner_UnescapedASCIILen(t *testing.T) {
+func TestScanner_CountUnescapedASCII(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -494,7 +494,7 @@ func TestScanner_UnescapedASCIILen(t *testing.T) {
 	}
 }
 
-func BenchmarkScanner_UnescapedASCIILen(b *testing.B) {
+func BenchmarkScanner_CountUnescapedASCII(b *testing.B) {
 	var buf bytes.Buffer
 	for i := 0x20; i <= 0x21; i++ {
 		buf.WriteByte(byte(i))
@@ -517,7 +517,7 @@ func BenchmarkScanner_UnescapedASCIILen(b *testing.B) {
 	}
 }
 
-func TestScanner_MultiByteUTF8Len(t *testing.T) {
+func TestScanner_CountMultiByteUTF8(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -566,7 +566,7 @@ func TestScanner_MultiByteUTF8Len(t *testing.T) {
 	}
 }
 
-func BenchmarkScanner_MultiByteUTF8Len(b *testing.B) {
+func BenchmarkScanner_CountMultiByteUTF8(b *testing.B) {
 	r := strings.NewReader(strings.Repeat("±ħɛΩבあいうえお😀🫨🩷🍣🍺", 100)[:100])
 	sc := NewScanner(r)
 
