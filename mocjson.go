@@ -879,12 +879,17 @@ func (pa *Parser) ParseBool() (bool, error) {
 }
 
 func (pa *Parser) ParseFloat64() (float64, error) {
-	n, ok := pa.lx.ExpectFloat64()
+	b, ok := pa.lx.ExpectNumberBytes()
 	if !ok {
 		return 0, errors.New("expect float64")
 	}
 
-	return n, nil
+	f, err := strconv.ParseFloat(string(b), 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse float64 error: %w", err)
+	}
+
+	return f, nil
 }
 
 func (pa *Parser) ParseString() (string, error) {
