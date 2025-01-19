@@ -750,44 +750,59 @@ func (pa *Parser) ParseObject() (map[string]any, error) {
 
 	ret := make(map[string]any)
 
+	// empty object
+	if pa.lx.NextTokenType() == TokenTypeEndObject {
+		pa.lx.sc.Skip(1)
+		return ret, nil
+	}
+
+	// first key-value pair
+	k, v, err := pa.parseObjectKeyValuePair()
+	if err != nil {
+		return nil, fmt.Errorf("parse key-value pair error: %w", err)
+	}
+	ret[k] = v
+
 	for {
-		if pa.lx.NextTokenType() == TokenTypeEndObject {
-			pa.lx.sc.Skip(1)
-			break
-		}
-
-		name, err := pa.ParseString()
-		if err != nil {
-			return nil, fmt.Errorf("parse name error: %w", err)
-		}
-
-		if !pa.lx.ExpectNameSeparator() {
-			return nil, errors.New("expect name separator")
-		}
-
-		v, err := pa.ParseValue()
-		if err != nil {
-			return nil, fmt.Errorf("parse value error: %w", err)
-		}
-
-		if _, ok := ret[name]; ok {
-			return nil, fmt.Errorf("duplicate key: %q", name)
-		}
-		ret[name] = v
-
 		switch pa.lx.NextTokenType() {
+		case TokenTypeEndObject:
+			pa.lx.sc.Skip(1)
+			return ret, nil
+
 		case TokenTypeValueSeparator:
 			pa.lx.sc.Skip(1)
-
-		case TokenTypeEndObject:
-			// NOP
 
 		default:
 			return nil, errors.New("expect value separator or end object")
 		}
+
+		k, v, err := pa.parseObjectKeyValuePair()
+		if err != nil {
+			return nil, fmt.Errorf("parse key-value pair error: %w", err)
+		}
+		if _, ok := ret[k]; ok {
+			return nil, errors.New("duplicate key")
+		}
+		ret[k] = v
+	}
+}
+
+func (pa *Parser) parseObjectKeyValuePair() (string, any, error) {
+	k, err := pa.ParseString()
+	if err != nil {
+		return "", nil, fmt.Errorf("parse key error: %w", err)
 	}
 
-	return ret, nil
+	if !pa.lx.ExpectNameSeparator() {
+		return "", nil, errors.New("expect name separator")
+	}
+
+	v, err := pa.ParseValue()
+	if err != nil {
+		return "", nil, fmt.Errorf("parse value error: %w", err)
+	}
+
+	return k, v, nil
 }
 
 func (pa *Parser) ParseBool() (bool, error) {
