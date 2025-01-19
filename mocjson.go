@@ -709,36 +709,38 @@ func (pa *Parser) ParseArray() ([]any, error) {
 
 	var ret []any
 
+	// empty array
+	if pa.lx.NextTokenType() == TokenTypeEndArray {
+		pa.lx.sc.Skip(1)
+		return make([]any, 0), nil
+	}
+
+	// first value
+	v, err := pa.ParseValue()
+	if err != nil {
+		return nil, fmt.Errorf("parse value error: %w", err)
+	}
+	ret = append(ret, v)
+
 	for {
-		if pa.lx.NextTokenType() == TokenTypeEndArray {
+		switch pa.lx.NextTokenType() {
+		case TokenTypeEndArray:
 			pa.lx.sc.Skip(1)
-			break
+			return ret, nil
+
+		case TokenTypeValueSeparator:
+			pa.lx.sc.Skip(1)
+
+		default:
+			return nil, errors.New("expect value separator or end array")
 		}
 
 		v, err := pa.ParseValue()
 		if err != nil {
 			return nil, fmt.Errorf("parse value error: %w", err)
 		}
-
 		ret = append(ret, v)
-
-		switch pa.lx.NextTokenType() {
-		case TokenTypeValueSeparator:
-			pa.lx.sc.Skip(1)
-
-		case TokenTypeEndArray:
-			// NOP
-
-		default:
-			return nil, errors.New("expect value separator or end array")
-		}
 	}
-
-	if ret == nil {
-		ret = make([]any, 0)
-	}
-
-	return ret, nil
 }
 
 func (pa *Parser) ParseObject() (map[string]any, error) {
