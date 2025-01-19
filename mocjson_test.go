@@ -2658,6 +2658,22 @@ func TestParser_ParseArray(t *testing.T) {
 			want: []any{[]any{"value11"}, "value2"},
 		},
 		{
+			name: "many values",
+			b:    []byte(`[` + strings.Repeat(`null,`, 999999) + `null]`),
+			want: make([]any, 1000000),
+		},
+		{
+			name: "deeply nested",
+			b:    []byte(strings.Repeat("[", 10000) + strings.Repeat("]", 10000)),
+			want: func() []any {
+				a := []any{}
+				for i := 1; i < 10000; i++ {
+					a = []any{a}
+				}
+				return a
+			}(),
+		},
+		{
 			name:    "invalid array",
 			b:       []byte("["),
 			want:    nil,
@@ -2787,6 +2803,53 @@ func TestParser_ParseObject(t *testing.T) {
 			name: "nested object",
 			b:    []byte(`{"key1":{"key11":"value11"},"key2":"value2"}`),
 			want: map[string]any{"key1": map[string]any{"key11": "value11"}, "key2": "value2"},
+		},
+		{
+			name: "many keys",
+			b: func() []byte {
+				var buf bytes.Buffer
+				buf.WriteString("{")
+				for i := 0; i < 100000; i++ {
+					buf.WriteString(`"key`)
+					buf.WriteString(strconv.Itoa(i))
+					buf.WriteString(`":`)
+					buf.WriteString("null")
+					if i < 100000-1 {
+						buf.WriteString(",")
+					}
+				}
+				buf.WriteString("}")
+
+				return buf.Bytes()
+			}(),
+			want: func() map[string]any {
+				m := make(map[string]any)
+				for i := 0; i < 100000; i++ {
+					m["key"+strconv.Itoa(i)] = nil
+				}
+				return m
+			}(),
+		},
+		{
+			name: "deeply nested",
+			b: func() []byte {
+				var buf bytes.Buffer
+				for i := 0; i < 10000; i++ {
+					buf.WriteString(`{"key":`)
+				}
+				buf.WriteString("null")
+				for i := 0; i < 10000; i++ {
+					buf.WriteString("}")
+				}
+				return buf.Bytes()
+			}(),
+			want: func() map[string]any {
+				m := map[string]any{"key": nil}
+				for i := 0; i < 10000-1; i++ {
+					m = map[string]any{"key": m}
+				}
+				return m
+			}(),
 		},
 		{
 			name:    "invalid object",
