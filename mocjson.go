@@ -515,12 +515,12 @@ func (lx *Lexer) ExpectString() (string, bool) {
 			return "", false
 		}
 
-		if lx.sc.Peek() == '"' {
+		switch lx.sc.Peek() {
+		case '"':
 			lx.sc.Skip(1)
-			break
-		}
+			return b.String(), true
 
-		if lx.sc.Peek() == '\\' {
+		case '\\':
 			lx.sc.Skip(1)
 
 			if !lx.sc.Load() {
@@ -605,7 +605,8 @@ func (lx *Lexer) ExpectString() (string, bool) {
 			default:
 				return "", false
 			}
-		} else {
+
+		default:
 			if n := lx.sc.CountUnescapedASCII(); n > 0 {
 				b.Write(lx.sc.PeekN(n))
 				lx.sc.Skip(n)
@@ -617,8 +618,6 @@ func (lx *Lexer) ExpectString() (string, bool) {
 			}
 		}
 	}
-
-	return b.String(), true
 }
 
 func (lx *Lexer) parseUTF16Hex(b []byte) rune {
