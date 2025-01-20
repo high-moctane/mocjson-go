@@ -2,6 +2,7 @@ package mocjson
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"reflect"
@@ -9,6 +10,7 @@ import (
 	"strings"
 	"testing"
 	"testing/iotest"
+	"unicode/utf8"
 )
 
 func TestScanner_Load_ReadAll(t *testing.T) {
@@ -2540,6 +2542,40 @@ func BenchmarkParser_Parse(b *testing.B) {
 		pa.reset()
 		pa.Parse()
 	}
+}
+
+func FuzzParser_Parse(f *testing.F) {
+	f.Add([]byte("null"))
+	f.Add([]byte("true"))
+	f.Add([]byte("123456.78e+9"))
+	f.Add([]byte(`"hello"`))
+	f.Add([]byte(`["value1","value2"]`))
+	f.Add([]byte(`{"key1":"value1","key2":"value2"}`))
+	f.Add([]byte(
+		"[{\"null\":null,\"bool\":true,\"number\":123.456,\"string\":\"🍣😋🍺\",\"array\":[\"value1\",2],\"object\":{\"key1\":\"value1\",\"key2\":2}},null]",
+	))
+
+	f.Fuzz(func(t *testing.T, b []byte) {
+		if !utf8.Valid(b) {
+			t.Skip()
+			return
+		}
+
+		valid := json.Valid(b)
+
+		r := bytes.NewReader(b)
+		pa := NewParser(r)
+		_, err := pa.Parse()
+		if valid != (err == nil) {
+			msg := err.Error()
+			if strings.Contains(msg, "duplicate key") {
+				// encoding/json allows duplicate key
+				t.Skip()
+				return
+			}
+			t.Fatalf("got %v, want %v on %q", err, valid, b)
+		}
+	})
 }
 
 func TestParser_ParseValue(t *testing.T) {
