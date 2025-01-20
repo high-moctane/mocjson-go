@@ -2282,16 +2282,18 @@ func TestLexer_ExpectString(t *testing.T) {
 			wantOK: false,
 		},
 		{
+			// TODO(high-moctane): strict option
 			name:   `ng: invalid backslash escape \u with incomplete surrogate pair`,
 			b:      []byte(`"hello \uD83D world"`),
-			want:   "",
-			wantOK: false,
+			want:   "hello \uFFFD world",
+			wantOK: true,
 		},
 		{
-			name:   `ng: invalid backslash escape \u with incorrect surrogate pair`,
+			// TODO(high-moctane): strict option
+			name:   `ok: invalid backslash escape \u with incorrect surrogate pair`,
 			b:      []byte(`"hello \uD83D\u0041 world"`),
-			want:   "",
-			wantOK: false,
+			want:   "hello \uFFFD world",
+			wantOK: true,
 		},
 		{
 			name:   `ng: unterminated backslash escape`,
@@ -2312,10 +2314,11 @@ func TestLexer_ExpectString(t *testing.T) {
 			wantOK: false,
 		},
 		{
+			// TODO(high-moctane): strict option
 			name:   `ng: incomplete \u surrogate pair`,
 			b:      []byte(`"hello \uD83D"`),
-			want:   "",
-			wantOK: false,
+			want:   "hello \uFFFD",
+			wantOK: true,
 		},
 		{
 			name:   `ng: incomplete \u surrogate pair with backslash`,

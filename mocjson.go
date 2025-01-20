@@ -572,14 +572,13 @@ func (lx *Lexer) ExpectString() (string, bool) {
 						return "", false
 					}
 
-					if lx.sc.BufferedLen() < 2 {
-						return "", false
+					if lx.sc.BufferedLen() < 6 {
+						goto WriteRune
 					}
 
 					if !bytes.Equal(lx.sc.PeekN(2), []byte("\\u")) {
-						return "", false
+						goto WriteRune
 					}
-
 					lx.sc.Skip(2)
 
 					if !lx.sc.Load() {
@@ -594,14 +593,13 @@ func (lx *Lexer) ExpectString() (string, bool) {
 					lx.sc.Skip(4)
 
 					r = utf16.DecodeRune(r, r2)
-					if r == utf8.RuneError {
-						return "", false
-					}
+					// TODO(high-moctane): strict option
+					// if r == utf8.RuneError {
+					// 	return "", false
+					// }
 				}
 
-				if !utf8.ValidRune(r) {
-					panic("unreachable")
-				}
+			WriteRune:
 				b.WriteRune(r)
 			default:
 				return "", false
