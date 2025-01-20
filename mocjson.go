@@ -820,7 +820,7 @@ func (pa *Parser) ParseFloat64() (float64, error) {
 
 	f, err := strconv.ParseFloat(string(b), 64)
 	if err != nil {
-		if err == strconv.ErrRange {
+		if errors.Is(err, strconv.ErrRange) {
 			// TODO(high-moctane): strict option
 			return math.NaN(), nil
 		}
