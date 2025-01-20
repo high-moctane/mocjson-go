@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"math/bits"
 	"slices"
 	"strconv"
@@ -821,6 +822,10 @@ func (pa *Parser) ParseFloat64() (float64, error) {
 
 	f, err := strconv.ParseFloat(string(b), 64)
 	if err != nil {
+		if err == strconv.ErrRange {
+			// TODO(high-moctane): strict option
+			return math.NaN(), nil
+		}
 		return 0, fmt.Errorf("parse float64 error: %w", err)
 	}
 
