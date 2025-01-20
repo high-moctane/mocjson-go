@@ -438,8 +438,19 @@ func (lx *Lexer) ExpectNumberBytes() ([]byte, bool) {
 		return nil, false
 	}
 
-	ret = append(ret, lx.sc.PeekN(digitLen)...)
-	lx.sc.Skip(digitLen)
+	for {
+		ret = append(ret, lx.sc.PeekN(digitLen)...)
+		lx.sc.Skip(digitLen)
+
+		if !lx.sc.Load() {
+			break
+		}
+
+		digitLen = lx.sc.CountDigit()
+		if digitLen == 0 {
+			break
+		}
+	}
 
 	// frac
 	if !lx.sc.Load() {
@@ -459,8 +470,19 @@ func (lx *Lexer) ExpectNumberBytes() ([]byte, bool) {
 			return nil, false
 		}
 
-		ret = append(ret, lx.sc.PeekN(digitLen)...)
-		lx.sc.Skip(digitLen)
+		for {
+			ret = append(ret, lx.sc.PeekN(digitLen)...)
+			lx.sc.Skip(digitLen)
+
+			if !lx.sc.Load() {
+				break
+			}
+
+			digitLen = lx.sc.CountDigit()
+			if digitLen == 0 {
+				break
+			}
+		}
 	}
 
 	// exp
@@ -490,8 +512,19 @@ func (lx *Lexer) ExpectNumberBytes() ([]byte, bool) {
 			return nil, false
 		}
 
-		ret = append(ret, lx.sc.PeekN(digitLen)...)
-		lx.sc.Skip(digitLen)
+		for {
+			ret = append(ret, lx.sc.PeekN(digitLen)...)
+			lx.sc.Skip(digitLen)
+
+			if !lx.sc.Load() {
+				break
+			}
+
+			digitLen = lx.sc.CountDigit()
+			if digitLen == 0 {
+				break
+			}
+		}
 	}
 
 	return ret, true
