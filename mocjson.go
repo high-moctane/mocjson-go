@@ -112,6 +112,16 @@ func (sc *Scanner) CountHex() int {
 	return len(sc.buf)
 }
 
+func (sc *Scanner) CountASCII() int {
+	for i, b := range sc.buf {
+		if b >= 0x80 {
+			return i
+		}
+	}
+
+	return len(sc.buf)
+}
+
 func (sc *Scanner) CountUnescapedASCII() int {
 	for i, b := range sc.buf {
 		if !sc.isUnescapedASCII(b) {
@@ -645,7 +655,11 @@ func (lx *Lexer) ExpectString() (string, bool) {
 			} else if n := lx.sc.CountMultiByteUTF8(); n > 0 {
 				b.Write(lx.sc.PeekN(n))
 				lx.sc.Skip(n)
+			} else if n := lx.sc.CountASCII(); n > 0 {
+				// control character is not allowed
+				return "", false
 			} else {
+				// broken multi-byte utf-8
 				b.WriteRune(utf8.RuneError)
 				lx.sc.Skip(1)
 			}

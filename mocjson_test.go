@@ -2564,12 +2564,6 @@ func FuzzParser_Parse(f *testing.F) {
 		pa := NewParser(r)
 		_, err := pa.Parse()
 		if valid != (err == nil) {
-			msg := err.Error()
-			if strings.Contains(msg, "duplicate key") {
-				// encoding/json allows duplicate key
-				t.Skip()
-				return
-			}
 			t.Fatalf("got %v, want %v on %q", err, valid, b)
 		}
 	})
