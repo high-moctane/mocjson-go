@@ -646,7 +646,8 @@ func (lx *Lexer) ExpectString() (string, bool) {
 				b.Write(lx.sc.PeekN(n))
 				lx.sc.Skip(n)
 			} else {
-				return "", false
+				b.WriteRune(utf8.RuneError)
+				lx.sc.Skip(1)
 			}
 		}
 	}

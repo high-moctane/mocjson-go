@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 	"testing/iotest"
-	"unicode/utf8"
 )
 
 func TestScanner_Load_ReadAll(t *testing.T) {
@@ -2164,22 +2163,25 @@ func TestLexer_ExpectString(t *testing.T) {
 			wantOK: true,
 		},
 		{
-			name:   "ng: invalid utf-8 2-byte string",
+			// TODO(high-moctane): strict option
+			name:   "ok: invalid utf-8 2-byte string",
 			b:      []byte{'"', '\xc3', '\x28', '"'},
-			want:   "",
-			wantOK: false,
+			want:   `�(`,
+			wantOK: true,
 		},
 		{
-			name:   "ng: invalid utf-8 3-byte string",
+			// TODO(high-moctane): strict option
+			name:   "ok: invalid utf-8 3-byte string",
 			b:      []byte{'"', '\xe2', '\x28', '\xa1', '"'},
-			want:   "",
-			wantOK: false,
+			want:   `�(�`,
+			wantOK: true,
 		},
 		{
-			name:   "ng: invalid utf-8 4-byte string",
+			// TODO(high-moctane): strict option
+			name:   "ok: invalid utf-8 4-byte string",
 			b:      []byte{'"', '\xf0', '\x28', '\x8c', '\xbc', '"'},
-			want:   "",
-			wantOK: false,
+			want:   `�(��`,
+			wantOK: true,
 		},
 		{
 			name:   `ok: backslash escape \"`,
@@ -2556,11 +2558,6 @@ func FuzzParser_Parse(f *testing.F) {
 	))
 
 	f.Fuzz(func(t *testing.T, b []byte) {
-		if !utf8.Valid(b) {
-			t.Skip()
-			return
-		}
-
 		valid := json.Valid(b)
 
 		r := bytes.NewReader(b)
