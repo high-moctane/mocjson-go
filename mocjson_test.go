@@ -3026,10 +3026,10 @@ func TestParser_ParseObject(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "duplicate key",
-			b:       []byte(`{"key1":"value1","key1":"value2"}`),
-			want:    nil,
-			wantErr: true,
+			// TODO(high-moctane): strict option
+			name: "duplicate key",
+			b:    []byte(`{"key1":"value1","key1":"value2"}`),
+			want: map[string]any{"key1": "value2"},
 		},
 	}
 

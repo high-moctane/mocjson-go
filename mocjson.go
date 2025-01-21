@@ -812,9 +812,10 @@ func (pa *Parser) ParseObject() (map[string]any, error) {
 		if err != nil {
 			return nil, fmt.Errorf("parse key-value pair error: %w", err)
 		}
-		if _, ok := ret[k]; ok {
-			return nil, errors.New("duplicate key")
-		}
+		// // TODO(high-moctane): strict option
+		// if _, ok := ret[k]; ok {
+		// 	return nil, errors.New("duplicate key")
+		// }
 		ret[k] = v
 	}
 }
