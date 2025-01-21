@@ -27,3 +27,6 @@ go.work.sum
 # mocjson output
 mocjson.analysis
 mocjson.asm
+
+# fuzzing
+testdata/fuzz
