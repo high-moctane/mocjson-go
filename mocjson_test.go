@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"reflect"
 	"strconv"
 	"strings"
@@ -3167,6 +3168,301 @@ func BenchmarkParser_ParseBool(b *testing.B) {
 		r.Reset(bs)
 		pa.reset()
 		pa.ParseBool()
+	}
+}
+
+func TestParser_ParseRat(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		b       []byte
+		want    *big.Rat
+		wantErr bool
+	}{
+		{
+			name: "ok: 0",
+			b:    []byte("0"),
+			want: big.NewRat(0, 1),
+		},
+		{
+			name: "ok: 1",
+			b:    []byte("1"),
+			want: big.NewRat(1, 1),
+		},
+		{
+			name: "ok: 1234567890",
+			b:    []byte("1234567890"),
+			want: big.NewRat(1234567890, 1),
+		},
+		{
+			name: "ok: 0.0",
+			b:    []byte("0.0"),
+			want: big.NewRat(0, 1),
+		},
+		{
+			name: "ok: 1.0",
+			b:    []byte("1.0"),
+			want: big.NewRat(1, 1),
+		},
+		{
+			name: "ok: 1234567890.0123456789",
+			b:    []byte("1234567890.0123456789"),
+			want: mustOK(new(big.Rat).SetString("1234567890.0123456789")),
+		},
+		{
+			name: "ok: 0.0e0",
+			b:    []byte("0.0e0"),
+			want: big.NewRat(0, 1),
+		},
+		{
+			name: "ok: 0.0E0",
+			b:    []byte("0.0e0"),
+			want: big.NewRat(0, 1),
+		},
+		{
+			name: "ok: 1234567890.0123456789e123",
+			b:    []byte("1234567890.0123456789e123"),
+			want: mustOK(new(big.Rat).SetString("1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: 1234567890.0123456789e+123",
+			b:    []byte("1234567890.0123456789e123"),
+			want: mustOK(new(big.Rat).SetString("1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: 1234567890.0123456789e000123",
+			b:    []byte("1234567890.0123456789e000123"),
+			want: mustOK(new(big.Rat).SetString("1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: 1234567890.0123456789e+000123",
+			b:    []byte("1234567890.0123456789e+000123"),
+			want: mustOK(new(big.Rat).SetString("1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: 1234567890.0123456789e-123",
+			b:    []byte("1234567890.0123456789e-123"),
+			want: mustOK(new(big.Rat).SetString("1234567890.0123456789e-123")),
+		},
+		{
+			name: "ok: 1234567890.0123456789e-000123",
+			b:    []byte("1234567890.0123456789e-000123"),
+			want: mustOK(new(big.Rat).SetString("1234567890.0123456789e-123")),
+		},
+		{
+			name: "ok: max uint64",
+			b:    []byte("18446744073709551615"),
+			want: mustOK(new(big.Rat).SetString("18446744073709551615")),
+		},
+		{
+			name: "ok: big int",
+			b:    []byte("999999999999999999999999999999999999999999999999999999999999999"),
+			want: mustOK(
+				new(
+					big.Rat,
+				).SetString("999999999999999999999999999999999999999999999999999999999999999"),
+			),
+		},
+		{
+			name: "ok: big float",
+			b: []byte(
+				"999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999",
+			),
+			want: mustOK(
+				new(
+					big.Rat,
+				).SetString("999999999999999999999999999999999999999999999999999999999999999.99999999999999999999999999999999999999999999999999999999"),
+			),
+		},
+		{
+			name: "ok: small float",
+			b: []byte(
+				"0.00000000000000000000000000000000000000000000000000000000000000000000001",
+			),
+			want: mustOK(
+				new(
+					big.Rat,
+				).SetString("0.00000000000000000000000000000000000000000000000000000000000000000000001"),
+			),
+		},
+		{
+			name: "ok: -1",
+			b:    []byte("-1"),
+			want: big.NewRat(-1, 1),
+		},
+		{
+			name: "ok: -1234567890",
+			b:    []byte("-1234567890"),
+			want: big.NewRat(-1234567890, 1),
+		},
+		{
+			name: "ok: -0.0",
+			b:    []byte("-0.0"),
+			want: big.NewRat(0, 1),
+		},
+		{
+			name: "ok: -1.0",
+			b:    []byte("-1.0"),
+			want: big.NewRat(-1, 1),
+		},
+		{
+			name: "ok: -1234567890.0123456789",
+			b:    []byte("-1234567890.0123456789"),
+			want: mustOK(new(big.Rat).SetString("-1234567890.0123456789")),
+		},
+		{
+			name: "ok: -0.0e0",
+			b:    []byte("-0.0e0"),
+			want: big.NewRat(0, 1),
+		},
+		{
+			name: "ok: -0.0E0",
+			b:    []byte("-0.0e0"),
+			want: big.NewRat(0, 1),
+		},
+		{
+			name: "ok: -1234567890.0123456789e123",
+			b:    []byte("-1234567890.0123456789e123"),
+			want: mustOK(new(big.Rat).SetString("-1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: -1234567890.0123456789e+123",
+			b:    []byte("-1234567890.0123456789e123"),
+			want: mustOK(new(big.Rat).SetString("-1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: -1234567890.0123456789e000123",
+			b:    []byte("-1234567890.0123456789e000123"),
+			want: mustOK(new(big.Rat).SetString("-1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: -1234567890.0123456789e+000123",
+			b:    []byte("-1234567890.0123456789e+000123"),
+			want: mustOK(new(big.Rat).SetString("-1234567890.0123456789e123")),
+		},
+		{
+			name: "ok: -1234567890.0123456789e-123",
+			b:    []byte("-1234567890.0123456789e-123"),
+			want: mustOK(new(big.Rat).SetString("-1234567890.0123456789e-123")),
+		},
+		{
+			name: "ok: -1234567890.0123456789e-000123",
+			b:    []byte("-1234567890.0123456789e-000123"),
+			want: mustOK(new(big.Rat).SetString("-1234567890.0123456789e-123")),
+		},
+		{
+			name:    "ng: --1",
+			b:       []byte("--1"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: -1e--1",
+			b:       []byte("-1e--1"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: -1e++1",
+			b:       []byte("-1e++1"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: -1.0e",
+			b:       []byte("-1.0e"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: -e1",
+			b:       []byte("-e1"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: -",
+			b:       []byte("-"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: 00",
+			b:       []byte("00"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: 01",
+			b:       []byte("01"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.",
+			b:       []byte("1."),
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.e",
+			b:       []byte("1.e"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.2e+",
+			b:       []byte("1.2e-"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: 1.2e-",
+			b:       []byte("1.2e-"),
+			wantErr: true,
+		},
+		{
+			// big.Rat does not accept a big exponent
+			name:    "ng: big exp",
+			b:       []byte("1e999999999999999999999999999999999999999999999999999999999999999"),
+			wantErr: true,
+		},
+		{
+			name:    "ng: a",
+			b:       []byte("a"),
+			wantErr: true,
+		},
+		{
+			name:    "empty",
+			b:       []byte(""),
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := bytes.NewReader(tt.b)
+			pa := NewParser(r)
+
+			got, err := pa.ParseRat()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("gotErr %v, wantErr %v", err != nil, tt.wantErr)
+			}
+			if (got == nil) != (tt.want == nil) {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+			if got == nil {
+				return
+			}
+			if got.Cmp(tt.want) != 0 {
+				t.Errorf("got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func BenchmarkParser_ParseRat(b *testing.B) {
+	bs := []byte("-1234567890.0123456789e123")
+	r := bytes.NewReader(bs)
+	pa := NewParser(r)
+
+	b.ResetTimer()
+	for range b.N {
+		r.Reset(bs)
+		pa.reset()
+		pa.ParseRat()
 	}
 }
 

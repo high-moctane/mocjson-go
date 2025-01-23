@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/big"
 	"math/bits"
 	"slices"
 	"strconv"
@@ -859,6 +860,20 @@ func (pa *Parser) ParseBool() (bool, error) {
 	}
 
 	return b, nil
+}
+
+func (pa *Parser) ParseRat() (*big.Rat, error) {
+	b, ok := pa.lx.ExpectNumberBytes()
+	if !ok {
+		return nil, errors.New("expect rat")
+	}
+
+	r := new(big.Rat)
+	if _, ok := r.SetString(string(b)); !ok {
+		return nil, errors.New("parse rat error")
+	}
+
+	return r, nil
 }
 
 func (pa *Parser) ParseFloat64() (float64, error) {
