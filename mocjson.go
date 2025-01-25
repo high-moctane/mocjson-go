@@ -910,3 +910,260 @@ func (pa *Parser) ParseNull() (any, error) {
 
 	return nil, nil
 }
+
+func (pa *Parser) ParseSampleObject1() (SampleObject1, error) {
+	if !pa.lx.ExpectBeginObject() {
+		return SampleObject1{}, errors.New("expect begin object")
+	}
+
+	var ret SampleObject1
+	seen := make(map[string]bool)
+
+	if pa.lx.NextTokenType() == TokenTypeEndObject {
+		pa.lx.sc.Skip(1)
+		goto Validate
+	}
+
+	for {
+		k, ok := pa.lx.ExpectString()
+		if !ok {
+			return SampleObject1{}, errors.New("expect string")
+		}
+		if seen[k] {
+			return SampleObject1{}, errors.New("duplicate key")
+		}
+		seen[k] = true
+
+		if !pa.lx.ExpectNameSeparator() {
+			return SampleObject1{}, errors.New("expect name separator")
+		}
+
+		switch k {
+		case "boolean":
+			v, err := pa.ParseBool()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse boolean error: %w", err)
+			}
+			ret.Boolean = v
+
+		case "float64":
+			v, err := pa.ParseFloat64()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse float64 error: %w", err)
+			}
+			ret.Float64 = v
+
+		case "string":
+			v, err := pa.ParseString()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse string error: %w", err)
+			}
+			ret.String = v
+
+		case "object":
+			v, err := pa.ParseObject()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse object error: %w", err)
+			}
+			ret.Object = v
+
+		case "array":
+			v, err := pa.ParseArray()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse array error: %w", err)
+			}
+			ret.Array = v
+
+		case "any":
+			v, err := pa.ParseValue()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse any error: %w", err)
+			}
+			ret.Any = v
+
+		case "object2":
+			v, err := pa.ParseSampleObject2()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse object2 error: %w", err)
+			}
+			ret.Object2 = v
+
+		case "object2_array":
+			v, err := pa.ParseSampleObject2Array()
+			if err != nil {
+				return SampleObject1{}, fmt.Errorf("parse object2_array error: %w", err)
+			}
+			ret.Object2Array = v
+
+		default:
+			return SampleObject1{}, errors.New("unknown key")
+		}
+	}
+
+Validate:
+	if seen["boolean"] == false {
+		return SampleObject1{}, errors.New("missing boolean")
+	}
+	if seen["float64"] == false {
+		return SampleObject1{}, errors.New("missing float64")
+	}
+	if seen["string"] == false {
+		return SampleObject1{}, errors.New("missing string")
+	}
+	if seen["object"] == false {
+		return SampleObject1{}, errors.New("missing object")
+	}
+	if seen["array"] == false {
+		return SampleObject1{}, errors.New("missing array")
+	}
+	if seen["any"] == false {
+		return SampleObject1{}, errors.New("missing any")
+	}
+	if seen["object2"] == false {
+		return SampleObject1{}, errors.New("missing object2")
+	}
+	if seen["object2_array"] == false {
+		return SampleObject1{}, errors.New("missing object2_array")
+	}
+
+	return ret, nil
+}
+
+func (pa *Parser) ParseSampleObject2() (SampleObject2, error) {
+	if !pa.lx.ExpectBeginObject() {
+		return SampleObject2{}, errors.New("expect begin object")
+	}
+
+	var ret SampleObject2
+	seen := make(map[string]bool)
+
+	if pa.lx.NextTokenType() == TokenTypeEndObject {
+		pa.lx.sc.Skip(1)
+		goto Validate
+	}
+
+	for {
+		k, ok := pa.lx.ExpectString()
+		if !ok {
+			return SampleObject2{}, errors.New("expect string")
+		}
+		if seen[k] {
+			return SampleObject2{}, errors.New("duplicate key")
+		}
+		seen[k] = true
+
+		if !pa.lx.ExpectNameSeparator() {
+			return SampleObject2{}, errors.New("expect name separator")
+		}
+
+		switch k {
+		case "float64":
+			v, err := pa.ParseFloat64()
+			if err != nil {
+				return SampleObject2{}, fmt.Errorf("parse float64 error: %w", err)
+			}
+			ret.Float64 = v
+
+		case "string":
+			v, err := pa.ParseString()
+			if err != nil {
+				return SampleObject2{}, fmt.Errorf("parse string error: %w", err)
+			}
+			ret.String = v
+
+		case "boolean":
+			v, err := pa.ParseBool()
+			if err != nil {
+				return SampleObject2{}, fmt.Errorf("parse boolean error: %w", err)
+			}
+			ret.Boolean = v
+
+		case "object":
+			v, err := pa.ParseObject()
+			if err != nil {
+				return SampleObject2{}, fmt.Errorf("parse object error: %w", err)
+			}
+			ret.Object = v
+
+		case "array":
+			v, err := pa.ParseArray()
+			if err != nil {
+				return SampleObject2{}, fmt.Errorf("parse array error: %w", err)
+			}
+			ret.Array = v
+
+		case "any":
+			v, err := pa.ParseValue()
+			if err != nil {
+				return SampleObject2{}, fmt.Errorf("parse any error: %w", err)
+			}
+			ret.Any = v
+
+		default:
+			return SampleObject2{}, errors.New("unknown key")
+		}
+	}
+
+Validate:
+	if seen["float64"] == false {
+		return SampleObject2{}, errors.New("missing float64")
+	}
+	if seen["string"] == false {
+		return SampleObject2{}, errors.New("missing string")
+	}
+	if seen["boolean"] == false {
+		return SampleObject2{}, errors.New("missing boolean")
+	}
+	if seen["object"] == false {
+		return SampleObject2{}, errors.New("missing object")
+	}
+	if seen["array"] == false {
+		return SampleObject2{}, errors.New("missing array")
+	}
+	if seen["any"] == false {
+		return SampleObject2{}, errors.New("missing any")
+	}
+
+	return ret, nil
+}
+
+func (pa *Parser) ParseSampleObject2Array() ([]SampleObject2, error) {
+	if !pa.lx.ExpectBeginArray() {
+		return nil, errors.New("expect begin array")
+	}
+
+	var ret []SampleObject2
+
+	// empty array
+	if pa.lx.NextTokenType() == TokenTypeEndArray {
+		pa.lx.sc.Skip(1)
+		return make([]SampleObject2, 0), nil
+	}
+
+	// first value
+	v, err := pa.ParseSampleObject2()
+	if err != nil {
+		return nil, fmt.Errorf("parse value error: %w", err)
+	}
+	ret = append(ret, v)
+
+	for {
+		switch pa.lx.NextTokenType() {
+		case TokenTypeEndArray:
+			pa.lx.sc.Skip(1)
+			return ret, nil
+
+		case TokenTypeValueSeparator:
+			pa.lx.sc.Skip(1)
+
+		default:
+			return nil, errors.New("expect value separator or end array")
+		}
+
+		v, err := pa.ParseSampleObject2()
+		if err != nil {
+			return nil, fmt.Errorf("parse value error: %w", err)
+		}
+		ret = append(ret, v)
+	}
+}
