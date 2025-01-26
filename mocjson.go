@@ -1001,28 +1001,28 @@ func (pa *Parser) ParseSampleObject1() (SampleObject1, error) {
 	}
 
 Validate:
-	if seen["boolean"] == false {
+	if !seen["boolean"] {
 		return SampleObject1{}, errors.New("missing boolean")
 	}
-	if seen["float64"] == false {
+	if !seen["float64"] {
 		return SampleObject1{}, errors.New("missing float64")
 	}
-	if seen["string"] == false {
+	if !seen["string"] {
 		return SampleObject1{}, errors.New("missing string")
 	}
-	if seen["object"] == false {
+	if !seen["object"] {
 		return SampleObject1{}, errors.New("missing object")
 	}
-	if seen["array"] == false {
+	if !seen["array"] {
 		return SampleObject1{}, errors.New("missing array")
 	}
-	if seen["any"] == false {
+	if !seen["any"] {
 		return SampleObject1{}, errors.New("missing any")
 	}
-	if seen["object2"] == false {
+	if !seen["object2"] {
 		return SampleObject1{}, errors.New("missing object2")
 	}
-	if seen["object2_array"] == false {
+	if !seen["object2_array"] {
 		return SampleObject1{}, errors.New("missing object2_array")
 	}
 
@@ -1105,22 +1105,22 @@ func (pa *Parser) ParseSampleObject2() (SampleObject2, error) {
 	}
 
 Validate:
-	if seen["float64"] == false {
+	if !seen["float64"] {
 		return SampleObject2{}, errors.New("missing float64")
 	}
-	if seen["string"] == false {
+	if !seen["string"] {
 		return SampleObject2{}, errors.New("missing string")
 	}
-	if seen["boolean"] == false {
+	if !seen["boolean"] {
 		return SampleObject2{}, errors.New("missing boolean")
 	}
-	if seen["object"] == false {
+	if !seen["object"] {
 		return SampleObject2{}, errors.New("missing object")
 	}
-	if seen["array"] == false {
+	if !seen["array"] {
 		return SampleObject2{}, errors.New("missing array")
 	}
-	if seen["any"] == false {
+	if !seen["any"] {
 		return SampleObject2{}, errors.New("missing any")
 	}
 
