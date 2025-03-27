@@ -6,17 +6,17 @@ build:
 
 .PHONY: fmt
 fmt:
-	find . -name '*.go' | xargs -I{} goimports -local 'github.com/high-moctane/mocjson-go' -w {}
-	golines -w .
-	gofumpt -w .
+	find . -name '*.go' | xargs -I{} go tool goimports -local 'github.com/high-moctane/mocjson-go' -w {}
+	go tool golines -w .
+	go tool gofumpt -w .
 
 
 .PHONY: lint
 lint:
 	go vet ./...
-	test -z "$$(goimports -local 'github.com/high-moctane/mocjson-go' -l .)"
-	test -z "$$(golines -l .)"
-	test -z "$$(gofumpt -l .)"
+	test -z "$$(go tool goimports -local 'github.com/high-moctane/mocjson-go' -l .)"
+	test -z "$$(go tool golines -l .)"
+	test -z "$$(go tool gofumpt -l .)"
 
 
 .PHONY: test
