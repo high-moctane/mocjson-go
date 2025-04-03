@@ -165,7 +165,7 @@ func BenchmarkScanner_Load_ReadAll(b *testing.B) {
 					sc := NewScanner(r)
 
 					b.ResetTimer()
-					for range b.N {
+					for b.Loop() {
 						r.Reset(bs)
 						sc.reset()
 
@@ -284,7 +284,7 @@ func BenchmarkScanner_CountWhiteSpace(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		sc.CountWhiteSpace()
 	}
 }
@@ -347,7 +347,7 @@ func BenchmarkScanner_CountDigit(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		sc.CountDigit()
 	}
 }
@@ -410,7 +410,7 @@ func BenchmarkScanner_CountASCIIZero(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		sc.CountASCIIZero()
 	}
 }
@@ -473,7 +473,7 @@ func BenchmarkScanner_CountHex(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		sc.CountHex()
 	}
 }
@@ -587,7 +587,7 @@ func BenchmarkScanner_CountUnescapedASCII(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		sc.CountUnescapedASCII()
 	}
 }
@@ -669,7 +669,7 @@ func BenchmarkScanner_CountMultiByteUTF8(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		sc.CountMultiByteUTF8()
 	}
 }
@@ -844,7 +844,7 @@ func BenchmarkLexer_NextTokenType(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.NextTokenType()
@@ -916,7 +916,7 @@ func BenchmarkLexer_ExpectEOF(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectEOF()
@@ -993,7 +993,7 @@ func BenchmarkLexer_ExpectBeginArray(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectBeginArray()
@@ -1070,7 +1070,7 @@ func BenchmarkLexer_ExpectEndArray(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectEndArray()
@@ -1147,7 +1147,7 @@ func BenchmarkLexer_ExpectBeginObject(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectBeginObject()
@@ -1224,7 +1224,7 @@ func BenchmarkLexer_ExpectEndObject(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectEndObject()
@@ -1301,7 +1301,7 @@ func BenchmarkLexer_ExpectNameSeparator(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectNameSeparator()
@@ -1378,7 +1378,7 @@ func BenchmarkLexer_ExpectValueSeparator(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectValueSeparator()
@@ -1470,7 +1470,7 @@ func BenchmarkLexer_ExpectNull(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectNull()
@@ -1599,7 +1599,7 @@ func BenchmarkLexer_ExpectBool(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectBool()
@@ -1737,7 +1737,7 @@ func BenchmarkLexer_ExpectUint64(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectUint64()
@@ -2093,7 +2093,7 @@ func BenchmarkLexer_ExpectNumberBytes(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectNumberBytes()
@@ -2422,7 +2422,7 @@ func BenchmarkLexer_ExpectString(b *testing.B) {
 	lx := NewLexer(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		lx.reset()
 		lx.ExpectString()
@@ -2540,7 +2540,7 @@ func BenchmarkParser_Parse(b *testing.B) {
 	pa := NewParser(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		pa.reset()
 		pa.Parse()
@@ -2657,7 +2657,7 @@ func BenchmarkParser_ParseValue(b *testing.B) {
 	pa := NewParser(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		pa.reset()
 		pa.ParseValue()
@@ -2825,7 +2825,7 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 			pa := NewParser(r)
 
 			b.ResetTimer()
-			for range b.N {
+			for b.Loop() {
 				r.Reset(bs)
 				pa.reset()
 				_, err := pa.ParseArray()
@@ -2853,7 +2853,7 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 			pa := NewParser(r)
 
 			b.ResetTimer()
-			for range b.N {
+			for b.Loop() {
 				r.Reset(bs)
 				pa.reset()
 				_, err := pa.ParseArray()
@@ -3077,7 +3077,7 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 			pa := NewParser(r)
 
 			b.ResetTimer()
-			for range b.N {
+			for b.Loop() {
 				r.Reset(bs)
 				pa.reset()
 				_, err := pa.ParseObject()
@@ -3105,7 +3105,7 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 			pa := NewParser(r)
 
 			b.ResetTimer()
-			for range b.N {
+			for b.Loop() {
 				r.Reset(bs)
 				pa.reset()
 				_, err := pa.ParseObject()
@@ -3164,7 +3164,7 @@ func BenchmarkParser_ParseBool(b *testing.B) {
 	pa := NewParser(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		pa.reset()
 		pa.ParseBool()
@@ -3459,7 +3459,7 @@ func BenchmarkParser_ParseRat(b *testing.B) {
 	pa := NewParser(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		pa.reset()
 		pa.ParseRat()
@@ -3752,7 +3752,7 @@ func BenchmarkParser_ParseFloat64(b *testing.B) {
 	pa := NewParser(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		pa.reset()
 		pa.ParseFloat64()
@@ -3814,7 +3814,7 @@ func BenchmarkParser_ParseString(b *testing.B) {
 			pa := NewParser(r)
 
 			b.ResetTimer()
-			for range b.N {
+			for b.Loop() {
 				r.Reset(bs)
 				pa.reset()
 				pa.ParseString()
@@ -3870,7 +3870,7 @@ func BenchmarkParser_ParseNull(b *testing.B) {
 	pa := NewParser(r)
 
 	b.ResetTimer()
-	for range b.N {
+	for b.Loop() {
 		r.Reset(bs)
 		pa.reset()
 		pa.ParseNull()
