@@ -2396,7 +2396,7 @@ func TestLexer_ExpectString(t *testing.T) {
 func BenchmarkLexer_ExpectString(b *testing.B) {
 	var bs []byte
 	bs = append(bs, '"')
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		bs = append(bs, []byte(
 			`hello`+
 				`hello\nworld`+
@@ -2811,7 +2811,7 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 		b.Run(fmt.Sprintf("len=%d", arrayLen), func(b *testing.B) {
 			var buf bytes.Buffer
 			buf.WriteString("[")
-			for i := 0; i < arrayLen; i++ {
+			for i := range arrayLen {
 				buf.WriteString(values[i%len(values)])
 				if i < arrayLen-1 {
 					buf.WriteString(",")
@@ -2840,10 +2840,10 @@ func BenchmarkParser_ParseArray(b *testing.B) {
 	for _, arrayDepth := range []int{1, 10, 100, 1000} {
 		b.Run(fmt.Sprintf("depth=%d", arrayDepth), func(b *testing.B) {
 			var buf bytes.Buffer
-			for i := 0; i < arrayDepth; i++ {
+			for range arrayDepth {
 				buf.WriteString("[")
 			}
-			for i := 0; i < arrayDepth; i++ {
+			for range arrayDepth {
 				buf.WriteString("]")
 			}
 
@@ -2894,7 +2894,7 @@ func TestParser_ParseObject(t *testing.T) {
 			b: func() []byte {
 				var buf bytes.Buffer
 				buf.WriteString("{")
-				for i := 0; i < 100000; i++ {
+				for i := range 100000 {
 					buf.WriteString(`"key`)
 					buf.WriteString(strconv.Itoa(i))
 					buf.WriteString(`":`)
@@ -2909,7 +2909,7 @@ func TestParser_ParseObject(t *testing.T) {
 			}(),
 			want: func() map[string]any {
 				m := make(map[string]any)
-				for i := 0; i < 100000; i++ {
+				for i := range 100000 {
 					m["key"+strconv.Itoa(i)] = nil
 				}
 				return m
@@ -2919,18 +2919,18 @@ func TestParser_ParseObject(t *testing.T) {
 			name: "deeply nested",
 			b: func() []byte {
 				var buf bytes.Buffer
-				for i := 0; i < 10000; i++ {
+				for range 10000 {
 					buf.WriteString(`{"key":`)
 				}
 				buf.WriteString("null")
-				for i := 0; i < 10000; i++ {
+				for range 10000 {
 					buf.WriteString("}")
 				}
 				return buf.Bytes()
 			}(),
 			want: func() map[string]any {
 				m := map[string]any{"key": nil}
-				for i := 0; i < 10000-1; i++ {
+				for range 10000 - 1 {
 					m = map[string]any{"key": m}
 				}
 				return m
@@ -3061,7 +3061,7 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 		b.Run(fmt.Sprintf("len=%d", objectLen), func(b *testing.B) {
 			var buf bytes.Buffer
 			buf.WriteString("{")
-			for i := 0; i < objectLen; i++ {
+			for i := range objectLen {
 				buf.WriteString(`"key`)
 				buf.WriteString(strconv.Itoa(i))
 				buf.WriteString(`":`)
@@ -3092,11 +3092,11 @@ func BenchmarkParser_ParseObject(b *testing.B) {
 	for _, objectDepth := range []int{1, 10, 100, 1000} {
 		b.Run(fmt.Sprintf("depth=%d", objectDepth), func(b *testing.B) {
 			var buf bytes.Buffer
-			for i := 0; i < objectDepth-1; i++ {
+			for range objectDepth - 1 {
 				buf.WriteString(`{"k":`)
 			}
 			buf.WriteString(`{`)
-			for i := 0; i < objectDepth; i++ {
+			for range objectDepth {
 				buf.WriteString("}")
 			}
 
