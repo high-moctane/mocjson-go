@@ -1,6 +1,7 @@
 module github.com/high-moctane/mocjson-go
 
 go 1.24.1
+
 tool (
 	github.com/segmentio/golines
 	golang.org/x/tools/cmd/goimports
@@ -21,11 +22,11 @@ require (
 	github.com/segmentio/golines v0.12.2 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/term v0.27.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
